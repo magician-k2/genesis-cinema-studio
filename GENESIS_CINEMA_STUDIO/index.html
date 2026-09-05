@@ -806,7 +806,7 @@
             </div>
         </aside>
 
-        <!-- Column 2: Center Stage Viewport (Street View Shoot & Map Viewport) -->
+        <!-- Column 2: Center Stage Viewport (Street View Shoot & Map & Earth Viewport) -->
         <section class="stage-wrapper">
             <div class="stage-view-tabs">
                 <button class="stage-tab-btn active" id="tab-btn-streetview" onclick="switchStageMode('streetview')">
@@ -814,6 +814,9 @@
                 </button>
                 <button class="stage-tab-btn" id="tab-btn-map" onclick="switchStageMode('map')">
                     <i class="fa-solid fa-map-marked-alt"></i> 🗺️ ② 全体マップ探索 (Google公式青線 ✕ ペグマン)
+                </button>
+                <button class="stage-tab-btn" id="tab-btn-earth" onclick="switchStageMode('earth')">
+                    <i class="fa-solid fa-earth-asia"></i> 🛸 ③ Google Earth 3D空撮ナビ (Flight Path)
                 </button>
                 <div style="margin-left:auto; display:flex; gap:4px;">
                     <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.25); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800;" onclick="executeAlleywaySearch()" title="大通りから離れ、この街の細道・石畳小路・路地裏へ突入">
@@ -885,6 +888,48 @@
                 </button>
 
                 <div id="stage-map-view"></div>
+
+                <!-- 🛸 Stage Google Earth 3D Flight Navigator View -->
+                <div id="stage-earth-view" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:30; background:#020617; flex-direction:column;">
+                    <!-- Earth 3D Embed Iframe -->
+                    <iframe id="google-earth-iframe" 
+                            src="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r"
+                            style="width:100%; height:100%; border:none;"
+                            allowfullscreen></iframe>
+
+                    <!-- Top HUD Banner for Waypoints Path -->
+                    <div style="position:absolute; top:12px; left:16px; background:rgba(3,7,18,0.92); border:1px solid #38bdf8; border-radius:6px; padding:6px 12px; display:flex; align-items:center; gap:10px; z-index:40; box-shadow:0 0 20px rgba(56,189,248,0.3);">
+                        <span style="font-size:0.62rem; font-weight:800; color:#38bdf8;"><i class="fa-solid fa-route"></i> フライトパス:</span>
+                        <div id="earth-waypoints-pill-list" style="display:flex; gap:4px; align-items:center;">
+                            <span class="badge" style="background:#0284c7; color:#fff; font-size:0.52rem; padding:2px 6px; border-radius:3px; font-weight:700;">WP1: 355m (出発)</span>
+                            <span style="color:#94a3b8; font-size:0.50rem;">➔</span>
+                            <span class="badge" style="background:#0284c7; color:#fff; font-size:0.52rem; padding:2px 6px; border-radius:3px; font-weight:700;">WP2: 159m (中継)</span>
+                            <span style="color:#94a3b8; font-size:0.50rem;">➔</span>
+                            <span class="badge" style="background:#f59e0b; color:#000; font-size:0.52rem; padding:2px 6px; border-radius:3px; font-weight:800;">WP3: 48m (着地)</span>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Floating Flight Control & Landing Gimmick Bar -->
+                    <div style="position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:rgba(3,7,18,0.95); border:1px solid #38bdf8; border-radius:6px; padding:8px 16px; display:flex; align-items:center; gap:8px; z-index:40; box-shadow:0 0 25px rgba(0,0,0,0.8); white-space:nowrap;">
+                        <button class="btn-opt" style="background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#38bdf8; font-size:0.58rem; font-weight:800; padding:4px 10px;" onclick="addCurrentEarthWaypoint()">
+                            <i class="fa-solid fa-location-crosshairs"></i> 📍 現在の高度・視点を点追加
+                        </button>
+                        <button class="btn-opt" style="background:rgba(239,68,68,0.2); border-color:#ef4444; color:#f87171; font-size:0.55rem; padding:4px 8px;" onclick="removeLastEarthWaypoint()">
+                            ✕ 1点戻す
+                        </button>
+                        <div style="height:18px; width:1px; background:var(--border-dark);"></div>
+                        <label style="font-size:0.55rem; color:var(--accent-gold); font-weight:800;">🎬 着地ギミック:</label>
+                        <select id="select-landing-gimmick" style="background:#0d1117; color:#fff; border:1px solid var(--accent-gold); border-radius:3px; font-size:0.55rem; padding:3px 6px;">
+                            <option value="hero_face_close_up">🎯 主人公の正面へ急制動・アップ (Hero Push-in)</option>
+                            <option value="over_the_shoulder">🕵️ 主人公の背後から肩越しへ回り込み (Over-the-Shoulder)</option>
+                            <option value="orbit_360">🔄 360度旋回ランディング (360° Dynamic Orbit)</option>
+                            <option value="low_angle_tilt_up">📐 地面スレスレ滑空から足元見上げ (Low-Angle Tilt-up)</option>
+                        </select>
+                        <button class="btn-opt" style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; font-size:0.62rem; font-weight:900; padding:5px 12px; border:none; border-radius:4px; cursor:pointer;" onclick="executeAerialFlightGeneration()">
+                            🚀 空撮ダイブイン決定 ➔ タイムラインへ配備
+                        </button>
+                    </div>
+                </div>
 
                 <div id="map-zoom-banner">
                     <i class="fa-solid fa-circle-info"></i> <span id="map-zoom-text">🔍 拡大するとGoogle公式の青いストリートビュー線と人形（ペグマン）が現れます</span>
@@ -1629,31 +1674,44 @@
 
         function switchStageMode(mode) {
             currentStageMode = mode;
-            document.getElementById('tab-btn-streetview').classList.toggle('active', mode === 'streetview');
-            document.getElementById('tab-btn-map').classList.toggle('active', mode === 'map');
+            const btnSv = document.getElementById('tab-btn-streetview');
+            const btnMap = document.getElementById('tab-btn-map');
+            const btnEarth = document.getElementById('tab-btn-earth');
+            if (btnSv) btnSv.classList.toggle('active', mode === 'streetview');
+            if (btnMap) btnMap.classList.toggle('active', mode === 'map');
+            if (btnEarth) btnEarth.classList.toggle('active', mode === 'earth');
 
             const svIframe = document.getElementById('google-streetview-iframe');
             const btnReturnMap = document.getElementById('btn-floating-return-map');
             const mapView = document.getElementById('stage-map-view');
+            const earthView = document.getElementById('stage-earth-view');
             const zoomBanner = document.getElementById('map-zoom-banner');
 
             if (mode === 'streetview') {
-                svIframe.style.display = 'block';
-                btnReturnMap.style.display = 'flex';
-                mapView.style.display = 'none';
-                zoomBanner.style.display = 'none';
+                if (svIframe) svIframe.style.display = 'block';
+                if (btnReturnMap) btnReturnMap.style.display = 'flex';
+                if (mapView) mapView.style.display = 'none';
+                if (earthView) earthView.style.display = 'none';
+                if (zoomBanner) zoomBanner.style.display = 'none';
                 updateStreetViewIframe();
+            } else if (mode === 'earth') {
+                if (svIframe) svIframe.style.display = 'none';
+                if (btnReturnMap) btnReturnMap.style.display = 'none';
+                if (mapView) mapView.style.display = 'none';
+                if (earthView) earthView.style.display = 'flex';
+                if (zoomBanner) zoomBanner.style.display = 'none';
+                updateEarthWaypointsPillList();
             } else {
-                svIframe.style.display = 'none';
-                btnReturnMap.style.display = 'none';
-                mapView.style.display = 'block';
-                zoomBanner.style.display = 'block';
+                if (svIframe) svIframe.style.display = 'none';
+                if (btnReturnMap) btnReturnMap.style.display = 'none';
+                if (mapView) mapView.style.display = 'block';
+                if (earthView) earthView.style.display = 'none';
+                if (zoomBanner) zoomBanner.style.display = 'block';
                 if (!leafletMap) {
                     initInteractiveMap();
                 } else {
                     setTimeout(() => {
                         leafletMap.invalidateSize();
-                        // Smoothly center on the currentCoords that user selected
                         leafletMap.setView([currentCoords.lat, currentCoords.lng], leafletMap.getZoom() || 16);
                         if (pegmanMarker) {
                             pegmanMarker.setLatLng([currentCoords.lat, currentCoords.lng]);
@@ -1662,6 +1720,60 @@
                     }, 100);
                 }
             }
+        }
+
+        function updateEarthWaypointsPillList() {
+            const container = document.getElementById('earth-waypoints-pill-list');
+            if (!container) return;
+            container.innerHTML = '';
+            activeAerialWaypoints.forEach((wp, idx) => {
+                const isFirst = (idx === 0);
+                const isLast = (idx === activeAerialWaypoints.length - 1);
+                const pill = document.createElement('span');
+                pill.className = 'badge';
+                const color = isFirst ? '#0284c7' : (isLast ? '#f59e0b' : '#38bdf8');
+                const label = isFirst ? ' (出発)' : (isLast ? ' (着地)' : ' (中継)');
+                pill.style.cssText = `background:${color}; color:${isLast ? '#000' : '#fff'}; font-size:0.52rem; padding:2px 6px; border-radius:3px; font-weight:800;`;
+                pill.textContent = `WP${idx+1}: ${wp.altitude_m}m${label}`;
+                container.appendChild(pill);
+
+                if (idx < activeAerialWaypoints.length - 1) {
+                    const arrow = document.createElement('span');
+                    arrow.style.cssText = 'color:#94a3b8; font-size:0.50rem;';
+                    arrow.textContent = '➔';
+                    container.appendChild(arrow);
+                }
+            });
+        }
+
+        function addCurrentEarthWaypoint() {
+            // Estimate next descending altitude from last waypoint
+            const lastWp = activeAerialWaypoints[activeAerialWaypoints.length - 1];
+            let nextAlt = 48.0;
+            if (lastWp) {
+                if (lastWp.altitude_m > 200) nextAlt = 150.0;
+                else if (lastWp.altitude_m > 80) nextAlt = 48.0;
+                else nextAlt = Math.max(10.0, lastWp.altitude_m - 20.0);
+            }
+            const newWp = {
+                lat: currentCoords.lat,
+                lng: currentCoords.lng,
+                altitude_m: nextAlt,
+                heading: currentHeading || 177.7,
+                tilt: 67.4
+            };
+            activeAerialWaypoints.push(newWp);
+            updateEarthWaypointsPillList();
+            alert(`📍 ウェイポイント [WP${activeAerialWaypoints.length}] を追加しました！\n推定高度: ${nextAlt}m / 緯度経度: ${newWp.lat.toFixed(4)}, ${newWp.lng.toFixed(4)}`);
+        }
+
+        function removeLastEarthWaypoint() {
+            if (activeAerialWaypoints.length <= 1) {
+                alert('出発地点（最初の1点）は削除できません。');
+                return;
+            }
+            activeAerialWaypoints.pop();
+            updateEarthWaypointsPillList();
         }
 
         function jumpToLocation(lat, lng, heading, title) {
@@ -2334,10 +2446,18 @@
                 btn.disabled = true;
             }
 
+            const landingGimmick = document.getElementById('select-landing-gimmick')?.value || 'hero_face_close_up';
+            let heroName = '如月 蓮';
+            if (selectedActorId === 'asuka') heroName = '橘 飛鳥';
+            else if (selectedActorId === 'kagerou') heroName = '緋村 影狼';
+            else if (selectedActorId === 'yuki') heroName = '霧島 結衣';
+
             const payload = {
                 waypoints: activeAerialWaypoints,
                 traffic_level: traffic,
                 crowd_level: crowd,
+                landing_gimmick: landingGimmick,
+                hero_name: heroName,
                 location_name: activeAerialWaypoints[0].lat > 35 ? '新宿副都心・高層ビル街' : '大阪 中之島・大阪市役所周辺'
             };
 

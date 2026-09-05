@@ -723,13 +723,17 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 traffic_level = payload.get('traffic_level', 'medium')
                 crowd_level = payload.get('crowd_level', 'medium')
                 location_name = payload.get('location_name', '大阪 中之島・市役所周辺')
+                landing_gimmick = payload.get('landing_gimmick', 'hero_face_close_up')
+                hero_name = payload.get('hero_name', '如月 蓮')
 
                 flight_path = aerial_engine.compute_flight_path(waypoints)
                 swarm_result = aerial_engine.execute_swarm_synthesis(
                     flight_info=flight_path,
                     traffic_level=traffic_level,
                     crowd_level=crowd_level,
-                    location_name=location_name
+                    location_name=location_name,
+                    landing_gimmick=landing_gimmick,
+                    hero_name=hero_name
                 )
 
                 self.send_response(200)

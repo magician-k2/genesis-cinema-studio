@@ -116,9 +116,9 @@ class AerialFlightSwarmEngine:
             'trajectory_style': trajectory_style
         }
 
-    def execute_swarm_synthesis(self, flight_info: Dict[str, Any], traffic_level: str = 'medium', crowd_level: str = 'medium', location_name: str = 'Osaka Nakanoshima') -> Dict[str, Any]:
+    def execute_swarm_synthesis(self, flight_info: Dict[str, Any], traffic_level: str = 'medium', crowd_level: str = 'medium', location_name: str = 'Osaka Nakanoshima', landing_gimmick: str = 'hero_face_close_up', hero_name: str = 'Ren') -> Dict[str, Any]:
         """
-        Simulates 4 parallel Gemma 4 Swarm agents executing in concert.
+        Simulates 4 parallel Gemma 4 Swarm agents executing in concert with landing gimmick.
         """
         t_start = time.time()
 
@@ -142,12 +142,21 @@ class AerialFlightSwarmEngine:
         }
         crowd_desc = crowd_prompts.get(crowd_level, crowd_prompts['medium'])
 
+        # Landing Gimmick on Hero Actor
+        gimmick_prompts = {
+            'hero_face_close_up': f"camera rapidly decelerates at street level, executing a powerful push-in to an intense dramatic close-up of protagonist {hero_name} standing steadfast",
+            'over_the_shoulder': f"camera glides smoothly behind protagonist {hero_name}, tracking over their shoulder to reveal the urban landscape from their perspective",
+            'orbit_360': f"camera executes a dynamic 360-degree panoramic orbit around standing protagonist {hero_name} before settling into an eye-level master frame",
+            'low_angle_tilt_up': f"camera skims inches above the pavement and tilts dynamically upward into an imposing hero low-angle silhouette of {hero_name}"
+        }
+        gimmick_desc = gimmick_prompts.get(landing_gimmick, gimmick_prompts['hero_face_close_up'])
+
         master_veo_prompt = (
             f"Cinematic 35mm motion picture master shot, ultra-photorealistic 8k. "
             f"{flight_desc} over {location_name}. "
             f"Looking down at {traffic_desc}, "
             f"with {crowd_desc}. "
-            f"Camera decelerates seamlessly as it skims over the highway and bridges towards street level, "
+            f"As the dive completes, {gimmick_desc}, "
             f"anamorphic lens flare from glass tower reflections, golden hour volumetric lighting, IMAX scale."
         )
 
@@ -159,10 +168,12 @@ class AerialFlightSwarmEngine:
             'flight_metrics': flight_info,
             'traffic_level': traffic_level,
             'crowd_level': crowd_level,
+            'landing_gimmick': landing_gimmick,
             'swarm_consensus': {
                 'flight_director': flight_desc,
                 'traffic_engine': traffic_desc,
-                'crowd_conductor': crowd_desc
+                'crowd_conductor': crowd_desc,
+                'landing_gimmick': gimmick_desc
             },
             'master_veo_prompt': master_veo_prompt,
             'director_instruction_ja': (
@@ -171,7 +182,8 @@ class AerialFlightSwarmEngine:
                 f"■ 高度遷移: 上空 {start_alt}m ➔ {end_alt}m へ急降下滑空 (飛行時間: {flight_info.get('flight_duration_s', 5.5)}秒)\n"
                 f"■ 交通トラフィック演出: {traffic_level.upper()} ({traffic_desc})\n"
                 f"■ 歩行者エキストラ演出: {crowd_level.upper()} ({crowd_desc})\n"
-                f"■ 地上ストリートビュー連結: 空撮終了後、地上に立つ主人公（蓮/探偵）のカットへタイムライン接続"
+                f"■ 終了地点の着地演出: {landing_gimmick.upper()} ({gimmick_desc})\n"
+                f"■ 地上ストリートビュー連結: 空撮終了後、地上に立つ主人公（{hero_name}）のカットへタイムライン接続"
             ),
             'swarm_latency_ms': latency_ms,
             'status': 'AERIAL_SWARM_READY'

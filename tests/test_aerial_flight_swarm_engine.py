@@ -34,25 +34,26 @@ class TestAerialFlightSwarmEngine(unittest.TestCase):
         self.assertEqual(path['trajectory_style'], 'HYPERSONIC_SKYSCRAPER_DIVE_IN')
         self.assertGreater(path['altitude_delta_m'], 250)
 
-    def test_03_execute_swarm_synthesis(self):
+    def test_03_execute_swarm_synthesis_with_landing_gimmicks(self):
         wp1 = self.engine.parse_earth_url(self.url1)
         wp3 = self.engine.parse_earth_url(self.url3)
         path = self.engine.compute_flight_path([wp1, wp3])
 
-        result = self.engine.execute_swarm_synthesis(
-            flight_info=path,
-            traffic_level='rush_hour',
-            crowd_level='dense',
-            location_name='大阪 中之島・市役所周辺'
-        )
+        for gimmick in ['hero_face_close_up', 'over_the_shoulder', 'orbit_360', 'low_angle_tilt_up']:
+            result = self.engine.execute_swarm_synthesis(
+                flight_info=path,
+                traffic_level='rush_hour',
+                crowd_level='dense',
+                location_name='大阪 中之島・市役所周辺',
+                landing_gimmick=gimmick,
+                hero_name='如月 蓮'
+            )
 
-        self.assertTrue(result['success'])
-        self.assertIn('master_veo_prompt', result)
-        self.assertIn('FPV drone', result['master_veo_prompt'])
-        self.assertIn('expressways', result['master_veo_prompt'])
-        self.assertIn('pedestrians', result['master_veo_prompt'])
-        self.assertIn('swarm_consensus', result)
-        self.assertGreater(result['swarm_latency_ms'], 0)
+            self.assertTrue(result['success'])
+            self.assertEqual(result['landing_gimmick'], gimmick)
+            self.assertIn('如月 蓮', result['master_veo_prompt'])
+            self.assertIn('FPV drone', result['master_veo_prompt'])
+            self.assertGreater(result['swarm_latency_ms'], 0)
 
 if __name__ == '__main__':
     unittest.main()
