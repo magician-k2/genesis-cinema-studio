@@ -1483,6 +1483,13 @@
             });
 
             leafletMap.on('zoomend', checkZoomLevelAndToggleCoverage);
+            leafletMap.on('moveend', () => {
+                // Keep track of map center without resetting pegman
+                if (leafletMap) {
+                    const center = leafletMap.getCenter();
+                    // Do not overwrite currentCoords unless user clicks or drops pegman
+                }
+            });
             checkZoomLevelAndToggleCoverage();
         }
 
@@ -1496,8 +1503,8 @@
                 baseMapTileLayer.setUrl(GOOGLE_STREETVIEW_BLUE_ROADS_URL);
                 if (!leafletMap.hasLayer(pegmanMarker)) {
                     pegmanMarker.addTo(leafletMap);
+                    pegmanMarker.setLatLng([currentCoords.lat, currentCoords.lng]);
                 }
-                pegmanMarker.setLatLng(leafletMap.getCenter());
 
                 zoomBanner.style.display = 'block';
                 zoomBanner.style.borderColor = 'var(--accent-cyan)';
@@ -1517,6 +1524,9 @@
         function onLocationSelected(lat, lng) {
             currentCoords.lat = lat;
             currentCoords.lng = lng;
+            if (pegmanMarker) {
+                pegmanMarker.setLatLng([lat, lng]);
+            }
             currentLocTitle = `選択ロケ地 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
             currentMapsUrl = `https://www.google.com/maps/@${lat.toFixed(7)},${lng.toFixed(7)},3a,75y,${Math.floor(currentHeading)}h,90t`;
 
@@ -1549,11 +1559,16 @@
                 btnReturnMap.style.display = 'none';
                 mapView.style.display = 'block';
                 zoomBanner.style.display = 'block';
-                if (!leafletMap) initInteractiveMap();
-                if (leafletMap) {
+                if (!leafletMap) {
+                    initInteractiveMap();
+                } else {
                     setTimeout(() => {
                         leafletMap.invalidateSize();
-                        leafletMap.setView([currentCoords.lat, currentCoords.lng], 16);
+                        // Smoothly center on the currentCoords that user selected
+                        leafletMap.setView([currentCoords.lat, currentCoords.lng], leafletMap.getZoom() || 16);
+                        if (pegmanMarker) {
+                            pegmanMarker.setLatLng([currentCoords.lat, currentCoords.lng]);
+                        }
                         checkZoomLevelAndToggleCoverage();
                     }, 100);
                 }
@@ -1574,12 +1589,33 @@
             updateActiveAspectCard();
             if (leafletMap) {
                 leafletMap.setView([lat, lng], 16);
+                if (pegmanMarker) {
+                    pegmanMarker.setLatLng([lat, lng]);
+                }
                 checkZoomLevelAndToggleCoverage();
             }
         }
 
         async function executeLocationSearch() {
-            const query = document.getElementById('input-scout-query').value;
+            const queryInput = document.getElementById('input-scout-query');
+            const query = queryInput ? queryInput.value.trim() : '';
+            if (!query) return;
+
+            // Direct Google Maps URL Parser (e.g. https://www.google.com/maps/@35.6938,139.7001,3a,75y,120h,90t)
+            if (query.includes('google.com/maps')) {
+                const match = query.match(/@([0-9.-]+),([0-9.-]+)/);
+                if (match) {
+                    const lat = parseFloat(match[1]);
+                    const lng = parseFloat(match[2]);
+                    const headingMatch = query.match(/,([0-9.]+)h/);
+                    const heading = headingMatch ? parseFloat(headingMatch[1]) : currentHeading;
+
+                    jumpToLocation(lat, lng, heading, `Google Maps指定ロケ地 (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+                    alert(`✅ Google Maps URLから座標を特定しました！\n座標: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+                    return;
+                }
+            }
+
             try {
                 const res = await fetch(`/api/scout?query=${encodeURIComponent(query)}`);
                 const data = await res.json();
