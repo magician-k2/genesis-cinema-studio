@@ -585,14 +585,15 @@
             </div>
             <div class="panel-body">
 
-                <!-- 👥 1. Character Cast Selector (サード画面で作成されたキャストをワンクリック選択) -->
-                <div class="control-box" style="border:1px solid var(--accent-blue); background:rgba(59,130,246,0.03);">
-                    <div class="box-title" style="color:var(--accent-cyan);">
-                        <span><i class="fa-solid fa-user-astronaut"></i> ① 出演キャスト選択 ＆ 4面アスペクト</span>
-                        <span id="badge-char-aspect" style="background:var(--accent-cyan); color:#000; padding:1px 4px; border-radius:3px; font-size:0.52rem; font-weight:800;">正面 (Front)</span>
+                <!-- 🎬 1. Scene Director & Cast & Props & Vehicles Palette -->
+                <div class="control-box" style="border:1px solid var(--accent-cyan); background:rgba(0,242,254,0.03);">
+                    <div class="box-title" style="color:var(--accent-cyan); display:flex; justify-content:space-between; align-items:center;">
+                        <span><i class="fa-solid fa-clapperboard"></i> ① シーン演出ディレクター (Cast & Props)</span>
+                        <span id="badge-char-aspect" style="background:var(--accent-cyan); color:#000; padding:1px 4px; border-radius:3px; font-size:0.50rem; font-weight:800;">正面 (Front)</span>
                     </div>
 
                     <!-- Cast Selection -->
+                    <div style="font-size:0.50rem; color:var(--text-muted); margin-top:2px;">👤 出演キャスト (Actor):</div>
                     <div class="btn-grid-4" id="cockpit-cast-buttons">
                         <button class="btn-opt active" id="btn-cast-ren" onclick="selectActor('ren')">如月 蓮</button>
                         <button class="btn-opt" id="btn-cast-kagerou" onclick="selectActor('kagerou')">緋村 影狼</button>
@@ -600,33 +601,45 @@
                         <button class="btn-opt" id="btn-cast-asuka" onclick="selectActor('asuka')">橘 飛鳥</button>
                     </div>
 
+                    <!-- Costume & Prop Slots -->
+                    <div style="display:flex; flex-direction:column; gap:3px; margin-top:4px; background:#070a14; padding:5px; border-radius:4px; border:1px solid var(--border-dark);">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <label style="font-size:0.50rem; color:var(--accent-cyan); font-weight:700;"><i class="fa-solid fa-shirt"></i> 👘 衣装 (Costume):</label>
+                            <select id="select-director-costume" onchange="onSceneSlotChange()" style="width:70%; background:#0d1117; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.52rem; padding:2px;">
+                                <option value="">(衣装なし / 標準)</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <label style="font-size:0.50rem; color:var(--accent-gold); font-weight:700;"><i class="fa-solid fa-hand-holding"></i> 🗡️ 小道具 (Prop):</label>
+                            <select id="select-director-prop" onchange="onSceneSlotChange()" style="width:70%; background:#0d1117; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.52rem; padding:2px;">
+                                <option value="">(小道具なし / 素手)</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <label style="font-size:0.50rem; color:var(--accent-purple); font-weight:700;"><i class="fa-solid fa-bus"></i> 🚌 大道具・車両:</label>
+                            <select id="select-director-vehicle" onchange="onSceneSlotChange()" style="width:70%; background:#0d1117; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.52rem; padding:2px;">
+                                <option value="">(車両なし / 人物のみ)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- Stage Summon & Studio Buttons -->
-                    <div style="display:flex; gap:4px; margin-top:2px;">
-                        <button class="btn-opt" id="btn-summon-stage-actor" style="flex:1; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.toggleStageActor()">
-                            <i class="fa-solid fa-person-walking-arrow-right"></i> 📍 街角セットに召喚
+                    <div style="display:flex; gap:4px; margin-top:3px;">
+                        <button class="btn-opt" id="btn-summon-stage-actor" style="flex:1; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800; font-size:0.56rem; padding:4px;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.toggleStageActor()">
+                            <i class="fa-solid fa-person-walking-arrow-right"></i> 📍 街角セットに配置
                         </button>
-                        <button class="btn-opt" style="flex:1; background:rgba(168,85,247,0.15); border-color:var(--accent-purple); color:#c084fc; font-weight:800;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.openModal()">
-                            <i class="fa-solid fa-shirt"></i> 🎭 キャスト工房
+                        <button class="btn-opt" style="flex:1; background:rgba(168,85,247,0.15); border-color:var(--accent-purple); color:#c084fc; font-weight:800; font-size:0.56rem; padding:4px;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.openModal()">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> 🎭 キャスト工房
                         </button>
                     </div>
 
-                    <!-- Costume & Acting Tone -->
-                    <div style="display:flex; gap:4px;">
-                        <select id="select-actor-costume" onchange="onCostumeChange()" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.55rem; padding:3px;">
-                            <option value="noir_suit">🧥 ノワール・ロングトレンチコート</option>
-                            <option value="casual_jacket">🧥 ヴィンテージ・レザージャケット</option>
-                            <option value="tactical_gear">🛡️ タクティカル・オペレーションギア</option>
-                        </select>
-                        <select id="select-acting-tone" onchange="onActingToneChange()" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.55rem; padding:3px;">
-                            <option value="tense">😠 緊迫・警戒 (Tense)</option>
-                            <option value="confident">😎 自信・圧倒 (Confident)</option>
-                            <option value="angry">🔥 激昂・鋭利 (Angry)</option>
-                            <option value="calm">🧊 冷静・沈着 (Calm)</option>
-                        </select>
-                    </div>
+                    <!-- 🎬 ACTION! SCENE GENERATE BUTTON -->
+                    <button class="btn-opt" id="btn-action-generate-scene" style="margin-top:5px; background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:900; font-size:0.68rem; padding:8px; border:none; border-radius:4px; box-shadow:0 0 15px rgba(0,242,254,0.3); display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="executeSceneGeneration()">
+                        <i class="fa-solid fa-clapperboard"></i> 🎬 ACTION! ストリートビュー映画シーン生成
+                    </button>
 
                     <!-- 4-View Turnaround Mini-Card Preview -->
-                    <div class="turnaround-grid">
+                    <div class="turnaround-grid" style="margin-top:5px;">
                         <div class="turnaround-view-card active-aspect" id="card-aspect-front">
                             <span class="aspect-title">正面 (Front)</span>
                             <canvas id="canvas-aspect-front" class="turnaround-canvas-preview" width="88" height="150"></canvas>
@@ -770,14 +783,33 @@
                         allowfullscreen
                         loading="eager"></iframe>
 
-                <!-- 🎭 Stage Actor Overlay Layer (32bit Transparent PNG + Contact Drop Shadow) -->
+                <!-- 🎭 Stage Actor Overlay Layer (32bit Transparent PNG + Contact Drop Shadow + Props & Vehicle) -->
                 <div id="stage-actor-layer" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:35; overflow:hidden;">
+                    
+                    <!-- 🚌 Vehicle / Set Piece Entity (大道具・車両オーバーレイ) -->
+                    <div id="stage-vehicle-entity" style="display:none; position:absolute; bottom:16%; left:22%; transform:translateX(-50%); pointer-events:auto; cursor:grab; user-select:none; flex-direction:column; align-items:center;">
+                        <div style="background:rgba(6,10,20,0.92); border:1px solid var(--accent-purple); border-radius:4px; padding:3px 8px; font-size:0.52rem; color:var(--accent-purple); font-weight:800; margin-bottom:4px; white-space:nowrap; display:flex; align-items:center; gap:6px; box-shadow:0 0 10px rgba(168,85,247,0.3);">
+                            <span id="stage-vehicle-name-badge">🚌 東京都営バス風 (低床)</span>
+                            <button onclick="dismissStageVehicle(event)" style="background:rgba(239,68,68,0.3); border:none; color:#f87171; border-radius:2px; font-size:0.50rem; padding:1px 4px; cursor:pointer;">✕</button>
+                        </div>
+                        <div id="stage-vehicle-visual" style="font-size:3.5rem; filter:drop-shadow(0 0 8px rgba(0,0,0,0.9));">🚌</div>
+                        <div style="width:130px; height:18px; background:radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 80%); border-radius:50%; margin-top:-8px; transform:scaleY(0.45); pointer-events:none;"></div>
+                    </div>
+
+                    <!-- 👤 Actor Entity (主役アクター + 装備バッジ) -->
                     <div id="stage-actor-entity" style="position:absolute; bottom:14%; left:50%; transform:translateX(-50%); pointer-events:auto; cursor:grab; user-select:none; display:flex; flex-direction:column; align-items:center;">
                         <div id="stage-actor-bubble" style="background:rgba(6,10,20,0.92); border:1px solid var(--accent-cyan); border-radius:4px; padding:3px 8px; font-size:0.55rem; color:var(--accent-cyan); font-weight:700; margin-bottom:4px; white-space:nowrap; display:flex; align-items:center; gap:6px; box-shadow:0 0 10px rgba(0,242,254,0.3);">
                             <span id="stage-actor-name-badge">如月 蓮 (1.80m)</span>
                             <button onclick="window.CharacterStudioUI && window.CharacterStudioUI.cycleStageActorAspect(event)" style="background:rgba(0,242,254,0.2); border:none; color:#fff; border-radius:2px; font-size:0.52rem; padding:1px 5px; cursor:pointer;" title="アングル切替 (正面/右/後/左)">🔄 <span id="stage-actor-aspect-badge">正面</span></button>
                             <button onclick="window.CharacterStudioUI && window.CharacterStudioUI.dismissStageActor(event)" style="background:rgba(239,68,68,0.3); border:none; color:#f87171; border-radius:2px; font-size:0.52rem; padding:1px 5px; cursor:pointer;" title="退場">✕ 退場</button>
                         </div>
+                        
+                        <!-- Costume & Prop Badges over Actor -->
+                        <div id="stage-actor-gear-badges" style="display:flex; gap:4px; margin-bottom:2px;">
+                            <span id="badge-stage-costume" style="display:none; font-size:0.48rem; background:rgba(0,242,254,0.2); border:1px solid var(--accent-cyan); color:#38bdf8; padding:1px 5px; border-radius:3px; font-weight:700;"></span>
+                            <span id="badge-stage-prop" style="display:none; font-size:0.48rem; background:rgba(245,158,11,0.2); border:1px solid var(--accent-gold); color:#fbbf24; padding:1px 5px; border-radius:3px; font-weight:700;"></span>
+                        </div>
+
                         <img id="stage-actor-img" src="/characters/test_ren_e2e/front.png" alt="Actor" style="height:380px; width:auto; object-fit:contain; filter:drop-shadow(0 0 1px rgba(0,0,0,0.8));">
                         <!-- Contact Drop Shadow -->
                         <div id="stage-actor-shadow" style="width:140px; height:24px; background:radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 80%); border-radius:50%; margin-top:-14px; transform:scaleY(0.55); pointer-events:none;"></div>
@@ -841,6 +873,14 @@
             </div>
             <div class="panel-body">
                 
+                <!-- 🎬 Recent Generated Scenes Selector -->
+                <div style="display:flex; align-items:center; justify-content:space-between; background:#070a14; padding:4px 6px; border-radius:4px; border:1px solid var(--accent-cyan); margin-bottom:4px;">
+                    <span style="font-size:0.52rem; color:var(--accent-cyan); font-weight:800;"><i class="fa-solid fa-clapperboard"></i> 🎬 シーン台帳:</span>
+                    <select id="select-scenes-vault" onchange="loadSelectedScene(this.value)" style="width:72%; background:#0d1117; color:#38bdf8; border:1px solid var(--border-dark); border-radius:3px; font-size:0.52rem; padding:2px;">
+                        <option value="">(生成履歴なし)</option>
+                    </select>
+                </div>
+
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:0.6rem; font-weight:700; color:var(--accent-cyan);"><i class="fa-solid fa-globe"></i> Veo 3.1 映画生成マスタープロンプト</span>
                     <button class="btn-opt" style="padding:1px 5px; font-size:0.55rem;" onclick="copyPromptEn()">コピー</button>
@@ -2170,6 +2210,246 @@
             updatePrompts();
         };
 
+        /**
+         * 🎬 Scene Cast & Props & Vehicles Director Engine
+         */
+        let globalSceneAssets = { costumes: [], props: [], vehicles: [] };
+        let cachedGeneratedScenes = [];
+
+        async function loadSceneAssetsAndVault() {
+            try {
+                const res = await fetch('/api/scene/assets');
+                if (res.ok) {
+                    globalSceneAssets = await res.json();
+                    
+                    // Populate Costumes
+                    const selCostume = document.getElementById('select-director-costume');
+                    if (selCostume && globalSceneAssets.costumes) {
+                        selCostume.innerHTML = '<option value="">(衣装なし / 標準)</option>';
+                        globalSceneAssets.costumes.forEach(c => {
+                            const opt = document.createElement('option');
+                            opt.value = c.id;
+                            opt.textContent = `${c.icon || '🧥'} ${c.name}`;
+                            selCostume.appendChild(opt);
+                        });
+                    }
+
+                    // Populate Props
+                    const selProp = document.getElementById('select-director-prop');
+                    if (selProp && globalSceneAssets.props) {
+                        selProp.innerHTML = '<option value="">(小道具なし / 素手)</option>';
+                        globalSceneAssets.props.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = `${p.icon || '🗡️'} ${p.name}`;
+                            selProp.appendChild(opt);
+                        });
+                    }
+
+                    // Populate Vehicles
+                    const selVeh = document.getElementById('select-director-vehicle');
+                    if (selVeh && globalSceneAssets.vehicles) {
+                        selVeh.innerHTML = '<option value="">(車両なし / 人物のみ)</option>';
+                        globalSceneAssets.vehicles.forEach(v => {
+                            const opt = document.createElement('option');
+                            opt.value = v.id;
+                            opt.textContent = `${v.icon || '🚌'} ${v.name}`;
+                            selVeh.appendChild(opt);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn("Failed to load scene assets:", err);
+            }
+
+            // Load Existing Scenes Vault
+            try {
+                const res = await fetch('/api/scenes');
+                if (res.ok) {
+                    cachedGeneratedScenes = await res.json();
+                    const selScenes = document.getElementById('select-scenes-vault');
+                    if (selScenes) {
+                        selScenes.innerHTML = '<option value="">(生成履歴なし)</option>';
+                        cachedGeneratedScenes.forEach((s, idx) => {
+                            const opt = document.createElement('option');
+                            opt.value = s.scene_id;
+                            opt.textContent = `[#${idx+1}] ${s.title || 'Scene'}`;
+                            selScenes.appendChild(opt);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn("Failed to load scenes vault:", err);
+            }
+        }
+
+        function onSceneSlotChange() {
+            const costumeId = document.getElementById('select-director-costume')?.value;
+            const propId = document.getElementById('select-director-prop')?.value;
+            const vehicleId = document.getElementById('select-director-vehicle')?.value;
+
+            // Update Badges on Actor in Stage
+            const badgeCostume = document.getElementById('badge-stage-costume');
+            const badgeProp = document.getElementById('badge-stage-prop');
+            const vehicleEntity = document.getElementById('stage-vehicle-entity');
+            const vehicleBadge = document.getElementById('stage-vehicle-name-badge');
+            const vehicleVisual = document.getElementById('stage-vehicle-visual');
+
+            if (badgeCostume) {
+                const cItem = globalSceneAssets.costumes?.find(c => c.id === costumeId);
+                if (cItem) {
+                    badgeCostume.style.display = 'inline-block';
+                    badgeCostume.textContent = `${cItem.icon} ${cItem.name.split(' ')[1] || cItem.name}`;
+                } else {
+                    badgeCostume.style.display = 'none';
+                }
+            }
+
+            if (badgeProp) {
+                const pItem = globalSceneAssets.props?.find(p => p.id === propId);
+                if (pItem) {
+                    badgeProp.style.display = 'inline-block';
+                    badgeProp.textContent = `${pItem.icon} ${pItem.name.split(' ')[1] || pItem.name}`;
+                } else {
+                    badgeProp.style.display = 'none';
+                }
+            }
+
+            if (vehicleEntity) {
+                const vItem = globalSceneAssets.vehicles?.find(v => v.id === vehicleId);
+                if (vItem) {
+                    vehicleEntity.style.display = 'flex';
+                    if (vehicleBadge) vehicleBadge.textContent = `${vItem.icon} ${vItem.name}`;
+                    if (vehicleVisual) vehicleVisual.textContent = vItem.icon || '🚌';
+                } else {
+                    vehicleEntity.style.display = 'none';
+                }
+            }
+        }
+
+        function dismissStageVehicle(e) {
+            if (e) e.stopPropagation();
+            const vehSel = document.getElementById('select-director-vehicle');
+            if (vehSel) vehSel.value = '';
+            const vehicleEntity = document.getElementById('stage-vehicle-entity');
+            if (vehicleEntity) vehicleEntity.style.display = 'none';
+        }
+
+        async function executeSceneGeneration() {
+            const costumeId = document.getElementById('select-director-costume')?.value || '';
+            const propId = document.getElementById('select-director-prop')?.value || '';
+            const vehicleId = document.getElementById('select-director-vehicle')?.value || '';
+            
+            const btn = document.getElementById('btn-action-generate-scene');
+            const origText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 🎬 シーン構成＆Veoプロンプト合成中...';
+                btn.disabled = true;
+            }
+
+            // Map selectedActorId to actual Vault character ID if exists
+            let charId = 'test_ren_e2e';
+            if (selectedActorId === 'ren') charId = 'test_ren_e2e';
+            else if (selectedActorId === 'asuka') charId = 'test_idol_e2e';
+
+            const payload = {
+                character_id: charId,
+                costume_id: costumeId,
+                prop_id: propId,
+                vehicle_id: vehicleId,
+                location: {
+                    lat: currentCoords.lat,
+                    lng: currentCoords.lng,
+                    locationName: currentLocTitle || "指定ロケ地",
+                    heading: currentHeading,
+                    isAlleyway: isCurrentAlleyway
+                },
+                custom_prompt: ""
+            };
+
+            try {
+                const res = await fetch('/api/scene/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data && data.success) {
+                    // 1. Update Prompts in Right Panel
+                    const txtEn = document.getElementById('ai-prompt-en');
+                    const txtJa = document.getElementById('ai-prompt-ja');
+                    if (txtEn) txtEn.value = data.veo_prompt;
+                    if (txtJa) {
+                        txtJa.value = `【🎬 GENESIS CINEMA シーン決定台本】\n■ タイトル: ${data.title}\n■ ロケ地: ${data.location.locationName} (座標: ${data.location.lat.toFixed(4)}, ${data.location.lng.toFixed(4)} 方位: ${Math.floor(data.location.heading)}°)\n■ 主役キャスト: ${data.character.name} (${data.character.gender || '指定なし'})\n■ 装着衣装: ${data.costume ? data.costume.name : '標準衣装'}\n■ 手持ち小道具: ${data.prop ? data.prop.name : 'なし'}\n■ 配置大道具/車両: ${data.vehicle ? data.vehicle.name : 'なし'}\n■ シーン演出種別: ${data.location.isAlleyway ? '🏮 歴史的細道・路地裏ノワール' : '🛣️ 大通りストリートシネマ'}`;
+                    }
+
+                    // 2. Summon Actor and Vehicle onto Stage
+                    const actorLayer = document.getElementById('stage-actor-layer');
+                    if (actorLayer) actorLayer.style.display = 'block';
+
+                    onSceneSlotChange();
+
+                    // 3. Update Scenes Vault dropdown
+                    cachedGeneratedScenes.unshift(data);
+                    const selScenes = document.getElementById('select-scenes-vault');
+                    if (selScenes) {
+                        selScenes.innerHTML = '';
+                        cachedGeneratedScenes.forEach((s, idx) => {
+                            const opt = document.createElement('option');
+                            opt.value = s.scene_id;
+                            opt.textContent = `[#${idx+1}] ${s.title || 'Scene'}`;
+                            selScenes.appendChild(opt);
+                        });
+                        selScenes.value = data.scene_id;
+                    }
+
+                    alert(`🎬 映画シーンを生成しました！\n\n【シーン名】: ${data.title}\n【現場】: ${data.location.locationName}\n【装備】: 衣装(${data.costume ? data.costume.name : '標準'}) ✕ 小道具(${data.prop ? data.prop.name : 'なし'})\n【大道具】: ${data.vehicle ? data.vehicle.name : 'なし'}\n\nストリートビュー現場にアセットが配置され、Veo 3.1 映画生成マスタープロンプトが出力されました！`);
+                } else {
+                    alert('シーン生成に失敗しました: ' + (data.error || '不明なエラー'));
+                }
+            } catch (err) {
+                console.error("Scene generation error:", err);
+                alert("シーン生成通信エラーが発生しました。");
+            } finally {
+                if (btn) {
+                    btn.innerHTML = origText;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function loadSelectedScene(sceneId) {
+            if (!sceneId) return;
+            const scene = cachedGeneratedScenes.find(s => s.scene_id === sceneId);
+            if (!scene) return;
+
+            // Restore Prompts
+            const txtEn = document.getElementById('ai-prompt-en');
+            const txtJa = document.getElementById('ai-prompt-ja');
+            if (txtEn) txtEn.value = scene.veo_prompt;
+            if (txtJa) {
+                txtJa.value = `【🎬 GENESIS CINEMA シーン決定台本】\n■ タイトル: ${scene.title}\n■ ロケ地: ${scene.location.locationName} (座標: ${scene.location.lat.toFixed(4)}, ${scene.location.lng.toFixed(4)})\n■ 主役キャスト: ${scene.character.name}\n■ 装着衣装: ${scene.costume ? scene.costume.name : '標準衣装'}\n■ 手持ち小道具: ${scene.prop ? scene.prop.name : 'なし'}\n■ 配置大道具/車両: ${scene.vehicle ? scene.vehicle.name : 'なし'}`;
+            }
+
+            // Restore Slots
+            const selCostume = document.getElementById('select-director-costume');
+            const selProp = document.getElementById('select-director-prop');
+            const selVeh = document.getElementById('select-director-vehicle');
+            if (selCostume) selCostume.value = scene.costume ? scene.costume.id : '';
+            if (selProp) selProp.value = scene.prop ? scene.prop.id : '';
+            if (selVeh) selVeh.value = scene.vehicle ? scene.vehicle.id : '';
+
+            // Warp to Location
+            if (scene.location) {
+                jumpToLocation(scene.location.lat, scene.location.lng, scene.location.heading || 180, scene.location.locationName);
+            }
+
+            // Show on stage
+            const actorLayer = document.getElementById('stage-actor-layer');
+            if (actorLayer) actorLayer.style.display = 'block';
+            onSceneSlotChange();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             selectActor('ren');
             selectTimeOfDay('sunset');
@@ -2180,6 +2460,7 @@
             updateHud();
             updateStreetViewIframe();
             updatePrompts();
+            loadSceneAssetsAndVault();
         });
     </script>
 </body>

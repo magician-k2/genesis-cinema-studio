@@ -16,6 +16,8 @@ PORT = 8080
 API_KEY = 'AIzaSyBkhM10sDbZGHmeBfeMGC6cgeIVr9qPvUk'
 DIRECTORY = r'G:\マイドライブ\GENESIS_ROOT\GENESIS_CINEMA_STUDIO'
 VAULT_FILE = os.path.join(DIRECTORY, 'locations_vault.json')
+PROPS_VAULT_FILE = os.path.join(DIRECTORY, 'props_vault.json')
+SCENES_VAULT_FILE = os.path.join(DIRECTORY, 'scenes_vault.json')
 
 # Initialize Character Matting & 4-View Engine
 ROOT_DIR = os.path.dirname(DIRECTORY)
@@ -309,6 +311,38 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": "Character not found"}, ensure_ascii=False).encode('utf-8'))
                 return
 
+        # 7. 🎭 Scene Assets Vault (Costumes, Props, Vehicles/Liveries) Endpoint
+        elif parsed.path == '/api/scene/assets':
+            assets = {"costumes": [], "props": [], "vehicles": []}
+            if os.path.exists(PROPS_VAULT_FILE):
+                try:
+                    with open(PROPS_VAULT_FILE, 'r', encoding='utf-8') as f:
+                        assets = json.load(f)
+                except Exception:
+                    pass
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(assets, ensure_ascii=False).encode('utf-8'))
+            return
+
+        # 8. 🎬 Generated Scenes List Endpoint
+        elif parsed.path == '/api/scenes':
+            scenes_data = []
+            if os.path.exists(SCENES_VAULT_FILE):
+                try:
+                    with open(SCENES_VAULT_FILE, 'r', encoding='utf-8') as f:
+                        scenes_data = json.load(f)
+                except Exception:
+                    pass
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(scenes_data, ensure_ascii=False).encode('utf-8'))
+            return
+
         return super().do_GET()
 
     def do_OPTIONS(self):
@@ -479,6 +513,165 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps(transfer_result, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+        # 🎬 Generate Cinema Scene (Actor + Costume + Prop + Vehicle + Street View)
+        elif parsed.path == '/api/scene/generate':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', '')
+                costume_id = payload.get('costume_id', '')
+                prop_id = payload.get('prop_id', '')
+                vehicle_id = payload.get('vehicle_id', '')
+                loc = payload.get('location', {})
+                custom_prompt = payload.get('custom_prompt', '').strip()
+
+                # 1. Load Props Vault
+                assets = {"costumes": [], "props": [], "vehicles": []}
+                if os.path.exists(PROPS_VAULT_FILE):
+                    with open(PROPS_VAULT_FILE, 'r', encoding='utf-8') as f:
+                        assets = json.load(f)
+
+                # 2. Match Assets
+                costume_item = next((c for c in assets.get('costumes', []) if c['id'] == costume_id), None)
+                prop_item = next((p for p in assets.get('props', []) if p['id'] == prop_id), None)
+                vehicle_item = next((v for v in assets.get('vehicles', []) if v['id'] == vehicle_id), None)
+
+                # 3. Match Character
+                char_info = {}
+                char_img_url = ""
+                if char_id:
+                    char_meta_path = os.path.join(matting_engine.vault_dir, char_id, 'character_meta.json')
+                    if os.path.exists(char_meta_path):
+                        with open(char_meta_path, 'r', encoding='utf-8') as f:
+                            char_info = json.load(f)
+                    char_img_url = f"/characters/{char_id}/front.png"
+
+                # 4. Construct Photorealistic Veo 3.1 Scene Prompt
+                loc_name = loc.get('locationName', 'Urban Street')
+                lat = loc.get('lat', 35.7111)
+                lng = loc.get('lng', 139.7963)
+                heading = loc.get('heading', 180)
+                is_alley = loc.get('isAlleyway', False)
+
+                char_name = char_info.get('name', 'The protagonist')
+                char_features = char_info.get('features', {})
+                hair = char_features.get('hair', 'natural styling')
+                build = char_features.get('build', 'slender build')
+
+                prompt_parts = []
+                prompt_parts.append(f"Cinematic 35mm motion picture master shot, ultra-photorealistic 8k, filmed on location at {loc_name} (Coordinates: {lat:.4f}, {lng:.4f}, facing heading {int(heading)}°).")
+
+                # Character description
+                char_desc = f"Main character {char_name} ({hair}, {build})"
+                if costume_item:
+                    char_desc += f", {costume_item['prompt_tag']}"
+                if prop_item:
+                    char_desc += f", authentically {prop_item['prompt_tag']}"
+                prompt_parts.append(char_desc + ".")
+
+                # Vehicle / Big prop description
+                if vehicle_item:
+                    prompt_parts.append(f"Set dressing: {vehicle_item['prompt_tag']} parked realistically along the street edge with accurate corporate livery.")
+
+                # Lighting & Atmospheric tone
+                if is_alley:
+                    prompt_parts.append("Atmosphere: narrow historic cobblestone back-alley, dramatic rim lighting casting long shadows across textured walls, subtle atmospheric haze, wet ground reflections.")
+                else:
+                    prompt_parts.append("Atmosphere: authentic street ambiance, shallow depth of field, anamorphic bokeh, balanced cinematic grading, documentary realism.")
+
+                if custom_prompt:
+                    prompt_parts.append(f"Director cue: {custom_prompt}.")
+
+                final_veo_prompt = " ".join(prompt_parts)
+
+                # 5. Composite Scene Metadata for Immediate Stage Preview
+                scene_id = f"scene_{int(time.time()*1000)}"
+                scene_result = {
+                    "success": True,
+                    "scene_id": scene_id,
+                    "timestamp": int(time.time() * 1000),
+                    "title": f"🎬 {char_name} in {loc_name}",
+                    "location": loc,
+                    "character": {
+                        "id": char_id,
+                        "name": char_name,
+                        "front_image": char_img_url,
+                        "gender": char_info.get("gender", "")
+                    },
+                    "costume": costume_item,
+                    "prop": prop_item,
+                    "vehicle": vehicle_item,
+                    "veo_prompt": final_veo_prompt,
+                    "preview_layers": {
+                        "streetview_url": f"/api/streetview?lat={lat}&lng={lng}&heading={heading}",
+                        "character_overlay": char_img_url,
+                        "prop_badge": prop_item['icon'] + ' ' + prop_item['name'] if prop_item else None,
+                        "costume_badge": costume_item['icon'] + ' ' + costume_item['name'] if costume_item else None,
+                        "vehicle_badge": vehicle_item['icon'] + ' ' + vehicle_item['name'] if vehicle_item else None
+                    }
+                }
+
+                # 6. Save to Scenes Vault
+                scenes_list = []
+                if os.path.exists(SCENES_VAULT_FILE):
+                    try:
+                        with open(SCENES_VAULT_FILE, 'r', encoding='utf-8') as f:
+                            scenes_list = json.load(f)
+                    except Exception:
+                        pass
+                scenes_list.insert(0, scene_result)
+                # Keep up to 50 scenes
+                scenes_list = scenes_list[:50]
+                with open(SCENES_VAULT_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(scenes_list, f, ensure_ascii=False, indent=2)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(scene_result, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # ➕ Add New Costume/Prop/Vehicle into Props Vault
+        elif parsed.path == '/api/props_vault/add':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                category = payload.get('category_type', 'props') # 'costumes' | 'props' | 'vehicles'
+                item = payload.get('item', {})
+                if not item.get('id'):
+                    item['id'] = f"{category}_{int(time.time()*1000)}"
+
+                assets = {"costumes": [], "props": [], "vehicles": []}
+                if os.path.exists(PROPS_VAULT_FILE):
+                    with open(PROPS_VAULT_FILE, 'r', encoding='utf-8') as f:
+                        assets = json.load(f)
+
+                if category not in assets:
+                    assets[category] = []
+                assets[category].append(item)
+
+                with open(PROPS_VAULT_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(assets, f, ensure_ascii=False, indent=2)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "item": item}, ensure_ascii=False).encode('utf-8'))
                 return
             except Exception as e:
                 self.send_response(500)

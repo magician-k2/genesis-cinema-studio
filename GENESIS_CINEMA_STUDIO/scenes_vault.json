@@ -1,0 +1,167 @@
+[
+  {
+    "success": true,
+    "scene_id": "scene_1788615796964",
+    "timestamp": 1788615796964,
+    "title": "🎬 如月 蓮 (E2E) in 浅草寺 雷門",
+    "location": {
+      "lat": 35.7111,
+      "lng": 139.7963,
+      "locationName": "浅草寺 雷門",
+      "heading": 180,
+      "isAlleyway": true
+    },
+    "character": {
+      "id": "test_ren_e2e",
+      "name": "如月 蓮 (E2E)",
+      "front_image": "/characters/test_ren_e2e/front.png",
+      "gender": "male"
+    },
+    "costume": {
+      "id": "costume_trench_01",
+      "name": "🕵️ クラシック・トレンチコート (Noir Trench)",
+      "category": "outerwear",
+      "style": "noir",
+      "prompt_tag": "wearing a stylish beige vintage waterproof trench coat, belted waist, high collar turned up, cinematic detective noir aesthetic",
+      "icon": "🧥",
+      "source": "EC_ZOZO_REF"
+    },
+    "prop": {
+      "id": "prop_umbrella_01",
+      "name": "☔ 透明ビニール傘 (Tokyo Clear Umbrella)",
+      "slot": "right_hand",
+      "category": "rain",
+      "prompt_tag": "holding a transparent wet vinyl umbrella with visible realistic raindrops trickling down, reflecting the neon street lights",
+      "icon": "☂️",
+      "source": "DAILY_LIFE_REF"
+    },
+    "vehicle": {
+      "id": "veh_toei_bus_01",
+      "name": "🚌 東京都営バス風 (Tokyo City Transit Bus)",
+      "type": "bus",
+      "base_model": "Standard Low-Floor City Bus (White Body)",
+      "livery": "Tokyo Metropolitan green and orange-yellow horizontal stripes livery, official route display",
+      "prompt_tag": "a standard modern low-floor city transit bus with iconic green and warm yellow striping parked along the curb, authentic destination sign illuminated",
+      "icon": "🚌",
+      "source": "OFFICIAL_COMPANY_PATTERN"
+    },
+    "veo_prompt": "Cinematic 35mm motion picture master shot, ultra-photorealistic 8k, filmed on location at 浅草寺 雷門 (Coordinates: 35.7111, 139.7963, facing heading 180°). Main character 如月 蓮 (E2E) (natural styling, slender build), wearing a stylish beige vintage waterproof trench coat, belted waist, high collar turned up, cinematic detective noir aesthetic, authentically holding a transparent wet vinyl umbrella with visible realistic raindrops trickling down, reflecting the neon street lights. Set dressing: a standard modern low-floor city transit bus with iconic green and warm yellow striping parked along the curb, authentic destination sign illuminated parked realistically along the street edge with accurate corporate livery. Atmosphere: narrow historic cobblestone back-alley, dramatic rim lighting casting long shadows across textured walls, subtle atmospheric haze, wet ground reflections. Director cue: Atmospheric rain sequence.",
+    "preview_layers": {
+      "streetview_url": "/api/streetview?lat=35.7111&lng=139.7963&heading=180",
+      "character_overlay": "/characters/test_ren_e2e/front.png",
+      "prop_badge": "☂️ ☔ 透明ビニール傘 (Tokyo Clear Umbrella)",
+      "costume_badge": "🧥 🕵️ クラシック・トレンチコート (Noir Trench)",
+      "vehicle_badge": "🚌 🚌 東京都営バス風 (Tokyo City Transit Bus)"
+    }
+  },
+  {
+    "success": true,
+    "scene_id": "scene_1788615623431",
+    "timestamp": 1788615623431,
+    "title": "🎬 如月 蓮 (E2E) in 浅草寺 雷門",
+    "location": {
+      "lat": 35.7111,
+      "lng": 139.7963,
+      "locationName": "浅草寺 雷門",
+      "heading": 180,
+      "isAlleyway": true
+    },
+    "character": {
+      "id": "test_ren_e2e",
+      "name": "如月 蓮 (E2E)",
+      "front_image": "/characters/test_ren_e2e/front.png",
+      "gender": "male"
+    },
+    "costume": {
+      "id": "costume_trench_01",
+      "name": "🕵️ クラシック・トレンチコート (Noir Trench)",
+      "category": "outerwear",
+      "style": "noir",
+      "prompt_tag": "wearing a stylish beige vintage waterproof trench coat, belted waist, high collar turned up, cinematic detective noir aesthetic",
+      "icon": "🧥",
+      "source": "EC_ZOZO_REF"
+    },
+    "prop": {
+      "id": "prop_umbrella_01",
+      "name": "☔ 透明ビニール傘 (Tokyo Clear Umbrella)",
+      "slot": "right_hand",
+      "category": "rain",
+      "prompt_tag": "holding a transparent wet vinyl umbrella with visible realistic raindrops trickling down, reflecting the neon street lights",
+      "icon": "☂️",
+      "source": "DAILY_LIFE_REF"
+    },
+    "vehicle": {
+      "id": "veh_toei_bus_01",
+      "name": "🚌 東京都営バス風 (Tokyo City Transit Bus)",
+      "type": "bus",
+      "base_model": "Standard Low-Floor City Bus (White Body)",
+      "livery": "Tokyo Metropolitan green and orange-yellow horizontal stripes livery, official route display",
+      "prompt_tag": "a standard modern low-floor city transit bus with iconic green and warm yellow striping parked along the curb, authentic destination sign illuminated",
+      "icon": "🚌",
+      "source": "OFFICIAL_COMPANY_PATTERN"
+    },
+    "veo_prompt": "Cinematic 35mm motion picture master shot, ultra-photorealistic 8k, filmed on location at 浅草寺 雷門 (Coordinates: 35.7111, 139.7963, facing heading 180°). Main character 如月 蓮 (E2E) (natural styling, slender build), wearing a stylish beige vintage waterproof trench coat, belted waist, high collar turned up, cinematic detective noir aesthetic, authentically holding a transparent wet vinyl umbrella with visible realistic raindrops trickling down, reflecting the neon street lights. Set dressing: a standard modern low-floor city transit bus with iconic green and warm yellow striping parked along the curb, authentic destination sign illuminated parked realistically along the street edge with accurate corporate livery. Atmosphere: narrow historic cobblestone back-alley, dramatic rim lighting casting long shadows across textured walls, subtle atmospheric haze, wet ground reflections. Director cue: Atmospheric rain sequence.",
+    "preview_layers": {
+      "streetview_url": "/api/streetview?lat=35.7111&lng=139.7963&heading=180",
+      "character_overlay": "/characters/test_ren_e2e/front.png",
+      "prop_badge": "☂️ ☔ 透明ビニール傘 (Tokyo Clear Umbrella)",
+      "costume_badge": "🧥 🕵️ クラシック・トレンチコート (Noir Trench)",
+      "vehicle_badge": "🚌 🚌 東京都営バス風 (Tokyo City Transit Bus)"
+    }
+  },
+  {
+    "success": true,
+    "scene_id": "scene_1788615612587",
+    "timestamp": 1788615612587,
+    "title": "🎬 如月 蓮 (E2E) in 浅草寺 雷門",
+    "location": {
+      "lat": 35.7111,
+      "lng": 139.7963,
+      "locationName": "浅草寺 雷門",
+      "heading": 180,
+      "isAlleyway": true
+    },
+    "character": {
+      "id": "test_ren_e2e",
+      "name": "如月 蓮 (E2E)",
+      "front_image": "/characters/test_ren_e2e/front.png",
+      "gender": "male"
+    },
+    "costume": {
+      "id": "costume_trench_01",
+      "name": "🕵️ クラシック・トレンチコート (Noir Trench)",
+      "category": "outerwear",
+      "style": "noir",
+      "prompt_tag": "wearing a stylish beige vintage waterproof trench coat, belted waist, high collar turned up, cinematic detective noir aesthetic",
+      "icon": "🧥",
+      "source": "EC_ZOZO_REF"
+    },
+    "prop": {
+      "id": "prop_umbrella_01",
+      "name": "☔ 透明ビニール傘 (Tokyo Clear Umbrella)",
+      "slot": "right_hand",
+      "category": "rain",
+      "prompt_tag": "holding a transparent wet vinyl umbrella with visible realistic raindrops trickling down, reflecting the neon street lights",
+      "icon": "☂️",
+      "source": "DAILY_LIFE_REF"
+    },
+    "vehicle": {
+      "id": "veh_toei_bus_01",
+      "name": "🚌 東京都営バス風 (Tokyo City Transit Bus)",
+      "type": "bus",
+      "base_model": "Standard Low-Floor City Bus (White Body)",
+      "livery": "Tokyo Metropolitan green and orange-yellow horizontal stripes livery, official route display",
+      "prompt_tag": "a standard modern low-floor city transit bus with iconic green and warm yellow striping parked along the curb, authentic destination sign illuminated",
+      "icon": "🚌",
+      "source": "OFFICIAL_COMPANY_PATTERN"
+    },
+    "veo_prompt": "Cinematic 35mm motion picture master shot, ultra-photorealistic 8k, filmed on location at 浅草寺 雷門 (Coordinates: 35.7111, 139.7963, facing heading 180°). Main character 如月 蓮 (E2E) (natural styling, slender build), wearing a stylish beige vintage waterproof trench coat, belted waist, high collar turned up, cinematic detective noir aesthetic, authentically holding a transparent wet vinyl umbrella with visible realistic raindrops trickling down, reflecting the neon street lights. Set dressing: a standard modern low-floor city transit bus with iconic green and warm yellow striping parked along the curb, authentic destination sign illuminated parked realistically along the street edge with accurate corporate livery. Atmosphere: narrow historic cobblestone back-alley, dramatic rim lighting casting long shadows across textured walls, subtle atmospheric haze, wet ground reflections. Director cue: Atmospheric rain sequence.",
+    "preview_layers": {
+      "streetview_url": "/api/streetview?lat=35.7111&lng=139.7963&heading=180",
+      "character_overlay": "/characters/test_ren_e2e/front.png",
+      "prop_badge": "☂️ ☔ 透明ビニール傘 (Tokyo Clear Umbrella)",
+      "costume_badge": "🧥 🕵️ クラシック・トレンチコート (Noir Trench)",
+      "vehicle_badge": "🚌 🚌 東京都営バス風 (Tokyo City Transit Bus)"
+    }
+  }
+]

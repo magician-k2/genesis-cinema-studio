@@ -1,0 +1,157 @@
+{
+  "costumes": [
+    {
+      "id": "costume_trench_01",
+      "name": "🕵️ クラシック・トレンチコート (Noir Trench)",
+      "category": "outerwear",
+      "style": "noir",
+      "prompt_tag": "wearing a stylish beige vintage waterproof trench coat, belted waist, high collar turned up, cinematic detective noir aesthetic",
+      "icon": "🧥",
+      "source": "EC_ZOZO_REF"
+    },
+    {
+      "id": "costume_suit_01",
+      "name": "💼 スリムフィット・ブラックスーツ (Sharp Black Suit)",
+      "category": "suit",
+      "style": "formal",
+      "prompt_tag": "dressed in a bespoke tailored charcoal-black slim-fit two-piece suit, crisp white dress shirt, slim black tie, elegant professional look",
+      "icon": "👔",
+      "source": "EC_BEAMS_REF"
+    },
+    {
+      "id": "costume_rider_01",
+      "name": "🏍️ ヴィンテージ・レザーライダース (Biker Leather)",
+      "category": "jacket",
+      "style": "street",
+      "prompt_tag": "wearing a distressed black leather double biker jacket with metallic zippers, dark denim trousers, rebellious Tokyo street vibe",
+      "icon": "🖤",
+      "source": "EC_SCHOTT_REF"
+    },
+    {
+      "id": "costume_kimono_01",
+      "name": "👘 伝統和装・現代羽織 (Modern Haori & Kimono)",
+      "category": "traditional",
+      "style": "japanese",
+      "prompt_tag": "wearing an elegant deep indigo silk haori over a modern minimalist dark kimono, subtle embroidered patterns, authentic Asakusa heritage aesthetic",
+      "icon": "👘",
+      "source": "HERITAGE_REF"
+    },
+    {
+      "id": "costume_cyber_01",
+      "name": "⚡ ネオサイバー・テックウェア (Cyber Techwear)",
+      "category": "scifi",
+      "style": "cyberpunk",
+      "prompt_tag": "wearing a high-tech modular matte-black waterproof tactical windbreaker with subtle cyan luminescent piping, cargo straps, futuristic cinema look",
+      "icon": "⚡",
+      "source": "EC_ACRONYM_REF"
+    }
+  ],
+  "props": [
+    {
+      "id": "prop_umbrella_01",
+      "name": "☔ 透明ビニール傘 (Tokyo Clear Umbrella)",
+      "slot": "right_hand",
+      "category": "rain",
+      "prompt_tag": "holding a transparent wet vinyl umbrella with visible realistic raindrops trickling down, reflecting the neon street lights",
+      "icon": "☂️",
+      "source": "DAILY_LIFE_REF"
+    },
+    {
+      "id": "prop_revolver_01",
+      "name": "🔫 スナブノーズ・リボルバー (Police Revolver)",
+      "slot": "right_hand",
+      "category": "weapon",
+      "prompt_tag": "firmly gripping a matte steel short-barrel revolver with wooden handle, cinematic subtle metallic reflections",
+      "icon": "🔫",
+      "source": "PROP_ARMORY_REF"
+    },
+    {
+      "id": "prop_smartphone_01",
+      "name": "📱 フラッグシップ・スマートフォン (Glowing Smartphone)",
+      "slot": "right_hand",
+      "category": "gadget",
+      "prompt_tag": "holding an ultra-thin black smartphone, the blue-white screen glow casting realistic soft light across the actor's face and hands",
+      "icon": "📱",
+      "source": "TECH_REF"
+    },
+    {
+      "id": "prop_flashlight_01",
+      "name": "🔦 タクティカル懐中電灯 (Heavy Duty Flashlight)",
+      "slot": "right_hand",
+      "category": "tool",
+      "prompt_tag": "holding a heavy black tactical LED flashlight emitting a sharp volumetric atmospheric light beam through the misty alleyway",
+      "icon": "🔦",
+      "source": "TACTICAL_REF"
+    },
+    {
+      "id": "prop_katana_01",
+      "name": "⚔️ 黒漆鞘の日本刀 (Black Sheathed Katana)",
+      "slot": "left_hand",
+      "category": "weapon",
+      "prompt_tag": "carrying a traditional black lacquered Japanese katana in scabbard held at the waist, subtle silver tsuba handguard",
+      "icon": "🗡️",
+      "source": "HERITAGE_REF"
+    },
+    {
+      "id": "prop_briefcase_01",
+      "name": "🧳 アルミニウム・アタッシュケース (Metal Briefcase)",
+      "slot": "left_hand",
+      "category": "luggage",
+      "prompt_tag": "holding a brushed aluminum hard-shell attache case by the handle, scratched vintage spy movie texture",
+      "icon": "💼",
+      "source": "EC_RIMOWA_REF"
+    }
+  ],
+  "vehicles": [
+    {
+      "id": "veh_toei_bus_01",
+      "name": "🚌 東京都営バス風 (Tokyo City Transit Bus)",
+      "type": "bus",
+      "base_model": "Standard Low-Floor City Bus (White Body)",
+      "livery": "Tokyo Metropolitan green and orange-yellow horizontal stripes livery, official route display",
+      "prompt_tag": "a standard modern low-floor city transit bus with iconic green and warm yellow striping parked along the curb, authentic destination sign illuminated",
+      "icon": "🚌",
+      "source": "OFFICIAL_COMPANY_PATTERN"
+    },
+    {
+      "id": "veh_taxi_jp_01",
+      "name": "🚕 日本交通風・黒塗りクラウンタクシー (Crown Luxury Taxi)",
+      "type": "taxi",
+      "base_model": "Toyota Crown / JPN Taxi White/Black Body",
+      "livery": "Polished deep glossy black body, subtle roof-mounted cherry blossom taxi lamp, chrome door trims",
+      "prompt_tag": "a pristine glossy black Japanese Crown commercial taxi with a small glowing rooftop lantern parked on the roadside, hazard lights blinking softly",
+      "icon": "🚕",
+      "source": "STREETVIEW_SAMPLING"
+    },
+    {
+      "id": "veh_yellow_cab_01",
+      "name": "🚖 NYC イエローキャブ (NYC Yellow Cab)",
+      "type": "taxi",
+      "base_model": "Sedan White Body",
+      "livery": "Vibrant canary-yellow body with classic black-and-white checkered side stripe and rooftop fare sign",
+      "prompt_tag": "an authentic vibrant canary-yellow New York style taxi with checkerboard side decals, reflecting wet pavement lights",
+      "icon": "🚖",
+      "source": "OFFICIAL_COMPANY_PATTERN"
+    },
+    {
+      "id": "veh_delivery_truck_01",
+      "name": "🚚 街角の配送小型トラック (City Delivery 2-Ton Truck)",
+      "type": "truck",
+      "base_model": "Isuzu Elf 2-Ton White Box Truck",
+      "livery": "Two-tone green/beige Japanese parcel express delivery truck livery with side cargo shutter",
+      "prompt_tag": "a standard Japanese 2-ton delivery box truck with rollup rear door parked at the corner, loading parcels",
+      "icon": "🚚",
+      "source": "STREETVIEW_SAMPLING"
+    },
+    {
+      "id": "veh_cop_car_01",
+      "name": "🚓 白黒パトロールカー (Police Interceptor)",
+      "type": "emergency",
+      "base_model": "Full-size Sedan White Body",
+      "livery": "Two-tone black lower body and white upper body, red V-bar emergency light bar on the roof",
+      "prompt_tag": "a high-contrast black-and-white police patrol cruiser stationed with red rooftop emergency strobe lights rotating slowly",
+      "icon": "🚓",
+      "source": "OFFICIAL_LIVERY_REF"
+    }
+  ]
+}
