@@ -130,34 +130,34 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
             lat_str = qs.get('lat', [''])[0].strip()
             lng_str = qs.get('lng', [''])[0].strip()
 
-            # Worldwide Cinematic Alleyways Database (Curated historic lanes & narrow streets)
+            # Worldwide Cinematic Alleyways Database (Curated authentic narrow lanes & cobblestones)
             global_alleyways = {
-                "パリ": (48.8878, 2.3385, 240.0, "パリ モンマルトルの石畳裏階段 (Rue de l'Abreuvoir, Paris)", "FjX9dY8z_sample1"),
-                "paris": (48.8878, 2.3385, 240.0, "Rue de l'Abreuvoir, Montmartre (Paris, France)", "FjX9dY8z_sample1"),
-                "ロンドン": (51.5103, -0.1264, 85.0, "ロンドン コヴェントガーデン裏小路 (Goodwin's Court, London)", "Lnd_mews_01"),
-                "london": (51.5103, -0.1264, 85.0, "Goodwin's Court Historic Gaslit Alley (London, UK)", "Lnd_mews_01"),
-                "ローマ": (41.8893, 12.4721, 110.0, "ローマ トラステヴェレ地区の細道 (Via della Lungaretta, Rome)", "Rome_trast_01"),
-                "rome": (41.8893, 12.4721, 110.0, "Vicolo del Cinque, Trastevere (Rome, Italy)", "Rome_trast_01"),
-                "バルセロナ": (41.3837, 2.1764, 310.0, "バルセロナ ゴシック地区 ビスベ小路 (Carrer del Bisbe, Barcelona)", "Bcn_gothic_01"),
-                "barcelona": (41.3837, 2.1764, 310.0, "Carrer del Bisbe, Gothic Quarter (Barcelona, Spain)", "Bcn_gothic_01"),
-                "ヴェネツィア": (45.4371, 12.3412, 190.0, "ヴェネツィア 運河沿い狭小迷宮路地 (Calle del Paradiso, Venice)", "Ven_paradiso_01"),
-                "venice": (45.4371, 12.3412, 190.0, "Calle del Paradiso Narrow Canal Passage (Venice, Italy)", "Ven_paradiso_01"),
-                "香港": (22.2827, 114.1543, 200.0, "香港 中環 砵典乍街・石板街 (Pottinger St Stair Alley, HK)", "HK_pottinger_01"),
-                "hong kong": (22.2827, 114.1543, 200.0, "Pottinger Street Historic Stepped Alley (Hong Kong)", "HK_pottinger_01"),
-                "プラハ": (50.0919, 14.4038, 270.0, "プラハ城 黄金の小路 (Golden Lane, Prague)", "Prg_golden_01"),
-                "prague": (50.0919, 14.4038, 270.0, "Zlata Ulicka / Golden Lane (Prague, Czechia)", "Prg_golden_01"),
-                "ニューヨーク": (40.7033, -73.9896, 15.0, "NY ダンボ・ワシントン街のレンガ小路 (Washington St, DUMBO, NYC)", "NYC_dumbo_01"),
-                "new york": (40.7033, -73.9896, 15.0, "Washington St Cobblestone Alley (DUMBO, NYC)", "NYC_dumbo_01"),
-                "京都": (35.0048, 135.7712, 180.0, "京都 鴨川沿い 先斗町通り (木造格子戸の細道)", "Kyoto_pontocho_01"),
-                "kyoto": (35.0048, 135.7712, 180.0, "Pontocho Alley Historic Narrow Corridor (Kyoto, Japan)", "Kyoto_pontocho_01"),
-                "浅草": (35.7126, 139.7958, 260.0, "浅草 西参道・初音小路 昭和レトロ路地 (東京)", "Asakusa_hatsune_01"),
-                "新宿": (35.6929, 139.6997, 340.0, "新宿 西口 思い出横丁 (やきとり小路)", "Shinjuku_omoide_01"),
-                "池袋": (35.7279, 139.7176, 325.8, "池袋 東口繁華街・美久仁小路 (昭和横丁)", "Ikebukuro_mikuni_01"),
-                "神楽坂": (35.7018, 139.7408, 60.0, "東京 神楽坂・兵庫横丁 (石畳と黒板塀の隠れ路地)", "Kagurazaka_hyogo_01"),
-                "モナコ": (43.7311, 7.4239, 120.0, "モナコ公国 旧市街ル・ロシェ迷宮小路 (Rue Basse, Monaco)", "Monaco_rocher_01"),
-                "鈴鹿": (34.8872, 136.5056, 220.0, "三重 鈴鹿・東海道 庄野宿 歴史街道小路", "Suzuka_shono_01"),
-                "エディンバラ": (55.9501, -3.1912, 350.0, "エディンバラ 旧市街の急勾配路地 (Advocate's Close, Edinburgh)", "Edin_close_01"),
-                "アムステルダム": (52.3738, 4.9004, 160.0, "アムステルダム 運河沿い歴史的レンガ小路 (Zeedijk, Amsterdam)", "Ams_zeedijk_01")
+                "パリ": (48.8878, 2.3385, 240.0, "パリ モンマルトルの石畳裏階段 (Rue de l'Abreuvoir, Paris)", ""),
+                "paris": (48.8878, 2.3385, 240.0, "Rue de l'Abreuvoir, Montmartre (Paris, France)", ""),
+                "ロンドン": (51.5108, -0.1275, 85.0, "ロンドン コヴェントガーデン裏小路 (St Martin's Ct, London)", ""),
+                "london": (51.5108, -0.1275, 85.0, "Historic Gaslit Alley (London, UK)", ""),
+                "ローマ": (41.8893, 12.4721, 110.0, "ローマ トラステヴェレ地区の細道 (Via della Lungaretta, Rome)", ""),
+                "rome": (41.8893, 12.4721, 110.0, "Vicolo del Cinque, Trastevere (Rome, Italy)", ""),
+                "バルセロナ": (41.3837, 2.1764, 310.0, "バルセロナ ゴシック地区 ビスベ小路 (Carrer del Bisbe, Barcelona)", ""),
+                "barcelona": (41.3837, 2.1764, 310.0, "Carrer del Bisbe, Gothic Quarter (Barcelona, Spain)", ""),
+                "ヴェネツィア": (45.4371, 12.3412, 190.0, "ヴェネツィア 運河沿い狭小迷宮路地 (Calle del Paradiso, Venice)", ""),
+                "venice": (45.4371, 12.3412, 190.0, "Calle del Paradiso Narrow Canal Passage (Venice, Italy)", ""),
+                "香港": (22.2827, 114.1543, 200.0, "香港 中環 砵典乍街・石板街 (Pottinger St Stair Alley, HK)", ""),
+                "hong kong": (22.2827, 114.1543, 200.0, "Pottinger Street Historic Stepped Alley (Hong Kong)", ""),
+                "プラハ": (50.0919, 14.4038, 270.0, "プラハ城 黄金の小路 (Golden Lane, Prague)", ""),
+                "prague": (50.0919, 14.4038, 270.0, "Zlata Ulicka / Golden Lane (Prague, Czechia)", ""),
+                "ニューヨーク": (40.7033, -73.9896, 15.0, "NY ダンボ・ワシントン街のレンガ小路 (Washington St, DUMBO, NYC)", ""),
+                "new york": (40.7033, -73.9896, 15.0, "Washington St Cobblestone Alley (DUMBO, NYC)", ""),
+                "京都": (35.0037, 135.7772, 180.0, "京都 祇園白川・先斗町 (石畳と格子戸の細道)", ""),
+                "kyoto": (35.0037, 135.7772, 180.0, "Pontocho & Gion Shirakawa Historic Narrow Corridor (Kyoto)", ""),
+                "浅草": (35.7118, 139.7963, 260.0, "浅草 仲見世裏道・西参道小路 (東京)", ""),
+                "新宿": (35.6930, 139.6998, 340.0, "新宿 西口 思い出横丁 (やきとり小路)", ""),
+                "池袋": (35.7279, 139.7176, 325.8, "池袋 東口繁華街・美久仁小路 (昭和横丁)", ""),
+                "神楽坂": (35.7018, 139.7408, 60.0, "東京 神楽坂・兵庫横丁 (石畳と黒板塀の隠れ路地)", ""),
+                "モナコ": (43.7311, 7.4239, 120.0, "モナコ公国 旧市街ル・ロシェ迷宮小路 (Rue Basse, Monaco)", ""),
+                "鈴鹿": (34.8872, 136.5056, 220.0, "三重 鈴鹿・東海道 庄野宿 歴史街道小路", ""),
+                "エディンバラ": (55.9501, -3.1912, 350.0, "エディンバラ 旧市街の急勾配路地 (Advocate's Close, Edinburgh)", ""),
+                "アムステルダム": (52.3738, 4.9004, 160.0, "アムステルダム 運河沿い歴史的レンガ小路 (Zeedijk, Amsterdam)", "")
             }
 
             matched = None

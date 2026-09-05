@@ -1442,15 +1442,10 @@
 
         function updateStreetViewIframe(customCoords = null, panoId = null) {
             const coords = customCoords || currentCoords;
-            const targetPano = panoId || currentPanoId;
             const svIframe = document.getElementById('google-streetview-iframe');
             if (svIframe) {
-                if (targetPano) {
-                    // Direct Pano ID eliminates Google road-snapping and anchors camera inside back-alley!
-                    svIframe.src = `https://maps.google.com/maps?layer=c&panoid=${encodeURIComponent(targetPano)}&cbp=11,${Math.floor(currentHeading)},0,0,0&output=svembed`;
-                } else {
-                    svIframe.src = `https://maps.google.com/maps?layer=c&cbll=${coords.lat.toFixed(7)},${coords.lng.toFixed(7)}&cbp=11,${Math.floor(currentHeading)},0,0,0&output=svembed`;
-                }
+                // Reliable cbll coordinates ensure Google Street View always loads cleanly worldwide
+                svIframe.src = `https://maps.google.com/maps?layer=c&cbll=${coords.lat.toFixed(7)},${coords.lng.toFixed(7)}&cbp=11,${Math.floor(currentHeading)},0,0,0&output=svembed`;
             }
         }
 
