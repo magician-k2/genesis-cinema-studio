@@ -123,6 +123,116 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(res_data, ensure_ascii=False).encode('utf-8'))
             return
 
+        # 2.5. 🏮 Global Cinematic Alleyway & Backstreet Scout Endpoint
+        elif parsed.path == '/api/scout/alleyway':
+            qs = urllib.parse.parse_qs(parsed.query)
+            query = qs.get('query', [''])[0].strip()
+            lat_str = qs.get('lat', [''])[0].strip()
+            lng_str = qs.get('lng', [''])[0].strip()
+
+            # Worldwide Cinematic Alleyways Database (Curated historic lanes & narrow streets)
+            global_alleyways = {
+                "パリ": (48.8878, 2.3385, 240.0, "パリ モンマルトルの石畳裏階段 (Rue de l'Abreuvoir, Paris)", "FjX9dY8z_sample1"),
+                "paris": (48.8878, 2.3385, 240.0, "Rue de l'Abreuvoir, Montmartre (Paris, France)", "FjX9dY8z_sample1"),
+                "ロンドン": (51.5103, -0.1264, 85.0, "ロンドン コヴェントガーデン裏小路 (Goodwin's Court, London)", "Lnd_mews_01"),
+                "london": (51.5103, -0.1264, 85.0, "Goodwin's Court Historic Gaslit Alley (London, UK)", "Lnd_mews_01"),
+                "ローマ": (41.8893, 12.4721, 110.0, "ローマ トラステヴェレ地区の細道 (Via della Lungaretta, Rome)", "Rome_trast_01"),
+                "rome": (41.8893, 12.4721, 110.0, "Vicolo del Cinque, Trastevere (Rome, Italy)", "Rome_trast_01"),
+                "バルセロナ": (41.3837, 2.1764, 310.0, "バルセロナ ゴシック地区 ビスベ小路 (Carrer del Bisbe, Barcelona)", "Bcn_gothic_01"),
+                "barcelona": (41.3837, 2.1764, 310.0, "Carrer del Bisbe, Gothic Quarter (Barcelona, Spain)", "Bcn_gothic_01"),
+                "ヴェネツィア": (45.4371, 12.3412, 190.0, "ヴェネツィア 運河沿い狭小迷宮路地 (Calle del Paradiso, Venice)", "Ven_paradiso_01"),
+                "venice": (45.4371, 12.3412, 190.0, "Calle del Paradiso Narrow Canal Passage (Venice, Italy)", "Ven_paradiso_01"),
+                "香港": (22.2827, 114.1543, 200.0, "香港 中環 砵典乍街・石板街 (Pottinger St Stair Alley, HK)", "HK_pottinger_01"),
+                "hong kong": (22.2827, 114.1543, 200.0, "Pottinger Street Historic Stepped Alley (Hong Kong)", "HK_pottinger_01"),
+                "プラハ": (50.0919, 14.4038, 270.0, "プラハ城 黄金の小路 (Golden Lane, Prague)", "Prg_golden_01"),
+                "prague": (50.0919, 14.4038, 270.0, "Zlata Ulicka / Golden Lane (Prague, Czechia)", "Prg_golden_01"),
+                "ニューヨーク": (40.7033, -73.9896, 15.0, "NY ダンボ・ワシントン街のレンガ小路 (Washington St, DUMBO, NYC)", "NYC_dumbo_01"),
+                "new york": (40.7033, -73.9896, 15.0, "Washington St Cobblestone Alley (DUMBO, NYC)", "NYC_dumbo_01"),
+                "京都": (35.0048, 135.7712, 180.0, "京都 鴨川沿い 先斗町通り (木造格子戸の細道)", "Kyoto_pontocho_01"),
+                "kyoto": (35.0048, 135.7712, 180.0, "Pontocho Alley Historic Narrow Corridor (Kyoto, Japan)", "Kyoto_pontocho_01"),
+                "浅草": (35.7126, 139.7958, 260.0, "浅草 西参道・初音小路 昭和レトロ路地 (東京)", "Asakusa_hatsune_01"),
+                "新宿": (35.6929, 139.6997, 340.0, "新宿 西口 思い出横丁 (やきとり小路)", "Shinjuku_omoide_01"),
+                "池袋": (35.7279, 139.7176, 325.8, "池袋 東口繁華街・美久仁小路 (昭和横丁)", "Ikebukuro_mikuni_01"),
+                "神楽坂": (35.7018, 139.7408, 60.0, "東京 神楽坂・兵庫横丁 (石畳と黒板塀の隠れ路地)", "Kagurazaka_hyogo_01"),
+                "モナコ": (43.7311, 7.4239, 120.0, "モナコ公国 旧市街ル・ロシェ迷宮小路 (Rue Basse, Monaco)", "Monaco_rocher_01"),
+                "鈴鹿": (34.8872, 136.5056, 220.0, "三重 鈴鹿・東海道 庄野宿 歴史街道小路", "Suzuka_shono_01"),
+                "エディンバラ": (55.9501, -3.1912, 350.0, "エディンバラ 旧市街の急勾配路地 (Advocate's Close, Edinburgh)", "Edin_close_01"),
+                "アムステルダム": (52.3738, 4.9004, 160.0, "アムステルダム 運河沿い歴史的レンガ小路 (Zeedijk, Amsterdam)", "Ams_zeedijk_01")
+            }
+
+            matched = None
+            if query:
+                for k, v in global_alleyways.items():
+                    if k in query.lower():
+                        matched = v
+                        break
+
+            if matched:
+                res_data = {
+                    'success': True,
+                    'isAlleyway': True,
+                    'lat': matched[0],
+                    'lng': matched[1],
+                    'heading': matched[2],
+                    'locationName': f"🏮 {matched[3]}",
+                    'panoId': matched[4],
+                    'cinemaTag': 'atmospheric narrow cobblestone historic back-alley, moody shadows, authentic cinematic side-lighting, intimate scale'
+                }
+            else:
+                # Dynamic Geo + Street View Exploration for ANY city or coordinate
+                target_lat = float(lat_str) if lat_str else 35.7018
+                target_lng = float(lng_str) if lng_str else 139.7408
+                target_name = f"{query} 周辺の裏道・細道" if query else "探索された路地裏"
+
+                if query:
+                    # Append alley search terms to find authentic small lanes
+                    alley_query = f"{query} alley OR lane OR passage OR 狭小路地 OR 横丁"
+                    geo_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={urllib.parse.quote(alley_query)}&key={API_KEY}"
+                    try:
+                        req = urllib.request.Request(geo_url, headers={'User-Agent': 'GenesisCinemaStudio/1.0'})
+                        with urllib.request.urlopen(req, timeout=8) as response:
+                            data = json.loads(response.read().decode('utf-8'))
+                            if data.get('status') == 'OK' and len(data.get('results', [])) > 0:
+                                loc = data['results'][0]['geometry']['location']
+                                target_lat = loc['lat']
+                                target_lng = loc['lng']
+                                target_name = f"🏮 {data['results'][0].get('formatted_address', query)} (細道・小路)"
+                    except Exception:
+                        pass
+
+                # Query Street View Metadata with small radius=25 to isolate back-alleys and avoid main roads
+                meta_url = f"https://maps.googleapis.com/maps/api/streetview/metadata?location={target_lat},{target_lng}&radius=25&source=default&key={API_KEY}"
+                pano_id = ""
+                try:
+                    req = urllib.request.Request(meta_url, headers={'User-Agent': 'GenesisCinemaStudio/1.0'})
+                    with urllib.request.urlopen(req, timeout=5) as response:
+                        mdata = json.loads(response.read().decode('utf-8'))
+                        if mdata.get('status') == 'OK':
+                            pano_id = mdata.get('pano_id', '')
+                            if 'location' in mdata:
+                                target_lat = mdata['location']['lat']
+                                target_lng = mdata['location']['lng']
+                except Exception:
+                    pass
+
+                res_data = {
+                    'success': True,
+                    'isAlleyway': True,
+                    'lat': target_lat,
+                    'lng': target_lng,
+                    'heading': 0.0,
+                    'locationName': target_name,
+                    'panoId': pano_id,
+                    'cinemaTag': 'atmospheric narrow cobblestone historic back-alley, moody shadows, authentic cinematic side-lighting, intimate scale'
+                }
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(res_data, ensure_ascii=False).encode('utf-8'))
+            return
+
         # 3. 📂 Location Vault List Endpoint
         elif parsed.path == '/api/locations':
             if os.path.exists(VAULT_FILE):

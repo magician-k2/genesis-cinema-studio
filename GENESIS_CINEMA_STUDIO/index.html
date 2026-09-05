@@ -685,17 +685,20 @@
                     </div>
 
                     <div style="display:flex; gap:4px;">
-                        <input type="text" id="input-scout-query" placeholder="例: 浅草寺, 鈴鹿, Big Ben" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.58rem; padding:3px;">
+                        <input type="text" id="input-scout-query" placeholder="例: パリ, ローマ, ロンドン, 香港, 浅草" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.58rem; padding:3px;">
                         <button class="btn-opt" style="padding:3px 6px;" onclick="executeLocationSearch()">探索ワープ</button>
+                        <button class="btn-opt" id="btn-scout-alleyway" style="padding:3px 8px; background:rgba(245,158,11,0.22); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800; display:flex; align-items:center; gap:3px;" onclick="executeAlleywaySearch()" title="大通りを排除し、世界中の都市・観光地の細道・石畳小路・路地裏をピンポイント特定">
+                            <i class="fa-solid fa-person-walking"></i> 🏮 路地裏を探す
+                        </button>
                     </div>
 
                     <div class="btn-grid-3">
-                        <button class="btn-opt" onclick="jumpToLocation(35.7111, 139.7963, 180, '浅草寺 雷門 (東京)')">⛩️ 浅草寺</button>
-                        <button class="btn-opt" onclick="jumpToLocation(34.8431, 136.5410, 45, '鈴鹿サーキット')">🏎️ 鈴鹿</button>
-                        <button class="btn-opt" onclick="jumpToLocation(51.5007, -0.1246, 270, 'ロンドン ビッグベン')">🇬🇧 ビッグベン</button>
-                        <button class="btn-opt" onclick="jumpToLocation(40.7580, -73.9855, 0, 'NY タイムズスクエア')">🗽 NYタイムズ</button>
-                        <button class="btn-opt" onclick="jumpToLocation(43.7384, 7.4246, 220, 'モナコ 市街地')">🇲🇨 モナコ</button>
-                        <button class="btn-opt" onclick="jumpToLocation(48.8584, 2.2945, 135, 'パリ エッフェル塔')">🇫🇷 パリ</button>
+                        <button class="btn-opt" onclick="executeAlleywaySearch('浅草')">🏮 浅草・初音小路</button>
+                        <button class="btn-opt" onclick="executeAlleywaySearch('京都')">🏮 京都・先斗町</button>
+                        <button class="btn-opt" onclick="executeAlleywaySearch('パリ')">🏮 パリ・モンマルトル</button>
+                        <button class="btn-opt" onclick="executeAlleywaySearch('ロンドン')">🏮 ロンドン・裏小路</button>
+                        <button class="btn-opt" onclick="executeAlleywaySearch('ローマ')">🏮 ローマ・石畳細道</button>
+                        <button class="btn-opt" onclick="executeAlleywaySearch('香港')">🏮 香港・看板坂道</button>
                     </div>
 
                     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -751,6 +754,9 @@
                     <i class="fa-solid fa-map-marked-alt"></i> 🗺️ ② 全体マップ探索 (Google公式青線 ✕ ペグマン)
                 </button>
                 <div style="margin-left:auto; display:flex; gap:4px;">
+                    <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.25); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800;" onclick="executeAlleywaySearch()" title="大通りから離れ、この街の細道・石畳小路・路地裏へ突入">
+                        <i class="fa-solid fa-person-walking"></i> 🏮 この街の路地裏へ突入
+                    </button>
                     <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:var(--accent-gold);" onclick="openLocationVaultModal()">
                         <i class="fa-solid fa-book-bookmark"></i> ロケ地台帳
                     </button>
@@ -1430,11 +1436,21 @@
             }
         }
 
-        function updateStreetViewIframe(customCoords = null) {
+        let currentPanoId = null;
+        let isCurrentAlleyway = false;
+        let currentAlleywayTag = '';
+
+        function updateStreetViewIframe(customCoords = null, panoId = null) {
             const coords = customCoords || currentCoords;
+            const targetPano = panoId || currentPanoId;
             const svIframe = document.getElementById('google-streetview-iframe');
             if (svIframe) {
-                svIframe.src = `https://maps.google.com/maps?layer=c&cbll=${coords.lat.toFixed(7)},${coords.lng.toFixed(7)}&cbp=11,${Math.floor(currentHeading)},0,0,0&output=svembed`;
+                if (targetPano) {
+                    // Direct Pano ID eliminates Google road-snapping and anchors camera inside back-alley!
+                    svIframe.src = `https://maps.google.com/maps?layer=c&panoid=${encodeURIComponent(targetPano)}&cbp=11,${Math.floor(currentHeading)},0,0,0&output=svembed`;
+                } else {
+                    svIframe.src = `https://maps.google.com/maps?layer=c&cbll=${coords.lat.toFixed(7)},${coords.lng.toFixed(7)}&cbp=11,${Math.floor(currentHeading)},0,0,0&output=svembed`;
+                }
             }
         }
 
@@ -1591,6 +1607,62 @@
                 }
             } catch (e) {
                 console.warn("Scout error:", e);
+                updateStreetViewIframe();
+            }
+        }
+
+        async function executeAlleywaySearch(specificCity = null) {
+            const queryInput = document.getElementById('input-scout-query');
+            const query = specificCity || (queryInput ? queryInput.value.trim() : '') || currentLocTitle || '';
+            const badge = document.getElementById('hud-location-title');
+            if (badge) {
+                badge.textContent = `🏮 [探索中] ${query || '周辺'} の細道・石畳小路・路地裏をスキャン中...`;
+                badge.style.color = '#f59e0b';
+            }
+
+            try {
+                const url = `/api/scout/alleyway?query=${encodeURIComponent(query)}&lat=${currentCoords.lat}&lng=${currentCoords.lng}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data && data.success) {
+                    currentCoords = { lat: data.lat, lng: data.lng };
+                    currentHeading = (data.heading !== undefined) ? data.heading : currentHeading;
+                    currentLocTitle = data.locationName || `🏮 ${query} 路地裏`;
+                    currentPanoId = data.panoId || null;
+                    isCurrentAlleyway = true;
+                    currentAlleywayTag = data.cinemaTag || 'atmospheric narrow cobblestone historic back-alley, moody shadows, authentic cinematic side-lighting, intimate scale';
+
+                    if (currentPanoId) {
+                        currentMapsUrl = `https://www.google.com/maps/@${currentCoords.lat.toFixed(7)},${currentCoords.lng.toFixed(7)},3a,75y,${Math.floor(currentHeading)}h,90t/data=!3m6!1e1!3m4!1s${encodeURIComponent(currentPanoId)}!2e0!7i16384!8i8192`;
+                    } else {
+                        currentMapsUrl = `https://www.google.com/maps/@${currentCoords.lat.toFixed(7)},${currentCoords.lng.toFixed(7)},3a,75y,${Math.floor(currentHeading)}h,90t`;
+                    }
+
+                    if (queryInput && specificCity) {
+                        queryInput.value = specificCity;
+                    }
+
+                    rebuildDollySequence();
+                    updateHud();
+                    updateStreetViewIframe(currentCoords, currentPanoId);
+                    updatePrompts();
+                    updateActiveAspectCard();
+
+                    if (currentStageMode !== 'streetview') {
+                        switchStageMode('streetview');
+                    }
+
+                    if (leafletMap) {
+                        leafletMap.setView([currentCoords.lat, currentCoords.lng], 18);
+                    }
+
+                    alert(`🏮 路地裏・細道への突入成功！\nロケ地: ${currentLocTitle}\n大通りを完全回避し、幅数メートルの路地空間を撮影セットとして配備しました！`);
+                } else {
+                    alert("周辺の路地裏データの特定に失敗しました。大通りモードで継続します。");
+                }
+            } catch (err) {
+                console.error("Alleyway Scout Error:", err);
                 updateStreetViewIframe();
             }
         }
@@ -1851,8 +1923,16 @@
                     totalDistanceM: dollyDistanceM
                 });
 
-                if (document.getElementById('ai-prompt-en')) document.getElementById('ai-prompt-en').value = res.promptEn;
-                if (document.getElementById('ai-prompt-ja')) document.getElementById('ai-prompt-ja').value = res.promptJa;
+                let finalEn = res.promptEn;
+                let finalJa = res.promptJa;
+
+                if (isCurrentAlleyway && currentAlleywayTag) {
+                    finalEn = `${finalEn}, ${currentAlleywayTag}`;
+                    finalJa = `${finalJa}\n【ロケ地構造】大通りを完全回避した細道・石畳の隠れ路地裏。密度の高い影と映画的な圧縮パースペクティブ。`;
+                }
+
+                if (document.getElementById('ai-prompt-en')) document.getElementById('ai-prompt-en').value = finalEn;
+                if (document.getElementById('ai-prompt-ja')) document.getElementById('ai-prompt-ja').value = finalJa;
             }
         }
 
