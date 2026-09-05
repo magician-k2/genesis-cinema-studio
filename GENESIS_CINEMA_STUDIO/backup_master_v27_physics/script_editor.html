@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サブ1：台本・セリフエディタ (GENESIS Script Editor)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Outfit:wght@700;900&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #070913;
+            --bg-card: #0f1424;
+            --accent-cyan: #00f2fe;
+            --accent-purple: #a855f7;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-dark: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-dark);
+            margin-bottom: 16px;
+        }
+        .title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent-purple);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sync-badge {
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid var(--accent-purple);
+            color: #c084fc;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+        .dialogue-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .char-tag {
+            background: rgba(0, 242, 254, 0.15);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        textarea {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            color: #fff;
+            padding: 10px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 70px;
+            outline: none;
+        }
+        textarea:focus { border-color: var(--accent-purple); }
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 120px;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn-sync {
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-sync:hover { box-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title"><i class="fa-solid fa-pen-nib"></i> サブ1：台本・セリフエディタ卓 (Director Script Console)</div>
+        <div class="sync-badge"><i class="fa-solid fa-bolt"></i> メイン画面とリアルタイム同期中 (0.0001s)</div>
+    </header>
+
+    <div class="editor-container">
+        <!-- Dialogue Line 1 -->
+        <div class="dialogue-card">
+            <div class="card-header">
+                <span class="char-tag">🎭 如月 蓮 (カット 01)</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">タイムコード: 00:01:24:12</span>
+            </div>
+            <textarea id="dialogue-input" oninput="syncDialogue(this.value)">池袋東口、目標ポイントに到達。周囲の通行人・車両はすべて消去完了。これよりメインショットの収録を開始する。</textarea>
+            
+            <div class="controls">
+                <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem;">
+                    <span>緊迫度:</span>
+                    <input type="range" min="0" max="100" value="85" style="flex:1; accent-color:var(--accent-purple);">
+                    <span style="color:var(--accent-purple); font-weight:700;">85%</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem;">
+                    <span>速度:</span>
+                    <input type="range" min="0.5" max="1.5" step="0.05" value="0.95" style="flex:1; accent-color:var(--accent-cyan);">
+                    <span style="color:var(--accent-cyan); font-weight:700;">0.95x</span>
+                </div>
+                <button class="btn-sync" onclick="broadcastDialogue()"><i class="fa-solid fa-paper-plane"></i> メインへ反映</button>
+            </div>
+        </div>
+
+        <!-- Dialogue Line 2 -->
+        <div class="dialogue-card">
+            <div class="card-header">
+                <span class="char-tag" style="background:rgba(245,158,11,0.15); border-color:#f59e0b; color:#f59e0b;">🎭 如月 蓮 (カット 02)</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">タイムコード: 00:01:28:00</span>
+            </div>
+            <textarea>雨が降り始めたか……。路地の奥、影が動いた。追跡を開始する。</textarea>
+            <div class="controls">
+                <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem;">
+                    <span>緊迫度:</span>
+                    <input type="range" min="0" max="100" value="92" style="flex:1; accent-color:var(--accent-purple);">
+                    <span style="color:var(--accent-purple); font-weight:700;">92%</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem;">
+                    <span>速度:</span>
+                    <input type="range" min="0.5" max="1.5" step="0.05" value="1.0" style="flex:1; accent-color:var(--accent-cyan);">
+                    <span style="color:var(--accent-cyan); font-weight:700;">1.00x</span>
+                </div>
+                <button class="btn-sync" onclick="alert('カット02のセリフをメインへ同期しました')"><i class="fa-solid fa-paper-plane"></i> メインへ反映</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="multi_display.js"></script>
+    <script>
+        function syncDialogue(val) {
+            window.MultiDisplayEngine.broadcast("DIALOGUE_UPDATE", { text: val });
+        }
+        function broadcastDialogue() {
+            const val = document.getElementById('dialogue-input').value;
+            syncDialogue(val);
+            window.MultiDisplayEngine.broadcast("AUDIO_TRIGGER", { action: "play_dialogue", text: val });
+        }
+    </script>
+</body>
+</html>

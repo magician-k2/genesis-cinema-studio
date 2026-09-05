@@ -1,0 +1,9 @@
+# ==============================================================================
+# GENESIS CINEMA STUDIO: Python Dependencies (Replit & Cloud Run Ready)
+# ==============================================================================
+opencv-python-headless>=4.8.0
+mediapipe>=1.0.0
+Pillow>=10.0.0
+numpy>=1.24.0
+requests>=2.31.0
+edge-tts>=6.1.0

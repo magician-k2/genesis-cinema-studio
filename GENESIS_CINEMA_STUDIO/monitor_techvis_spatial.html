@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS モニター2: テックビズ & 空間ガイダンス解析室 (All Google v46)</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Outfit:wght@600;800;900&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-panel: #0b0f19;
+            --bg-card: #111827;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #38bdf8;
+            --accent-gold: #f59e0b;
+            --accent-purple: #c084fc;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --border-dark: rgba(255, 255, 255, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        header {
+            height: 44px;
+            background: rgba(11, 15, 25, 0.95);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .main-layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr 340px;
+            gap: 8px;
+            padding: 8px;
+            height: calc(100vh - 44px);
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header {
+            height: 32px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+        .panel-body {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        canvas { width: 100%; height: 100%; border-radius: 4px; display: block; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        .metric-label { font-size: 0.6rem; color: var(--text-muted); }
+        .metric-value { font-family: 'Fira Code', monospace; font-size: 0.85rem; font-weight: 700; color: #fff; }
+
+        .btn-action {
+            background: rgba(0, 242, 254, 0.1);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-action:hover { background: var(--accent-cyan); color: #000; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <i class="fa-solid fa-satellite-dish"></i>
+            GENESIS モニター2: テックビズ ＆ 空間ガイダンス解析室 (All Google)
+        </div>
+        <div style="font-family:'Fira Code'; font-size:0.68rem; color:var(--accent-green); display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-circle" style="font-size:0.5rem; animation: pulse 1.5s infinite;"></i>
+            0.001s BROADCAST BUS LIVE SYNC
+        </div>
+    </header>
+
+    <main class="main-layout">
+        
+        <!-- Column 1: Live Z-Depth & Surface Normal Pass -->
+        <div class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-layer-group"></i> LIVE Z-DEPTH & SURFACE NORMAL (幾何拘束パス)</span>
+                <div style="display:flex; gap:4px;">
+                    <button class="btn-action" style="padding:2px 6px; font-size:0.6rem;" onclick="setPassMode('depth')">Z-Depth</button>
+                    <button class="btn-action" style="padding:2px 6px; font-size:0.6rem;" onclick="setPassMode('normal')">Normal</button>
+                </div>
+            </div>
+            <div class="panel-body" style="padding:4px; display:flex; flex-direction:column; gap:4px;">
+                <canvas id="canvas-pass"></canvas>
+            </div>
+        </div>
+
+        <!-- Column 2: 3D Top-Down Spatial Radar & Optics HUD -->
+        <div class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-crosshairs"></i> 3D 空間上面レーダー ＆ 光学 DoF HUD</span>
+                <span id="scale-ratio-badge" style="color:var(--accent-gold); font-family:'Fira Code'; font-size:0.65rem;">スケール比 1:1.55</span>
+            </div>
+            <div class="panel-body" style="display:flex; flex-direction:column; gap:6px;">
+                
+                <div style="height:220px; border:1px solid var(--border-dark); border-radius:4px; overflow:hidden;">
+                    <canvas id="canvas-radar"></canvas>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">ARRI LF センサー</div>
+                        <div class="metric-value" id="hud-sensor">36 x 24 mm</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">焦点距離 / F値</div>
+                        <div class="metric-value" id="hud-optics" style="color:var(--accent-cyan);">50mm / f/2.8</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">被写界深度 (DoF幅)</div>
+                        <div class="metric-value" id="hud-dof" style="color:var(--accent-gold);">1.42m</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">過焦点距離 (Hyperfocal)</div>
+                        <div class="metric-value" id="hud-hyperfocal">29.76m</div>
+                    </div>
+                </div>
+
+                <!-- Google DeepMind Veo 3.1 Spatial Guidance JSON -->
+                <div style="flex:1; background:#070a13; border:1px solid var(--border-dark); border-radius:4px; padding:6px; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.62rem; font-weight:700; color:var(--accent-purple);"><i class="fa-solid fa-code"></i> Veo 3.1 Spatial Guidance JSON</span>
+                        <button class="btn-action" style="padding:1px 6px; font-size:0.58rem;" onclick="copySpatialJSON()">コピー</button>
+                    </div>
+                    <textarea id="spatial-json-box" readonly style="width:100%; flex:1; background:transparent; border:none; color:#f8fafc; font-family:'Fira Code'; font-size:0.58rem; resize:none; line-height:1.3;"></textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Column 3: Google Workspace Asset Vault (Cast / Costumes / Locations) -->
+        <div class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-folder-open"></i> WORKSPACE PRODUCTION VAULT</span>
+                <button class="btn-action" style="padding:1px 6px; font-size:0.58rem;" onclick="exportVaultCSV()">CSV出力</button>
+            </div>
+            <div class="panel-body" style="display:flex; flex-direction:column; gap:8px;">
+                
+                <div style="font-size:0.65rem; color:var(--text-muted);">
+                    Google Sheets / Drive 双方向同期対応マスターアセット
+                </div>
+
+                <!-- Cast List -->
+                <div style="background:var(--bg-card); border:1px solid var(--border-dark); border-radius:4px; padding:6px;">
+                    <div style="font-size:0.68rem; font-weight:700; color:var(--accent-cyan); margin-bottom:4px;">🎭 キャストマスター (Chirp 3 HD 声質)</div>
+                    <div id="vault-cast-list" style="display:flex; flex-direction:column; gap:4px; font-size:0.62rem;"></div>
+                </div>
+
+                <!-- Location List -->
+                <div style="background:var(--bg-card); border:1px solid var(--border-dark); border-radius:4px; padding:6px;">
+                    <div style="font-size:0.68rem; font-weight:700; color:var(--accent-gold); margin-bottom:4px;">🌍 Google 3D ロケーションマスター</div>
+                    <div id="vault-loc-list" style="display:flex; flex-direction:column; gap:4px; font-size:0.62rem;"></div>
+                </div>
+
+                <!-- Quick Add Modal Trigger -->
+                <div style="margin-top:auto; display:flex; gap:4px;">
+                    <button class="btn-action" style="flex:1;" onclick="addNewCastPrompt()">+ 新キャスト追加</button>
+                    <button class="btn-action" style="flex:1;" onclick="addNewLocationPrompt()">+ 新ロケ地追加</button>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="multi_display.js"></script>
+    <script src="hollywood_3d_spatial_engine.js"></script>
+    <script src="workspace_production_vault.js"></script>
+    <script src="prompt_director_engine.js"></script>
+
+    <script>
+        let currentPass = "depth"; // "depth" or "normal"
+
+        function setPassMode(mode) {
+            currentPass = mode;
+            renderPassCanvas();
+        }
+
+        function renderPassCanvas() {
+            const canvas = document.getElementById('canvas-pass');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth || 400;
+            canvas.height = canvas.parentElement.clientHeight || 450;
+
+            if (window.Hollywood3DSpatialEngine) {
+                if (currentPass === "depth") {
+                    window.Hollywood3DSpatialEngine.renderZDepthPass(ctx, canvas.width, canvas.height);
+                } else {
+                    window.Hollywood3DSpatialEngine.renderNormalPass(ctx, canvas.width, canvas.height);
+                }
+            }
+        }
+
+        function renderRadarCanvas() {
+            const canvas = document.getElementById('canvas-radar');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth || 300;
+            canvas.height = canvas.parentElement.clientHeight || 220;
+
+            if (window.Hollywood3DSpatialEngine) {
+                window.Hollywood3DSpatialEngine.renderTopDownRadar(ctx, canvas.width, canvas.height);
+            }
+        }
+
+        function updateOpticsHUD() {
+            if (window.Hollywood3DSpatialEngine) {
+                const dof = window.Hollywood3DSpatialEngine.calculateDoFMetrics();
+                document.getElementById('hud-optics').textContent = `${dof.focalLengthMm} / ${dof.fStop}`;
+                document.getElementById('hud-dof').textContent = dof.dofDepthM;
+                document.getElementById('hud-hyperfocal').textContent = `${dof.hyperfocalM}m`;
+            }
+            if (window.PromptDirectorEngine) {
+                const spatial = window.PromptDirectorEngine.generateSpatialGuidanceJSON({
+                    locationName: "Tokyo Metro Harajuku Underground",
+                    ceilingHeight: 2.80,
+                    actorHeight: 1.80,
+                    actorZ: 3.5,
+                    fov: 35.0,
+                    yaw: 180.0
+                });
+                document.getElementById('spatial-json-box').value = JSON.stringify(spatial, null, 2);
+            }
+        }
+
+        function renderVaultUI() {
+            if (!window.WorkspaceProductionVault) return;
+            const vault = window.WorkspaceProductionVault.vault;
+
+            // Cast List
+            const castDiv = document.getElementById('vault-cast-list');
+            castDiv.innerHTML = vault.characters.map(c => `
+                <div style="display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+                    <span style="font-weight:700; color:#fff;">${c.nameJa} (${c.heightM}m)</span>
+                    <span style="color:var(--text-muted);">${c.role}</span>
+                </div>
+            `).join('');
+
+            // Location List
+            const locDiv = document.getElementById('vault-loc-list');
+            locDiv.innerHTML = vault.locations.map(l => `
+                <div style="display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+                    <span style="font-weight:700; color:#fff;">${l.nameJa.split(' ')[0]}</span>
+                    <span style="color:var(--accent-gold);">${l.category === 'underground' ? '地下 ' + l.depthM + 'm' : '地上'}</span>
+                </div>
+            `).join('');
+        }
+
+        function copySpatialJSON() {
+            const text = document.getElementById('spatial-json-box').value;
+            navigator.clipboard.writeText(text);
+            alert("📋 Google Veo 3.1 Spatial Guidance JSON をコピーしました！");
+        }
+
+        function exportVaultCSV() {
+            if (window.WorkspaceProductionVault) {
+                const csv = window.WorkspaceProductionVault.exportToCSV('characters');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = "GENESIS_CAST_VAULT.csv";
+                a.click();
+            }
+        }
+
+        function addNewCastPrompt() {
+            const name = prompt("新キャラクター名を入力してください（例: 冴島 恭介）:");
+            if (name) {
+                window.WorkspaceProductionVault.addCharacter({
+                    id: "custom_" + Date.now(),
+                    nameJa: name,
+                    nameEn: "Custom Cast",
+                    heightM: 1.82,
+                    role: "警視庁 特務捜査官",
+                    voiceModel: "ja-JP-Chirp3-HD-Ren",
+                    costumes: ["タクティカルスーツ"],
+                    status: "Active"
+                });
+                renderVaultUI();
+            }
+        }
+
+        function addNewLocationPrompt() {
+            const name = prompt("新ロケーション名を入力してください（例: 新宿 歌舞伎町）:");
+            if (name) {
+                window.WorkspaceProductionVault.addLocation({
+                    id: "custom_loc_" + Date.now(),
+                    nameJa: name,
+                    nameEn: "Custom Tokyo Location",
+                    coords: "35.6938, 139.7034",
+                    ceilingHeightM: 45.0,
+                    category: "surface",
+                    google3DTiles: "Available"
+                });
+                renderVaultUI();
+            }
+        }
+
+        // MultiDisplay Bus Listener
+        window.onMultiDisplayCameraUpdate = (payload) => {
+            renderPassCanvas();
+            renderRadarCanvas();
+            updateOpticsHUD();
+        };
+
+        window.onMultiDisplayVaultUpdate = () => {
+            renderVaultUI();
+        };
+
+        window.addEventListener('resize', () => {
+            renderPassCanvas();
+            renderRadarCanvas();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPassCanvas();
+            renderRadarCanvas();
+            updateOpticsHUD();
+            renderVaultUI();
+        });
+    </script>
+</body>
+</html>

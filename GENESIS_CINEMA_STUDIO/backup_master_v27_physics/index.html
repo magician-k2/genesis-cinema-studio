@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ジェネシス・シネマ・スタジオ (GENESIS Cinema Studio PRO)</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Outfit:wght@600;800;900&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #05070e;
+            --bg-panel: #0c101d;
+            --bg-card: #13192c;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --border-dark: rgba(255, 255, 255, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Header */
+        header {
+            height: 52px;
+            background: rgba(12, 16, 29, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge-cinema {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(168, 85, 247, 0.2));
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .multi-screen-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-screen {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-screen:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .btn-screen.active { border-color: var(--accent-cyan); background: rgba(0, 242, 254, 0.2); color: var(--accent-cyan); }
+        .btn-screen.launch-all {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(0, 242, 254, 0.25));
+            border: 1px solid var(--accent-cyan);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+        .btn-screen.script { border-color: rgba(168, 85, 247, 0.5); color: #c084fc; background: rgba(168, 85, 247, 0.15); }
+        .btn-screen.audio { border-color: rgba(245, 158, 11, 0.5); color: #fde047; background: rgba(245, 158, 11, 0.15); }
+
+        /* Workspace Grid */
+        .workspace {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 290px 1fr 310px;
+            grid-template-rows: 1fr 220px;
+            gap: 10px;
+            padding: 10px 14px;
+            height: calc(100vh - 52px);
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        .panel-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+        .panel-body {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .asset-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .asset-card:hover, .asset-card.active {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+        }
+        
+        .btn-cast {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.3));
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            margin-top: 2px;
+        }
+        .btn-cast:hover { background: var(--accent-cyan); color: #05070e; }
+
+        .angle-btn-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .angle-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            padding: 3px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .angle-btn.active {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.15);
+        }
+
+        /* Cinema Viewport Stage */
+        .viewport-panel {
+            grid-column: 2;
+            grid-row: 1;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+        .viewport-screen-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #111827 0%, #000 100%);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .aspect-frame {
+            position: relative;
+            background: #05070e;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            perspective: 800px;
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+        .aspect-frame.landscape { width: 100%; height: 100%; }
+        .aspect-frame.vertical { width: 270px; height: 95%; border-radius: 16px; border: 2px solid var(--accent-cyan); }
+
+        /* 🌟 Original Dynamic Cinema Viewport Background */
+        .viewport-bg {
+            position: absolute;
+            inset: -40px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.98;
+            cursor: grab;
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1), background-position 0.1s ease-out;
+            will-change: transform, background-position;
+        }
+        .viewport-bg:active { cursor: grabbing; }
+
+        .ground-plane {
+            position: absolute;
+            bottom: 0;
+            left: -50%;
+            width: 200%;
+            height: 45%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0, 242, 254, 0.05) 60%, transparent 100%),
+                        repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 40px),
+                        repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 40px);
+            transform-origin: bottom center;
+            transform: rotateX(60deg);
+            pointer-events: none;
+            z-index: 5;
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1), opacity 0.2s ease;
+        }
+
+        .viewport-overlay {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            display: flex;
+            gap: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* 🎭 Draggable Actor with Pure Physics Scaling & Contact Ground Shadow */
+        .actor-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            cursor: move;
+            touch-action: none;
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+        }
+        .viewport-actor {
+            width: 140px;
+            height: 210px;
+            border: 2px dashed var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.15);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            box-shadow: 0 0 24px rgba(0, 242, 254, 0.3);
+            backdrop-filter: blur(4px);
+        }
+        .actor-ground-shadow {
+            width: 110px;
+            height: 16px;
+            background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.85) 0%, rgba(0, 242, 254, 0.2) 50%, transparent 80%);
+            border-radius: 50%;
+            margin-top: -6px;
+            filter: blur(2px);
+        }
+
+        .viewport-subtitle {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #f8fafc;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            max-width: 80%;
+            text-align: center;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        /* Viewport Controls */
+        .viewport-controls {
+            height: 52px;
+            background: rgba(12, 16, 29, 0.95);
+            border-top: 1px solid var(--border-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            gap: 8px;
+        }
+        .ctrl-btn.play-btn {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-cyan);
+            color: #05070e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-action {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #05070e;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-reset-slope {
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-reset-slope:hover { background: var(--accent-gold); color: #05070e; }
+
+        .timeline-panel {
+            grid-column: 1 / span 2;
+            grid-row: 2;
+        }
+        .timeline-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 6px 10px;
+            background: #090c16;
+            overflow-x: auto;
+        }
+        .track-row {
+            height: 34px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            gap: 6px;
+        }
+        .track-label { width: 95px; font-size: 0.68rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; }
+        
+        .shot-track-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            overflow-x: auto;
+        }
+        .track-clip {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(79, 172, 254, 0.3));
+            border: 1px solid var(--accent-cyan);
+            border-radius: 4px;
+            height: 24px;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: grab;
+            white-space: nowrap;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+        .track-clip:active { cursor: grabbing; opacity: 0.8; }
+        .track-clip.dragging { opacity: 0.4; border-style: dashed; }
+        .track-clip.drag-over { border-color: var(--accent-gold); transform: scale(1.05); }
+
+        .track-clip.voice { background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(168, 85, 247, 0.4)); border-color: var(--accent-purple); cursor: pointer; }
+        .track-clip.bgm { background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.4)); border-color: #10b981; cursor: pointer; }
+
+        .console-panel { grid-column: 3; grid-row: 1 / span 2; }
+        .console-log {
+            flex: 1;
+            background: #070913;
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: #a5f3fc;
+            line-height: 1.4;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 7, 14, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 12px;
+            width: 580px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="logo">
+                <i class="fa-solid fa-clapperboard"></i>
+                <span>GENESIS Cinema Studio PRO</span>
+            </div>
+            <span class="badge-cinema">映画＆ショートドラマOS</span>
+        </div>
+
+        <!-- Multi-Monitor Dispatchers -->
+        <div class="multi-screen-group">
+            <button class="btn-screen launch-all" onclick="openBothSubWindows()">
+                <i class="fa-solid fa-layer-group"></i> 🚀 サブ2画面を一括起動 (台本＋音響)
+            </button>
+            <button class="btn-screen script" onclick="openSubWindow('script_editor.html', 50, 100)">
+                <i class="fa-solid fa-pen-nib"></i> サブ1: 台本
+            </button>
+            <button class="btn-screen audio" onclick="openSubWindow('audio_mixer.html', 760, 100)">
+                <i class="fa-solid fa-sliders"></i> サブ2: 音響
+            </button>
+            <div class="status-pill" style="margin-left: 4px;">
+                <div class="status-dot"></div>
+                <span>MCP: 0.00005s</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Workspace Grid -->
+    <main class="workspace">
+        
+        <!-- Left: Asset Tray -->
+        <section class="panel">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-users-viewfinder"></i> キャスト＆アセットトレイ</div>
+            </div>
+            <div id="location-list" class="panel-body">
+                
+                <!-- Character 1: Ren Kisaragi -->
+                <div id="char-card-ren" class="asset-card active">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color: var(--accent-cyan); font-weight:700; font-size:0.85rem;">🎭 如月 蓮 (主人公)</span>
+                        <span style="font-size: 0.65rem; color: #10b981;">● 主演</span>
+                    </div>
+                    <div style="display:flex; gap:4px; margin-top:2px;">
+                        <select id="costume-select-ren" onchange="changeCostume(this.value)" style="background:#090c16; color:var(--accent-cyan); border:1px solid var(--border-dark); border-radius:4px; font-size:0.68rem; padding:2px 4px; flex:1;">
+                            <option value="noir_suit">ノワールスーツ (本編・夜)</option>
+                            <option value="casual_jacket">レザージャケット (私服・昼)</option>
+                            <option value="tactical_gear">タクティカルギア (戦闘・回想)</option>
+                        </select>
+                        <select id="props-select-ren" onchange="changeProps(this.value)" style="background:#090c16; color:var(--accent-gold); border:1px solid var(--border-dark); border-radius:4px; font-size:0.68rem; padding:2px 4px; flex:1;">
+                            <option value="prop_gun">小道具: 拳銃</option>
+                            <option value="prop_phone">小道具: スマホ</option>
+                            <option value="prop_none">小道具: なし</option>
+                        </select>
+                    </div>
+                    <button class="btn-cast" onclick="castCharacterToScene('ren')">
+                        <i class="fa-solid fa-clapperboard"></i> 🎬 このシーンに出演させる
+                    </button>
+                    <div class="angle-btn-grid">
+                        <div class="angle-btn active" onclick="changeAngle('front')"><i class="fa-solid fa-user-tie"></i> 正面</div>
+                        <div class="angle-btn" onclick="changeAngle('back')"><i class="fa-solid fa-user-secret"></i> 背面</div>
+                        <div class="angle-btn" onclick="changeAngle('left')"><i class="fa-solid fa-person"></i> 左</div>
+                        <div class="angle-btn" onclick="changeAngle('right')"><i class="fa-solid fa-person"></i> 右</div>
+                    </div>
+                </div>
+
+                <!-- Character 2: Kagerou Himura -->
+                <div id="char-card-kagerou" class="asset-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color: #c084fc; font-weight:700; font-size:0.85rem;">🎭 緋村 影狼 (相棒)</span>
+                        <span style="font-size: 0.65rem; color: #a855f7;">● 助演</span>
+                    </div>
+                    <div style="display:flex; gap:4px; margin-top:2px;">
+                        <select id="costume-select-kagerou" style="background:#090c16; color:#c084fc; border:1px solid var(--border-dark); border-radius:4px; font-size:0.68rem; padding:2px 4px; flex:1;">
+                            <option value="detective_coat">トレンチコート (探偵)</option>
+                            <option value="casual_hoodie">黒パーカー (潜入)</option>
+                        </select>
+                        <select id="props-select-kagerou" style="background:#090c16; color:var(--accent-gold); border:1px solid var(--border-dark); border-radius:4px; font-size:0.68rem; padding:2px 4px; flex:1;">
+                            <option value="prop_lighter">小道具: ジッポライター</option>
+                            <option value="prop_sunglasses">小道具: サングラス</option>
+                        </select>
+                    </div>
+                    <button class="btn-cast" style="border-color:#a855f7; color:#c084fc;" onclick="castCharacterToScene('kagerou')">
+                        <i class="fa-solid fa-clapperboard"></i> 🎬 このシーンに出演させる
+                    </button>
+                </div>
+
+                <!-- Locations -->
+                <div class="asset-card active" onclick="selectLocationKey('ikebukuro_alley')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-weight:700; font-size:0.8rem; color:#38bdf8;">🗺️ 池袋 東口路地裏 (実写)</div>
+                        <span style="font-size:0.6rem; color:#6ee7b7; background:rgba(16,185,129,0.2); padding:1px 4px; border-radius:3px;">📷 実写ロケ地</span>
+                    </div>
+                    <div style="font-size:0.68rem; color:var(--text-muted);">東京・池袋東口 / 道路勾配: 0°</div>
+                </div>
+
+                <div class="asset-card" onclick="selectLocationKey('kyoto_gion')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-weight:700; font-size:0.8rem; color:var(--accent-gold);">🗺️ 京都祇園 白川通り (石畳)</div>
+                        <span style="font-size:0.6rem; color:#6ee7b7; background:rgba(16,185,129,0.2); padding:1px 4px; border-radius:3px;">📷 実写・坂道3°</span>
+                    </div>
+                    <div style="font-size:0.68rem; color:var(--text-muted);">伝統木造町家・石畳夜景 / 道路勾配: +3°</div>
+                </div>
+
+                <div class="asset-card" onclick="selectLocationKey('tokyo_shibuya')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="font-weight:700; font-size:0.8rem; color:#f43f5e;">🗺️ 渋谷横丁 ネオン通り</div>
+                        <span style="font-size:0.6rem; color:#6ee7b7; background:rgba(16,185,129,0.2); padding:1px 4px; border-radius:3px;">📷 実写シネマ</span>
+                    </div>
+                    <div style="font-size:0.68rem; color:var(--text-muted);">サイバーパンク・ネオン街 / 道路勾配: 0°</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Center Top: Cinema Viewport Stage (Pure Optical Dynamics) -->
+        <section class="panel viewport-panel">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-video"></i> 映画の舞台 (カメラ高・あおり・俯瞰ダイナミック連動)</div>
+                
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">画角比率:</span>
+                    <button id="ratio-landscape" class="btn-screen" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" onclick="setAspectRatio('landscape')">
+                        <i class="fa-solid fa-desktop"></i> 16:9 (映画)
+                    </button>
+                    <button id="ratio-vertical" class="btn-screen" onclick="setAspectRatio('vertical')">
+                        <i class="fa-solid fa-mobile-screen"></i> 9:16 (スマホ縦型)
+                    </button>
+                    <button class="btn-action" style="padding: 3px 10px; background:linear-gradient(135deg, #f59e0b, #ec4899);" onclick="generateMasterSceneShot()">
+                        <i class="fa-solid fa-camera-retro"></i> 📸 シーン画像生成
+                    </button>
+                </div>
+            </div>
+
+            <div class="viewport-screen-container">
+                <div id="aspect-frame" class="aspect-frame landscape">
+                    <div id="viewport-bg" class="viewport-bg" onmousedown="startBgPan(event)"></div>
+                    <div id="ground-plane" class="ground-plane"></div>
+
+                    <div class="viewport-overlay">
+                        <span id="heading-display" style="color: var(--accent-cyan);"><i class="fa-solid fa-compass"></i> 方位: 325.8°</span>
+                        <span id="shot-type-display" style="color: var(--accent-gold); font-weight: 700;">🥾 地面 (0.2m)</span>
+                        <span id="lens-display" style="color:#6ee7b7;"><i class="fa-solid fa-camera"></i> 50mm 標準シネマ</span>
+                        <span id="slope-display" style="color:#fde047;">勾配: 0°</span>
+                    </div>
+
+                    <!-- 🎭 Pure Physics Scaled Draggable Actor -->
+                    <div id="draggable-actor" class="actor-container" onmousedown="startActorDrag(event)">
+                        <div class="viewport-actor">
+                            <i id="actor-icon" class="fa-solid fa-user-tie" style="font-size: 2.6rem; color: var(--accent-cyan); margin-bottom: 2px;"></i>
+                            <span id="stage-actor-name" style="font-size: 0.75rem; font-weight: 700;">如月 蓮 (正面)</span>
+                            <span id="stage-costume-name" style="font-size: 0.62rem; color: #a5f3fc;">衣装: ノワールスーツ</span>
+                            <span id="stage-props-name" style="font-size: 0.62rem; color: #fde047;">小道具: 拳銃</span>
+                        </div>
+                        <div class="actor-ground-shadow"></div>
+                    </div>
+
+                    <div id="live-subtitle" class="viewport-subtitle">
+                        「目標ポイントに到達。これより映画ショットの収録を開始する。」
+                    </div>
+                </div>
+            </div>
+
+            <!-- Viewport Controls -->
+            <div class="viewport-controls">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <button id="btn-preset-ground" class="btn-screen active" onclick="applyPreset(0.2, 50, 'ground')">
+                        🥾 地面 (0.2m)
+                    </button>
+                    <button id="btn-preset-low" class="btn-screen" onclick="applyPreset(0.8, 35, 'low')">
+                        📐 低 (0.8m)
+                    </button>
+                    <button id="btn-preset-eye" class="btn-screen" onclick="applyPreset(1.6, 50, 'eye')">
+                        👀 目線 (1.6m)
+                    </button>
+                    <button id="btn-preset-crane" class="btn-screen" onclick="applyPreset(3.5, 85, 'crane')">
+                        🏗️ 俯瞰 (3.5m)
+                    </button>
+                </div>
+
+                <!-- Camera Height Slider -->
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem;">
+                    <span>高:</span>
+                    <input id="height-slider-input" type="range" min="0.1" max="5.0" step="0.1" value="0.2" style="width:80px; accent-color:var(--accent-cyan); cursor:pointer;" oninput="onHeightInput(this.value)">
+                    <span id="height-val" style="color: var(--accent-cyan); font-weight: 800; width: 32px;">0.2m</span>
+                </div>
+
+                <!-- Slope Slider (Wide 100px for Smooth Precise Dragging) -->
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem;">
+                    <span>勾配:</span>
+                    <input id="slope-slider-input" type="range" min="-15" max="15" step="1" value="0" style="width:100px; accent-color:var(--accent-gold); cursor:pointer;" oninput="onSlopeInput(this.value)">
+                    <span id="slope-val" style="color: var(--accent-gold); font-weight: 800; width: 28px;">0°</span>
+                    <button class="btn-reset-slope" onclick="setSlopeProgrammatic(0)" title="水平0°に戻す">0°</button>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button id="main-play-btn" class="ctrl-btn play-btn" onclick="togglePlay()"><i class="fa-solid fa-play"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Center Bottom: Multi-Track Timeline -->
+        <section class="panel timeline-panel">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-sliders"></i> マルチトラック・タイムライン (キャスト・衣装・小道具メタデータ連動)</div>
+                <button class="btn-action" style="padding: 2px 8px; font-size: 0.7rem;" onclick="generateMasterSceneShot()">
+                    <i class="fa-solid fa-plus"></i> ＋新カット登録
+                </button>
+            </div>
+            <div class="timeline-body">
+                <!-- Video Shot Track (Reorderable) -->
+                <div class="track-row">
+                    <div class="track-label"><i class="fa-solid fa-film"></i> 動画ショット</div>
+                    <div id="shot-track-list" class="shot-track-container">
+                        <div class="track-clip" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onclick="previewShotByIndex(0)">
+                            <i class="fa-solid fa-grip-lines-vertical" style="opacity:0.6;"></i>
+                            <span>カット01: 如月蓮 (ノワールスーツ/拳銃)</span>
+                        </div>
+                        <div class="track-clip" draggable="true" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onclick="previewShotByIndex(1)">
+                            <i class="fa-solid fa-grip-lines-vertical" style="opacity:0.6;"></i>
+                            <span>カット02: 緋村影狼 (トレンチコート)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dialogue Track -->
+                <div class="track-row">
+                    <div class="track-label"><i class="fa-solid fa-microphone-lines"></i> 台本・セリフ</div>
+                    <div id="timeline-dialogue-clip" class="track-clip voice" style="width: 280px;" onclick="previewVoice()">
+                        「目標ポイント到達。収録開始。」
+                    </div>
+                </div>
+                
+                <!-- Audio Track -->
+                <div class="track-row">
+                    <div class="track-label"><i class="fa-solid fa-music"></i> BGM & SE</div>
+                    <div class="track-clip bgm" style="width: 420px;">シネマティック・ストリングス (Cm)</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: ClickHouse MCP & Director -->
+        <section class="panel console-panel">
+            <div class="panel-header">
+                <div class="panel-title"><i class="fa-solid fa-terminal"></i> CLICKHOUSE MCP</div>
+            </div>
+            <div class="panel-body">
+                <div id="mcp-log" class="console-log"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal: Generated Master Scene Shot -->
+    <div id="scene-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: var(--accent-cyan); font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-camera-retro"></i> 📸 シーン画像生成完了 (Imagen 3 / Veo 2)
+                </h3>
+                <button onclick="closeSceneModal()" style="background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="scene-preview-box" style="height: 220px; border-radius: 8px; background-size: cover; background-position: center; border: 1px solid var(--accent-cyan); display:flex; align-items:flex-end; padding:12px;">
+                <div style="background:rgba(0,0,0,0.85); padding:6px 12px; border-radius:4px; font-size:0.75rem; color:#6ee7b7;">
+                    <i class="fa-solid fa-check-circle"></i> カメラ高・パースペクティブ・キャスト・衣装を完全固定反映
+                </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px; font-size:0.75rem; color:var(--text-muted); background:rgba(0,0,0,0.4); padding:8px; border-radius:6px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span id="scene-cast-label" style="color:var(--accent-cyan); font-weight:700;">出演: 如月 蓮</span>
+                    <span id="scene-costume-label" style="color:#a5f3fc;">衣装: ノワールスーツ</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span id="scene-props-label" style="color:var(--accent-gold);">小道具: 拳銃</span>
+                    <span id="scene-ratio-label">比率: 16:9 Landscape</span>
+                </div>
+            </div>
+            <button class="btn-action" style="padding: 10px; width:100%; justify-content:center;" onclick="saveSceneToTimeline()">
+                <i class="fa-solid fa-film"></i> このカットを映画タイムラインに登録して次のシーンへ ➔
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="streetview_engine.js"></script>
+    <script src="character_master.js"></script>
+    <script src="audio_studio.js"></script>
+    <script src="multi_display.js"></script>
+
+    <script>
+        let currentActorKey = "ren";
+        let currentCostumeName = "ノワールスーツ";
+        let currentPropsName = "拳銃";
+
+        let recordedShots = [
+            { id: 1, name: "カット01: 如月蓮 (ノワールスーツ/拳銃)", actor: "ren", actorName: "如月 蓮", costume: "ノワールスーツ", props: "拳銃", ratio: "landscape", height: 0.2, posX: 50, posY: 20 },
+            { id: 2, name: "カット02: 緋村影狼 (トレンチコート)", actor: "kagerou", actorName: "緋村 影狼", costume: "トレンチコート", props: "ジッポライター", ratio: "landscape", height: 1.6, posX: 35, posY: 30 }
+        ];
+
+        // 🌟 Exact Original Physics Transform Dispatcher
+        function applyPhysicsTransform(t) {
+            if (!t) return;
+            const bg = document.getElementById('viewport-bg');
+            const actor = document.getElementById('draggable-actor');
+            const ground = document.getElementById('ground-plane');
+
+            if (bg) bg.style.transform = t.bgTransformCss;
+            if (actor) actor.style.transform = t.actorTransformCss;
+            if (ground) {
+                ground.style.transform = `rotateX(${t.groundPitch})`;
+                ground.style.opacity = t.groundOpacity;
+            }
+
+            const shotLabel = document.getElementById('shot-type-display');
+            if (shotLabel) shotLabel.textContent = t.shotType;
+
+            const lensLabel = document.getElementById('lens-display');
+            if (lensLabel) lensLabel.innerHTML = `<i class="fa-solid fa-camera"></i> ${t.lensType}`;
+
+            const h = parseFloat(t.height);
+            document.getElementById('btn-preset-ground').classList.toggle('active', h <= 0.3);
+            document.getElementById('btn-preset-low').classList.toggle('active', h > 0.3 && h <= 0.9);
+            document.getElementById('btn-preset-eye').classList.toggle('active', h > 0.9 && h <= 2.0);
+            document.getElementById('btn-preset-crane').classList.toggle('active', h >= 3.0);
+        }
+
+        // 🎯 High-Performance Input Handlers (Zero DOM Clobbering during Drag)
+        function onHeightInput(val) {
+            const h = parseFloat(val) || 1.6;
+            document.getElementById('height-val').textContent = `${h.toFixed(1)}m`;
+            const t = window.StreetViewEngine.setCameraHeight(h);
+            applyPhysicsTransform(t);
+        }
+
+        function onSlopeInput(val) {
+            const slope = parseFloat(val) || 0;
+            document.getElementById('slope-val').textContent = `${slope}°`;
+            document.getElementById('slope-display').textContent = `勾配: ${slope}°`;
+            const t = window.StreetViewEngine.setElevationSlope(slope);
+            applyPhysicsTransform(t);
+        }
+
+        function setSlopeProgrammatic(val) {
+            document.getElementById('slope-slider-input').value = val;
+            onSlopeInput(val);
+        }
+
+        function applyPreset(h, fov, type) {
+            document.getElementById('height-slider-input').value = h;
+            window.StreetViewEngine.cameraFov = fov;
+            onHeightInput(h);
+        }
+
+        function selectLocationKey(key) {
+            window.StreetViewEngine.currentLocationKey = key;
+            const loc = window.StreetViewEngine.getLocation(key);
+            const bg = document.getElementById('viewport-bg');
+            bg.style.backgroundImage = `url('${loc.imageUrl}')`;
+            document.querySelectorAll('.asset-card').forEach(el => el.classList.remove('active'));
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+            
+            if (loc.elevationSlope !== undefined) {
+                setSlopeProgrammatic(loc.elevationSlope);
+            }
+        }
+
+        // Camera Pan & Heading Drag
+        let isPanningBg = false;
+        let panStartX = 0;
+        let bgOffsetPercent = 50;
+
+        function startBgPan(e) {
+            if (isActorDragging) return;
+            isPanningBg = true;
+            panStartX = e.clientX;
+        }
+
+        let isActorDragging = false;
+        let actorStartX, actorStartY;
+        let actorPosX = 50;
+        let actorPosY = 20;
+
+        function startActorDrag(e) {
+            isActorDragging = true;
+            actorStartX = e.clientX;
+            actorStartY = e.clientY;
+            e.stopPropagation();
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (isActorDragging) {
+                const frame = document.getElementById('aspect-frame');
+                const rect = frame.getBoundingClientRect();
+                const deltaX = (e.clientX - actorStartX) / rect.width * 100;
+                const deltaY = (actorStartY - e.clientY);
+                actorPosX = Math.max(10, Math.min(90, actorPosX + deltaX));
+                actorPosY = Math.max(10, Math.min(180, actorPosY + deltaY));
+                actorStartX = e.clientX;
+                actorStartY = e.clientY;
+                const actor = document.getElementById('draggable-actor');
+                actor.style.left = `${actorPosX}%`;
+                actor.style.bottom = `${actorPosY}px`;
+                return;
+            }
+
+            if (isPanningBg) {
+                const deltaX = e.clientX - panStartX;
+                panStartX = e.clientX;
+                bgOffsetPercent = Math.max(0, Math.min(100, bgOffsetPercent - deltaX * 0.15));
+
+                let headingDeg = (bgOffsetPercent * 3.6).toFixed(1);
+                window.StreetViewEngine.heading = headingDeg;
+
+                const bg = document.getElementById('viewport-bg');
+                bg.style.backgroundPosition = `${bgOffsetPercent}% center`;
+                document.getElementById('heading-display').innerHTML = `<i class="fa-solid fa-compass"></i> 方位: ${headingDeg}°`;
+
+                if (window.MultiDisplayEngine) {
+                    window.MultiDisplayEngine.broadcast("CAMERA_UPDATE", { heading: headingDeg });
+                }
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isActorDragging = false;
+            isPanningBg = false;
+        });
+
+        function castCharacterToScene(charKey) {
+            currentActorKey = charKey;
+            const actorNameEl = document.getElementById('stage-actor-name');
+            const costumeEl = document.getElementById('stage-costume-name');
+            const propsEl = document.getElementById('stage-props-name');
+            const iconEl = document.getElementById('actor-icon');
+
+            document.querySelectorAll('.asset-card').forEach(el => el.classList.remove('active'));
+
+            if (charKey === "ren") {
+                document.getElementById('char-card-ren').classList.add('active');
+                currentCostumeName = document.getElementById('costume-select-ren').options[document.getElementById('costume-select-ren').selectedIndex].text.split(' ')[0];
+                currentPropsName = document.getElementById('props-select-ren').options[document.getElementById('props-select-ren').selectedIndex].text.split(': ')[1];
+                actorNameEl.textContent = "如月 蓮 (正面)";
+                iconEl.className = "fa-solid fa-user-tie";
+                iconEl.style.color = "var(--accent-cyan)";
+            } else if (charKey === "kagerou") {
+                document.getElementById('char-card-kagerou').classList.add('active');
+                currentCostumeName = document.getElementById('costume-select-kagerou').options[document.getElementById('costume-select-kagerou').selectedIndex].text.split(' ')[0];
+                currentPropsName = document.getElementById('props-select-kagerou').options[document.getElementById('props-select-kagerou').selectedIndex].text.split(': ')[1];
+                actorNameEl.textContent = "緋村 影狼 (正面)";
+                iconEl.className = "fa-solid fa-user-secret";
+                iconEl.style.color = "#c084fc";
+            }
+
+            costumeEl.textContent = `衣装: ${currentCostumeName}`;
+            propsEl.textContent = `小道具: ${currentPropsName}`;
+        }
+
+        function changeCostume(val) {
+            currentCostumeName = event.target.options[event.target.selectedIndex].text.split(' ')[0];
+            document.getElementById('stage-costume-name').textContent = `衣装: ${currentCostumeName}`;
+        }
+
+        function changeProps(val) {
+            currentPropsName = event.target.options[event.target.selectedIndex].text.split(': ')[1];
+            document.getElementById('stage-props-name').textContent = `小道具: ${currentPropsName}`;
+        }
+
+        // Timeline Reorder
+        let draggedClipEl = null;
+        function handleDragStart(e) {
+            draggedClipEl = e.currentTarget;
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.currentTarget;
+            if (target && target !== draggedClipEl && target.classList.contains('track-clip')) {
+                document.querySelectorAll('.shot-track-container .track-clip').forEach(el => el.classList.remove('drag-over'));
+                target.classList.add('drag-over');
+            }
+        }
+        function handleDrop(e) {
+            e.preventDefault();
+            const target = e.currentTarget;
+            if (draggedClipEl && target && target !== draggedClipEl) {
+                const list = document.getElementById('shot-track-list');
+                const clips = Array.from(list.children);
+                const fromIdx = clips.indexOf(draggedClipEl);
+                const toIdx = clips.indexOf(target);
+
+                if (fromIdx < toIdx) list.insertBefore(draggedClipEl, target.nextSibling);
+                else list.insertBefore(draggedClipEl, target);
+
+                const [movedItem] = recordedShots.splice(fromIdx, 1);
+                recordedShots.splice(toIdx, 0, movedItem);
+            }
+            cleanupDragStyles();
+        }
+        document.addEventListener('dragend', () => cleanupDragStyles());
+        function cleanupDragStyles() {
+            document.querySelectorAll('.shot-track-container .track-clip').forEach(el => {
+                el.classList.remove('dragging');
+                el.classList.remove('drag-over');
+            });
+        }
+
+        function saveSceneToTimeline() {
+            const nextId = recordedShots.length + 1;
+            const actorName = currentActorKey === "ren" ? "如月蓮" : "緋村影狼";
+            const shotName = `カット${String(nextId).padStart(2, '0')}: ${actorName} (${currentCostumeName}/${currentPropsName})`;
+            
+            recordedShots.push({
+                id: nextId,
+                name: shotName,
+                actor: currentActorKey,
+                actorName: actorName,
+                costume: currentCostumeName,
+                props: currentPropsName,
+                ratio: currentRatio,
+                height: window.StreetViewEngine.cameraHeight,
+                posX: actorPosX,
+                posY: actorPosY
+            });
+
+            const list = document.getElementById('shot-track-list');
+            const newClip = document.createElement('div');
+            newClip.className = "track-clip";
+            newClip.draggable = true;
+            newClip.ondragstart = handleDragStart;
+            newClip.ondragover = handleDragOver;
+            newClip.ondrop = handleDrop;
+            newClip.onclick = () => previewShotByIndex(recordedShots.length - 1);
+            newClip.innerHTML = `<i class="fa-solid fa-grip-lines-vertical" style="opacity:0.6;"></i> <span>${shotName}</span>`;
+            list.appendChild(newClip);
+
+            closeSceneModal();
+            alert(`🎉 ${shotName} をタイムラインに登録しました！`);
+        }
+
+        function previewShotByIndex(idx) {
+            const s = recordedShots[idx];
+            if (!s) return;
+            castCharacterToScene(s.actor);
+            setAspectRatio(s.ratio);
+            applyPreset(s.height, 50);
+            actorPosX = s.posX;
+            actorPosY = s.posY;
+            const actor = document.getElementById('draggable-actor');
+            actor.style.left = `${actorPosX}%`;
+            actor.style.bottom = `${actorPosY}px`;
+        }
+
+        function generateMasterSceneShot() {
+            const modal = document.getElementById('scene-modal');
+            const preview = document.getElementById('scene-preview-box');
+            const loc = window.StreetViewEngine.getLocation(window.StreetViewEngine.currentLocationKey);
+
+            preview.style.backgroundImage = `url('${loc.imageUrl}')`;
+            const actorName = currentActorKey === "ren" ? "如月 蓮" : "緋村 影狼";
+            document.getElementById('scene-cast-label').textContent = `出演: ${actorName}`;
+            document.getElementById('scene-costume-label').textContent = `衣装: ${currentCostumeName}`;
+            document.getElementById('scene-props-label').textContent = `小道具: ${currentPropsName}`;
+            document.getElementById('scene-ratio-label').textContent = `比率: ${currentRatio === 'vertical' ? '9:16 (スマホ縦型ドラマ)' : '16:9 (映画)'}`;
+
+            modal.style.display = 'flex';
+        }
+        function closeSceneModal() { document.getElementById('scene-modal').style.display = 'none'; }
+
+        function openSubWindow(file, left = 100, top = 100) {
+            window.open(file, file, `width=700,height=520,left=${left},top=${top}`);
+        }
+
+        function openBothSubWindows() {
+            window.open('script_editor.html', 'script_editor', 'width=680,height=520,left=50,top=100');
+            setTimeout(() => {
+                window.open('audio_mixer.html', 'audio_mixer', 'width=680,height=520,left=760,top=100');
+            }, 250);
+        }
+
+        let currentRatio = "landscape";
+        function setAspectRatio(ratio) {
+            currentRatio = ratio;
+            const frame = document.getElementById('aspect-frame');
+            frame.className = `aspect-frame ${ratio}`;
+            document.getElementById('ratio-landscape').style.color = ratio === 'landscape' ? 'var(--accent-cyan)' : '#fff';
+            document.getElementById('ratio-landscape').style.borderColor = ratio === 'landscape' ? 'var(--accent-cyan)' : 'var(--border-dark)';
+            document.getElementById('ratio-vertical').style.color = ratio === 'vertical' ? 'var(--accent-cyan)' : '#fff';
+            document.getElementById('ratio-vertical').style.borderColor = ratio === 'vertical' ? 'var(--accent-cyan)' : 'var(--border-dark)';
+        }
+
+        function changeAngle(angle) {
+            document.querySelectorAll('.angle-btn').forEach(b => b.classList.remove('active'));
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+            const viewData = window.CharacterMasterEngine.setAngle(angle);
+            document.getElementById('actor-icon').className = `fa-solid ${viewData.icon}`;
+            document.getElementById('stage-actor-name').textContent = `${currentActorKey === "ren" ? "如月 蓮" : "緋村 影狼"} (${viewData.label})`;
+        }
+
+        function togglePlay() {
+            const isPlaying = window.AudioStudioEngine.togglePlayback();
+            const btnIcon = document.querySelector('#main-play-btn i');
+            btnIcon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+        }
+
+        function previewVoice() {
+            window.AudioStudioEngine.playDialogue("池袋東口、目標ポイントに到達。これより映画ショットの収録を開始する。");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectLocationKey('ikebukuro_alley');
+            applyPreset(0.2, 50, 'ground');
+            castCharacterToScene('ren');
+        });
+    </script>
+</body>
+</html>

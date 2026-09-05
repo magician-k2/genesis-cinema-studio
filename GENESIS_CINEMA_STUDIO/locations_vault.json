@@ -1,0 +1,38 @@
+[
+  {
+    "id": "loc_asakusa_cyber",
+    "name": "サイバー浅草寺 (雷門 Neo-Tokyo)",
+    "category": "Sci-Fi / Cyberpunk",
+    "lat": 35.7111,
+    "lng": 139.7963,
+    "heading": 180,
+    "pitch": 0,
+    "stylePrompt": "Cyberpunk neo-Tokyo aesthetic, holographic lanterns, glowing neon rain reflections, futuristic flying drones above ancient traditional architecture",
+    "mapsUrl": "https://www.google.com/maps/@35.7111,139.7963,3a,75y,180h,90t",
+    "createdAt": "2026-09-01"
+  },
+  {
+    "id": "loc_suzuka_circuit",
+    "name": "鈴鹿サーキット (メインストレート・第1コーナー)",
+    "category": "Motorsport / Action",
+    "lat": 34.8431,
+    "lng": 136.541,
+    "heading": 45,
+    "pitch": -2,
+    "stylePrompt": "High-speed cinematic motorsport track, heat haze on asphalt, roaring grandstand, dynamic anamorphic lens flare",
+    "mapsUrl": "https://www.google.com/maps/@34.8431,136.5410,3a,75y,45h,90t",
+    "createdAt": "2026-09-01"
+  },
+  {
+    "id": "loc_bigben_bbq",
+    "name": "ロンドン ビッグベン前 (ウェストミンスター橋)",
+    "category": "International / Drama",
+    "lat": 51.5007,
+    "lng": -0.1246,
+    "heading": 270,
+    "pitch": 5,
+    "stylePrompt": "Sunny afternoon cinematic lighting, historic London architecture background, lively outdoor atmospheric depth",
+    "mapsUrl": "https://www.google.com/maps/@51.5007,-0.1246,3a,75y,270h,90t",
+    "createdAt": "2026-09-01"
+  }
+]

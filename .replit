@@ -1,0 +1,23 @@
+# ==============================================================================
+# 🎬 GENESIS CINEMA STUDIO: Official Replit Configuration
+# Competition: Agentic Cinema Hackathon (Google Cloud & Replit Track)
+# ==============================================================================
+
+run = "python GENESIS_CINEMA_STUDIO/server.py"
+entrypoint = "GENESIS_CINEMA_STUDIO/server.py"
+modules = ["python-3.11", "web"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["python", "GENESIS_CINEMA_STUDIO/server.py"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 8080
+externalPort = 80
+
+[env]
+PYTHONUNBUFFERED = "1"
+PORT = "8080"

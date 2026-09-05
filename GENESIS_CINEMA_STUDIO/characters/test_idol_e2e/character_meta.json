@@ -1,0 +1,136 @@
+{
+  "id": "test_idol_e2e",
+  "created_at": "2026-09-04 23:55:16",
+  "name": "星野 まゆ (E2E)",
+  "name_en": "Mayu Hoshino E2E",
+  "age": 18,
+  "gender": "female",
+  "height_m": 1.56,
+  "build": "natural",
+  "voice_profile": "Aoede",
+  "costume_tags": [
+    "ライブ衣装",
+    "リボン"
+  ],
+  "ec_product_links": [],
+  "views": {
+    "front": "/characters/test_idol_e2e/front.png",
+    "right": "/characters/test_idol_e2e/right.png",
+    "back": "/characters/test_idol_e2e/back.png",
+    "left": "/characters/test_idol_e2e/left.png"
+  },
+  "views_meta": {
+    "front": {
+      "view": "front",
+      "scale": 2.0449,
+      "pivot": [
+        300,
+        920
+      ],
+      "pivot_norm": [
+        0.5,
+        0.92
+      ],
+      "bounds": {
+        "top": 92,
+        "bottom": 911,
+        "left": 156,
+        "right": 444,
+        "height_px": 820,
+        "width_px": 289,
+        "pivot": [
+          300,
+          911
+        ],
+        "pivot_norm": [
+          0.5,
+          0.911
+        ]
+      }
+    },
+    "right": {
+      "view": "right",
+      "scale": 2.0449,
+      "pivot": [
+        300,
+        920
+      ],
+      "pivot_norm": [
+        0.5,
+        0.92
+      ],
+      "bounds": {
+        "top": 92,
+        "bottom": 911,
+        "left": 156,
+        "right": 444,
+        "height_px": 820,
+        "width_px": 289,
+        "pivot": [
+          300,
+          911
+        ],
+        "pivot_norm": [
+          0.5,
+          0.911
+        ]
+      }
+    },
+    "back": {
+      "view": "back",
+      "scale": 2.0449,
+      "pivot": [
+        300,
+        920
+      ],
+      "pivot_norm": [
+        0.5,
+        0.92
+      ],
+      "bounds": {
+        "top": 92,
+        "bottom": 911,
+        "left": 156,
+        "right": 444,
+        "height_px": 820,
+        "width_px": 289,
+        "pivot": [
+          300,
+          911
+        ],
+        "pivot_norm": [
+          0.5,
+          0.911
+        ]
+      }
+    },
+    "left": {
+      "view": "left",
+      "scale": 2.0449,
+      "pivot": [
+        300,
+        920
+      ],
+      "pivot_norm": [
+        0.5,
+        0.92
+      ],
+      "bounds": {
+        "top": 92,
+        "bottom": 911,
+        "left": 156,
+        "right": 444,
+        "height_px": 820,
+        "width_px": 289,
+        "pivot": [
+          300,
+          911
+        ],
+        "pivot_norm": [
+          0.5,
+          0.911
+        ]
+      }
+    }
+  }
+}

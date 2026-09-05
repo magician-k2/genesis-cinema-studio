@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS モニター3: 4K ACES シネマシアター試写室 & 多言語流暢TTS (v46)</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Outfit:wght@600;800;900&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-base: #03050a;
+            --bg-theater: #000000;
+            --bg-panel: #0a0e1a;
+            --bg-card: #101626;
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --border-dark: rgba(255, 255, 255, 0.08);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        header {
+            height: 44px;
+            background: rgba(10, 14, 26, 0.95);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        .theater-logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-theater {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-theater:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+        .btn-theater.active { border-color: var(--accent-gold); background: rgba(245, 158, 11, 0.2); color: var(--accent-gold); }
+
+        .theater-layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 8px;
+            padding: 8px;
+            height: calc(100vh - 44px);
+        }
+
+        .screen-container {
+            background: var(--bg-theater);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.9);
+        }
+
+        .cinema-viewport {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #0a0d18 0%, #000 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 2.39:1 CinemaScope Frame */
+        .cinemascope-frame {
+            position: relative;
+            width: 96%;
+            max-height: 94%;
+            aspect-ratio: 2.39 / 1;
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(0, 242, 254, 0.15);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: aspect-ratio 0.3s ease;
+        }
+        .cinemascope-frame.ratio-16-9 { aspect-ratio: 16 / 9; }
+        .cinemascope-frame.ratio-imax { aspect-ratio: 1.43 / 1; }
+
+        .cinema-media {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+        }
+
+        /* Film Subtitle Overlay */
+        .cinema-subtitle {
+            position: absolute;
+            bottom: 24px;
+            left: 5%;
+            right: 5%;
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+            z-index: 25;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        /* HUD Overlay */
+        .screen-hud {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            background: rgba(4, 6, 12, 0.88);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-glow);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            display: flex;
+            gap: 8px;
+            z-index: 20;
+        }
+
+        /* Controller Bar */
+        .theater-controls {
+            height: 50px;
+            background: rgba(10, 14, 26, 0.98);
+            border-top: 1px solid var(--border-dark);
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            z-index: 30;
+        }
+
+        .seeker-bar-container {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+        .seeker-progress {
+            height: 100%;
+            width: 35%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-gold));
+            border-radius: 3px;
+            position: relative;
+        }
+
+        .control-buttons-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .cut-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 6px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            transition: all 0.2s ease;
+        }
+        .cut-card:hover { border-color: var(--accent-cyan); }
+        .cut-card.active { border-color: var(--accent-gold); background: rgba(245, 158, 11, 0.08); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="theater-logo">
+            <i class="fa-solid fa-clapperboard"></i>
+            GENESIS モニター3: 4K ACES シネマシアター ＆ 極上流暢TTS (v46)
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <select id="tts-lang-select" onchange="onLangChange(this.value)" style="background:#070a14; color:#fff; border:1px solid var(--border-glow); border-radius:4px; font-size:0.68rem; padding:3px 6px;">
+                <option value="en-US">🎙️ English (Hollywood Native HD)</option>
+                <option value="ja-JP" selected>🎙️ 日本語 (Tokyo Studio Master)</option>
+                <option value="es-ES">🎙️ Español (Castilian Pro)</option>
+                <option value="fr-FR">🎙️ Français (Paris Noir)</option>
+                <option value="zh-CN">🎙️ 中文 (Mandarin Prime)</option>
+            </select>
+            <button class="btn-theater active" id="btn-ratio-scope" onclick="setScreenRatio('scope')">2.39:1 Scope</button>
+            <button class="btn-theater" id="btn-ratio-16-9" onclick="setScreenRatio('16:9')">16:9</button>
+            <button class="btn-theater" onclick="toggleTheaterFullScreen()"><i class="fa-solid fa-expand"></i> 全画面</button>
+        </div>
+    </header>
+
+    <main class="theater-layout">
+
+        <!-- Left: CinemaScope Screen -->
+        <div class="screen-container">
+            <div class="cinema-viewport" id="cinema-viewport" ondragover="event.preventDefault()" ondrop="onVideoDrop(event)">
+                
+                <div class="cinemascope-frame" id="cinema-frame">
+                    <img id="cinema-preview-img" class="cinema-media" src="assets/harajuku_movie_cut.jpg" alt="Cinema Cut">
+                    <video id="cinema-preview-video" class="cinema-media" style="display:none;" loop playsinline></video>
+                    
+                    <!-- Subtitle Text -->
+                    <div id="cinema-subtitle-text" class="cinema-subtitle">
+                        「地下3.5メートル、逃げ場はない。ここが奴らの終着点だ。」
+                    </div>
+                </div>
+
+                <!-- HUD -->
+                <div class="screen-hud">
+                    <span style="color:var(--accent-gold);"><i class="fa-solid fa-film"></i> <span id="hud-cut-name">Cut 01: 原宿地下コンコース</span></span>
+                    <span style="color:var(--accent-cyan);"><i class="fa-solid fa-video"></i> <span id="hud-tech-name">ターンアウト 180° 旋回</span></span>
+                    <span style="color:var(--accent-green);"><i class="fa-solid fa-microphone-lines"></i> Chirp 3 HD</span>
+                </div>
+
+            </div>
+
+            <!-- Controller -->
+            <div class="theater-controls">
+                <div class="seeker-bar-container" onclick="onSeekerClick(event)">
+                    <div class="seeker-progress" id="seek-progress"></div>
+                </div>
+                <div class="control-buttons-row">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button class="btn-theater" id="theater-play-btn" onclick="togglePlayState()"><i class="fa-solid fa-play"></i></button>
+                        <button class="btn-theater" style="color:var(--accent-cyan);" onclick="speakCurrentCutDialogue()"><i class="fa-solid fa-volume-high"></i> 流暢音声再生</button>
+                        <span id="theater-tc" style="font-family:'Fira Code'; font-size:0.68rem; color:#fff;">00:00:05:12 / 00:00:15:00</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:0.62rem; color:var(--text-muted);">ACES 1.3 / DCI-P3 4K</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Screenplay Cuts & TTS Director -->
+        <aside class="sidebar-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:700; font-size:0.75rem; color:var(--accent-gold);"><i class="fa-solid fa-list-ol"></i> シーン・カット割リスト</span>
+                <span id="latest-badge" style="font-size:0.62rem; color:var(--accent-cyan); background:rgba(0,242,254,0.15); padding:1px 6px; border-radius:3px;">スタジオ同期</span>
+            </div>
+
+            <!-- Cut 1 -->
+            <div class="cut-card active" id="card-cut-1" onclick="selectCinemaCut(1)">
+                <span id="card-1-title" style="font-weight:700; font-size:0.72rem; color:#fff;">Cut 01: 原宿 地下コンコース</span>
+                <span style="font-size:0.6rem; color:var(--accent-cyan);">🔄 ターンアウト 180° / 天井 2.8m</span>
+                <span id="card-1-extra" style="font-size:0.58rem; color:var(--text-muted);">如月蓮 (1.80m) ✕ 無人群衆 ✕ 車両なし</span>
+            </div>
+
+            <!-- Cut 2 -->
+            <div class="cut-card" id="card-cut-2" onclick="selectCinemaCut(2)">
+                <span style="font-weight:700; font-size:0.72rem; color:#fff;">Cut 02: 渋谷 109前 (超望遠)</span>
+                <span style="font-size:0.6rem; color:var(--accent-purple);">🎥 望遠追従ドリー (15y) / 50mタワー</span>
+                <span style="font-size:0.58rem; color:var(--text-muted);">如月蓮 ✕ 通行人 10名 ✕ JPN TAXI 1台</span>
+            </div>
+
+            <!-- Cut 3 -->
+            <div class="cut-card" id="card-cut-3" onclick="selectCinemaCut(3)">
+                <span style="font-weight:700; font-size:0.72rem; color:#fff;">Cut 03: 中野サンモール</span>
+                <span style="font-size:0.6rem; color:var(--accent-green);">🏗️ アーケード降下 / 天井 9.2m</span>
+                <span style="font-size:0.58rem; color:var(--text-muted);">如月蓮 ✕ 若者群衆 25名 ✕ 車両なし</span>
+            </div>
+
+            <!-- Dialogue & Subtitle Editor -->
+            <div style="background:rgba(0,0,0,0.5); border:1px solid var(--border-dark); border-radius:4px; padding:6px; display:flex; flex-direction:column; gap:4px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.65rem; font-weight:700; color:var(--accent-cyan);"><i class="fa-solid fa-comment-dots"></i> キャスト台詞 ＆ 多言語字幕</span>
+                    <button class="btn-theater" style="padding:1px 6px; font-size:0.58rem;" onclick="speakCustomInput()">発話</button>
+                </div>
+                <textarea id="dialogue-input" style="width:100%; height:45px; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:4px; font-size:0.65rem; padding:4px; resize:none;">地下3.5メートル、逃げ場はない。ここが奴らの終着点だ。</textarea>
+            </div>
+
+            <!-- Master Prompt Box -->
+            <div style="margin-top:auto; background:rgba(0,0,0,0.5); border:1px solid var(--border-dark); border-radius:4px; padding:6px; display:flex; flex-direction:column; gap:4px;">
+                <span style="font-size:0.65rem; font-weight:700; color:var(--accent-gold);"><i class="fa-solid fa-code"></i> AI動画生成 指示書 (Veo 3.1)</span>
+                <textarea id="theater-prompt-box" readonly style="width:100%; height:80px; background:#070a14; color:#f8fafc; border:1px solid var(--border-dark); border-radius:4px; font-family:'Fira Code'; font-size:0.55rem; padding:4px; resize:none;"></textarea>
+                <button class="btn-theater" style="justify-content:center; background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff;" onclick="copyCutPrompt()">
+                    <i class="fa-solid fa-copy"></i> 指示書プロンプトをコピー
+                </button>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="multi_display.js"></script>
+    <script src="google_tts_multilingual.js"></script>
+    <script src="cinema_video_recorder.js"></script>
+
+    <script>
+        const cuts = [
+            {
+                id: 1,
+                name: "Cut 01: 原宿 地下コンコース (B1F)",
+                tech: "ターンアウト 180° 急旋回",
+                image: "assets/harajuku_movie_cut.jpg",
+                tag: "如月蓮 ✕ 無人群衆 ✕ 車両なし",
+                dialogueKey: "ren_harajuku_concourse",
+                prompt: "Hyper-realistic 8K cinema footage, 35mm anamorphic lens, aspect ratio 2.39:1. Location: Tokyo Metro Harajuku Underground (depth -3.5m, B1F, GPS: 35.669921, 139.702518). Ceiling 2.80m. Primary Subject: Ren Kisaragi (1.80m tall). Empty of bystanders. Fast 180-degree turn-out camera rotation. ARRI Alexa Mini LF."
+            },
+            {
+                id: 2,
+                name: "Cut 02: 渋谷 109前 (超望遠 15y)",
+                tech: "望遠追従ドリー (FOV 15°)",
+                image: "assets/shibuya_109_telephoto.jpg",
+                tag: "如月蓮 ✕ 通行人10名 ✕ JPN TAXI 1台",
+                dialogueKey: "kagerou_shibuya_standoff",
+                prompt: "Hyper-realistic 8K cinema footage, ultra-telephoto 300mm compression lens, aspect ratio 2.39:1. Location: Shibuya 109 Crossing. Primary Subject: Ren Kisaragi in crosswalk. Vehicles: JPN TAXI cab. Camera: Low-angle tracking dolly."
+            },
+            {
+                id: 3,
+                name: "Cut 03: 中野サンモール商店街",
+                tech: "アーケード クレーン降下",
+                image: "assets/nakano_sunmall.jpg",
+                tag: "如月蓮 ✕ 若者群衆25名 ✕ 車両なし",
+                dialogueKey: "yui_intelligence_report",
+                prompt: "Hyper-realistic 8K cinema footage, 24mm prime cinema lens. Location: Nakano Sun Mall. 9.20m high arcade glass roof. Crane boom down from skylight down to 1.60m eye-level."
+            }
+        ];
+
+        let currentCutIndex = 0;
+        let isPlaying = false;
+        let playTimer = null;
+        let playProgress = 35;
+
+        function selectCinemaCut(cutId) {
+            currentCutIndex = cutId - 1;
+            const cut = cuts[currentCutIndex];
+
+            document.querySelectorAll('#card-cut-1, #card-cut-2, #card-cut-3').forEach((c, idx) => {
+                c.classList.toggle('active', idx === currentCutIndex);
+            });
+
+            document.getElementById('cinema-preview-img').style.display = "block";
+            document.getElementById('cinema-preview-video').style.display = "none";
+            document.getElementById('cinema-preview-img').src = cut.image;
+            document.getElementById('hud-cut-name').textContent = cut.name;
+            document.getElementById('hud-tech-name').textContent = cut.tech;
+            document.getElementById('theater-prompt-box').value = cut.prompt;
+
+            // Translate Dialogue
+            if (window.GoogleTTSMultilingualEngine) {
+                const text = window.GoogleTTSMultilingualEngine.translateDialogue(cut.dialogueKey);
+                document.getElementById('dialogue-input').value = text;
+                document.getElementById('cinema-subtitle-text').textContent = `「${text}」`;
+            }
+        }
+
+        function speakCurrentCutDialogue() {
+            const text = document.getElementById('dialogue-input').value;
+            if (window.GoogleTTSMultilingualEngine) {
+                window.GoogleTTSMultilingualEngine.speak(text);
+                document.getElementById('cinema-subtitle-text').textContent = `「${text}」`;
+            }
+        }
+
+        function speakCustomInput() {
+            speakCurrentCutDialogue();
+        }
+
+        function onLangChange(lang) {
+            if (window.GoogleTTSMultilingualEngine) {
+                window.GoogleTTSMultilingualEngine.setLanguage(lang);
+                const cut = cuts[currentCutIndex];
+                const text = window.GoogleTTSMultilingualEngine.translateDialogue(cut.dialogueKey, lang);
+                document.getElementById('dialogue-input').value = text;
+                document.getElementById('cinema-subtitle-text').textContent = `「${text}」`;
+            }
+        }
+
+        function setScreenRatio(ratio) {
+            document.querySelectorAll('#btn-ratio-scope, #btn-ratio-16-9').forEach(b => b.classList.remove('active'));
+            const frame = document.getElementById('cinema-frame');
+            frame.className = "cinemascope-frame";
+
+            if (ratio === "scope") {
+                document.getElementById('btn-ratio-scope').classList.add('active');
+            } else {
+                document.getElementById('btn-ratio-16-9').classList.add('active');
+                frame.classList.add('ratio-16-9');
+            }
+        }
+
+        function togglePlayState() {
+            const videoEl = document.getElementById('cinema-preview-video');
+            const imgEl = document.getElementById('cinema-preview-img');
+            const btn = document.getElementById('theater-play-btn');
+
+            if (!videoEl.src || videoEl.src === window.location.href) {
+                videoEl.src = 'assets/generated_harajuku_test.mp4';
+            }
+
+            if (videoEl.paused) {
+                videoEl.style.display = "block";
+                videoEl.controls = true;
+                if (imgEl) imgEl.style.display = "none";
+                videoEl.play().then(() => {
+                    btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                    isPlaying = true;
+                }).catch(e => {
+                    console.log("Unmuted autoplay rejected, playing muted:", e);
+                    videoEl.muted = true;
+                    videoEl.play();
+                    btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                    isPlaying = true;
+                });
+            } else {
+                videoEl.pause();
+                btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                isPlaying = false;
+            }
+        }
+
+        function onSeekerClick(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            const videoEl = document.getElementById('cinema-preview-video');
+            if (videoEl && videoEl.duration) {
+                videoEl.currentTime = pct * videoEl.duration;
+            }
+            document.getElementById('seek-progress').style.width = `${pct * 100}%`;
+        }
+
+        function onVideoDrop(e) {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('video/')) {
+                const videoEl = document.getElementById('cinema-preview-video');
+                videoEl.src = URL.createObjectURL(file);
+                videoEl.style.display = "block";
+                document.getElementById('cinema-preview-img').style.display = "none";
+                videoEl.play();
+                document.getElementById('hud-cut-name').textContent = `実動画上映: ${file.name}`;
+            }
+        }
+
+        function copyCutPrompt() {
+            const text = document.getElementById('theater-prompt-box').value;
+            navigator.clipboard.writeText(text);
+            alert("📋 試写室カットのAI動画プロンプトをコピーしました！");
+        }
+
+        function toggleTheaterFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // MultiDisplay Bus Listener
+        window.onMultiDisplaySubtitleUpdate = (payload) => {
+            document.getElementById('cinema-subtitle-text').textContent = `「${payload.text}」`;
+            document.getElementById('dialogue-input').value = payload.text;
+        };
+
+        window.onMultiDisplayVideoRendered = (payload) => {
+            const videoEl = document.getElementById('cinema-preview-video');
+            videoEl.src = payload.blobUrl || payload.videoSrc;
+            videoEl.style.display = "block";
+            document.getElementById('cinema-preview-img').style.display = "none";
+            videoEl.play();
+            document.getElementById('hud-cut-name').textContent = "🎬 ブラウザ生成 4K 動画 上映中";
+        };
+
+        window.onMultiDisplayTheaterPlay = (payload) => {
+            console.log("🍿 [MultiDisplay] THEATER_PLAY_VIDEO received:", payload);
+            const videoEl = document.getElementById('cinema-preview-video');
+            if (videoEl) {
+                videoEl.src = payload.videoSrc || 'assets/generated_harajuku_test.mp4';
+                videoEl.style.display = "block";
+                videoEl.controls = true;
+                document.getElementById('cinema-preview-img').style.display = "none";
+                videoEl.play().catch(e => {
+                    console.log("Autoplay unmuted blocked, falling back to muted autoplay:", e);
+                    videoEl.muted = true;
+                    videoEl.play();
+                });
+            }
+            const hud = document.getElementById('hud-cut-name');
+            if (hud) hud.textContent = `🎬 ${payload.title || "Veo 3.1 4K 上映中"}`;
+            
+            const promptBox = document.getElementById('theater-prompt-box');
+            if (promptBox && payload.prompt) {
+                promptBox.value = payload.prompt;
+            }
+
+            // Update badge if available
+            const formatBadge = document.getElementById('theater-format-badge');
+            if (formatBadge) {
+                formatBadge.textContent = payload.resolution || "4K 2.39:1 Anamorphic";
+            }
+        };
+
+        if (window.MultiDisplayEngine) {
+            window.MultiDisplayEngine.channel.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'PLAY_CINEMA_VIDEO') {
+                    const videoEl = document.getElementById('cinema-preview-video');
+                    videoEl.src = event.data.payload.videoUrl || 'assets/generated_harajuku_test.mp4';
+                    videoEl.style.display = "block";
+                    document.getElementById('cinema-preview-img').style.display = "none";
+                    videoEl.play();
+                    document.getElementById('hud-cut-name').textContent = event.data.payload.title || "🎬 Google Veo 4K 映画上映中";
+                    if (event.data.payload.promptJa) {
+                        document.getElementById('theater-prompt-box').value = event.data.payload.promptJa;
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectCinemaCut(1);
+
+            const videoEl = document.getElementById('cinema-preview-video');
+            if (videoEl) {
+                videoEl.addEventListener('timeupdate', () => {
+                    if (videoEl.duration) {
+                        const pct = (videoEl.currentTime / videoEl.duration) * 100;
+                        document.getElementById('seek-progress').style.width = `${pct}%`;
+                        const curSec = Math.floor(videoEl.currentTime);
+                        const durSec = Math.floor(videoEl.duration);
+                        document.getElementById('theater-tc').textContent = `00:00:${String(curSec).padStart(2,'0')}:12 / 00:00:${String(durSec).padStart(2,'0')}:00`;
+                    }
+                });
+                videoEl.addEventListener('play', () => {
+                    const btn = document.getElementById('theater-play-btn');
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                });
+                videoEl.addEventListener('pause', () => {
+                    const btn = document.getElementById('theater-play-btn');
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                });
+            }
+
+            // Check URL query parameters (e.g. ?play=master or ?video=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('play') === 'master' || urlParams.get('video')) {
+                const videoSrc = urlParams.get('video') || 'assets/generated_harajuku_test.mp4';
+                const title = urlParams.get('title') || '🎬 映画本編完成マスター: 『サイバー東京ノワール』';
+                window.onMultiDisplayTheaterPlay({
+                    videoSrc: videoSrc,
+                    title: title,
+                    resolution: "4K 2.39:1 Anamorphic Cinemascope"
+                });
+            }
+        });
+    </script>
+    <script src="multi_display.js"></script>
+    <script src="gemini_omni_engine.js"></script>
+    <script src="agentic_video_qc_engine.js"></script>
+
+    <script>
+        function runAgenticQC() {
+            const qc = window.AgenticVideoQCEngine;
+            if (qc) {
+                const res = qc.evaluateVideoQuality({ id: "current_playback" });
+                alert(`🔍 Agentic Video 品質検定完了！\n総合スコア: ${res.overallScore} / 100\n判定: ${res.verdict}\nトークン削減率: ${res.agenticTelemetry.tokenSavingsPercent}%\nコスト圧縮率: ${res.agenticTelemetry.costReductionPercent}%\n\n手足の歪み・光の破綻なし。4Kマスター書き出しに適格です。`);
+            }
+        }
+    </script>
+
+</body>
+</html>

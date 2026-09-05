@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サブ2：音響・アフレコミキサー (GENESIS Audio Mixer)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Outfit:wght@700;900&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #070913;
+            --bg-card: #0f1424;
+            --accent-cyan: #00f2fe;
+            --accent-gold: #f59e0b;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-dark: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-dark);
+            margin-bottom: 16px;
+        }
+        .title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sync-badge {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--accent-gold);
+            color: #fde047;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .mixer-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        .channel-strip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        .strip-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .fader-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 160px;
+        }
+        .fader {
+            writing-mode: bt-lr;
+            -webkit-appearance: slider-vertical;
+            width: 8px;
+            height: 140px;
+            accent-color: var(--accent-cyan);
+            cursor: pointer;
+        }
+        .btn-trigger {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-trigger:hover { background: rgba(0, 242, 254, 0.2); border-color: var(--accent-cyan); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title"><i class="fa-solid fa-sliders"></i> サブ2：音響・アフレコ・ミキサー卓 (Audio Mixing Console)</div>
+        <div class="sync-badge"><i class="fa-solid fa-bolt"></i> メイン画面とリアルタイム同期中 (0.0001s)</div>
+    </header>
+
+    <div class="mixer-grid">
+        <!-- Ch 1: Voice (TTS & Dubbing) -->
+        <div class="channel-strip">
+            <div class="strip-header" style="color: #c084fc;"><i class="fa-solid fa-microphone-lines"></i> CH 1: VOICE (TTS)</div>
+            <div class="fader-container">
+                <input class="fader" type="range" min="0" max="100" value="90" style="accent-color: #c084fc;" oninput="updateVol('voice', this.value)">
+            </div>
+            <div id="voice-vol" style="font-size: 0.8rem; color: #c084fc; font-weight: 700;">90%</div>
+            <button class="btn-trigger" onclick="triggerMainAudio('voice')"><i class="fa-solid fa-play"></i> セリフ試聴</button>
+        </div>
+
+        <!-- Ch 2: SFX Track -->
+        <div class="channel-strip">
+            <div class="strip-header" style="color: var(--accent-gold);"><i class="fa-solid fa-bolt"></i> CH 2: SFX (効果音)</div>
+            <div class="fader-container">
+                <input class="fader" type="range" min="0" max="100" value="75" style="accent-color: var(--accent-gold);" oninput="updateVol('sfx', this.value)">
+            </div>
+            <div id="sfx-vol" style="font-size: 0.8rem; color: var(--accent-gold); font-weight: 700;">75%</div>
+            <div style="display:flex; gap:6px; width:100%;">
+                <button class="btn-trigger" style="flex:1;" onclick="triggerMainAudio('sfx_footstep')">足音</button>
+                <button class="btn-trigger" style="flex:1;" onclick="triggerMainAudio('sfx_rain')">雨音</button>
+            </div>
+        </div>
+
+        <!-- Ch 3: BGM Track -->
+        <div class="channel-strip">
+            <div class="strip-header" style="color: #10b981;"><i class="fa-solid fa-music"></i> CH 3: BGM</div>
+            <div class="fader-container">
+                <input class="fader" type="range" min="0" max="100" value="60" style="accent-color: #10b981;" oninput="updateVol('bgm', this.value)">
+            </div>
+            <div id="bgm-vol" style="font-size: 0.8rem; color: #10b981; font-weight: 700;">60%</div>
+            <button class="btn-trigger" onclick="triggerMainAudio('bgm')"><i class="fa-solid fa-play"></i> BGM再生</button>
+        </div>
+    </div>
+
+    <script src="multi_display.js"></script>
+    <script>
+        function updateVol(ch, val) {
+            document.getElementById(`${ch}-vol`).textContent = `${val}%`;
+            window.MultiDisplayEngine.broadcast("VOLUME_CHANGE", { channel: ch, value: parseInt(val) / 100 });
+        }
+        function triggerMainAudio(type) {
+            window.MultiDisplayEngine.broadcast("AUDIO_TRIGGER", { action: type });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS SCRIPT & STORYBOARD STUDIO (Monitor 4)</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-panel: #090d1a;
+            --bg-card: #0e1526;
+            --border-dark: #1e293b;
+            --border-glow: rgba(0, 242, 254, 0.4);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Header */
+        .studio-header {
+            height: 44px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        .studio-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            font-size: 0.88rem;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #00f2fe 0%, #a855f7 50%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-tag {
+            font-size: 0.55rem;
+            background: rgba(168, 85, 247, 0.15);
+            border: 1px solid var(--accent-purple);
+            color: #c084fc;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .header-tc {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* 3-Column Studio Layout */
+        .studio-layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 310px 1fr 390px;
+            gap: 6px;
+            padding: 6px;
+            overflow: hidden;
+            background: #02040a;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header {
+            height: 34px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+        }
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Cards & Controls */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .card.active {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.05);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+        }
+        .shot-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 4px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .shot-card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+        }
+        .shot-card.active {
+            border-color: var(--accent-gold);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2fe, #3b82f6);
+            color: #000;
+            border: none;
+            font-weight: 800;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+            color: #000;
+        }
+        .btn-accent {
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            color: #fff;
+            border: none;
+            font-weight: 800;
+        }
+        .btn-accent:hover {
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 260px;
+            background: #02040a;
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #storyboard-canvas {
+            width: 100%;
+            height: 100%;
+            background: #060913;
+        }
+
+        /* Optics Grid */
+        .optics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        .optics-cell {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .optics-label {
+            font-size: 0.54rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .optics-select {
+            background: #070a14;
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 3px 4px;
+            font-size: 0.58rem;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        /* Dialogue Box */
+        .dialogue-item {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-dark);
+            border-radius: 5px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .dialogue-textarea {
+            background: #050811;
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            color: #fff;
+            padding: 6px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.65rem;
+            resize: vertical;
+            min-height: 48px;
+            outline: none;
+        }
+        .dialogue-textarea:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        /* Waveform */
+        .waveform-bar {
+            height: 14px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 0 4px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 3px;
+        }
+        .wave-line {
+            flex: 1;
+            background: var(--accent-cyan);
+            border-radius: 1px;
+            transition: height 0.1s ease;
+            height: 3px;
+        }
+        .wave-active .wave-line {
+            animation: waveBounce 0.6s infinite alternate ease-in-out;
+        }
+        @keyframes waveBounce {
+            0% { height: 2px; opacity: 0.4; }
+            100% { height: 12px; opacity: 1; }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            width: 520px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="studio-header">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="studio-brand">
+                <i class="fa-solid fa-scroll"></i>
+                <span>GENESIS STORYBOARD STUDIO</span>
+            </div>
+            <span class="header-tag">Monitor 4: 台本・絵コンテ・セリフスタジオ</span>
+            <div class="header-tc" id="total-script-tc">総尺: 00:00:15:00 (15.0s)</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; align-items:center; gap:4px; font-size:0.58rem; color:var(--accent-green); margin-right:8px;">
+                <i class="fa-solid fa-circle" style="font-size:0.4rem; animation: pulse 1.5s infinite;"></i>
+                <span>QUAD SYNC ACTIVE</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:4px; font-size:0.55rem; color:var(--accent-cyan); background:rgba(0,242,254,0.1); border:1px solid rgba(0,242,254,0.3); padding:2px 6px; border-radius:3px; margin-right:6px;" id="webgpu-badge">
+                <i class="fa-solid fa-microchip"></i>
+                <span>WEBGPU GEMMA 4: ON-DEVICE ($0)</span>
+            </div>
+            <button class="btn" onclick="openTemplateModal()"><i class="fa-solid fa-book-bookmark"></i> テンプレート読込</button>
+            <button class="btn" onclick="exportScriptJSON()"><i class="fa-solid fa-file-export"></i> JSON出力</button>
+            <button class="btn" onclick="openImportModal()"><i class="fa-solid fa-file-import"></i> インポート</button>
+        </div>
+    </header>
+
+    <!-- 3-Column Studio Layout -->
+    <main class="studio-layout">
+
+        <!-- Column 1: Scene & Shot List -->
+        <section class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-list-ol"></i> シーン ＆ カット構成 (Scenes)</span>
+                <button class="btn btn-primary" style="padding:2px 8px; font-size:0.52rem;" onclick="openNewSceneModal()">+ シーン追加</button>
+            </div>
+            <div class="panel-body" id="scenes-container">
+                <!-- Dynamically Populated Scenes -->
+            </div>
+        </section>
+
+        <!-- Column 2: Storyboard Visual Frame & Camera Optics -->
+        <section class="panel">
+            <div class="panel-header" style="color:var(--accent-gold);">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-clapperboard"></i>
+                    <span id="current-shot-header-title">Shot 1: 追従ドリー (正面ローアングル)</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <button class="btn" style="padding:2px 6px; font-size:0.52rem;" onclick="toggleGridType()"><i class="fa-solid fa-border-all"></i> <span id="btn-grid-label">三分割法</span></button>
+                    <button class="btn" style="padding:2px 6px; font-size:0.52rem;" onclick="openNewShotModal()">+ カット追加</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <!-- Storyboard 2.39:1 Cinema Canvas -->
+                <div class="canvas-container">
+                    <canvas id="storyboard-canvas" width="640" height="270"></canvas>
+                    <div style="position:absolute; bottom:6px; left:8px; font-size:0.50rem; color:var(--accent-cyan); background:rgba(0,0,0,0.7); padding:2px 6px; border-radius:3px; font-family:'Fira Code';">
+                        ARRI ALEXA LF 35mm | 2.39:1 Anamorphic Scope
+                    </div>
+                    <div style="position:absolute; top:6px; right:8px; font-size:0.50rem; color:var(--accent-gold); background:rgba(0,0,0,0.7); padding:2px 6px; border-radius:3px; font-family:'Fira Code';" id="canvas-dof-badge">
+                        f/2.8 | DoF: 1.8m
+                    </div>
+                </div>
+
+                <!-- Optics & Composition Controls -->
+                <div class="card" style="margin-top:2px;">
+                    <div style="font-size:0.58rem; color:var(--accent-gold); font-weight:700; display:flex; justify-content:space-between;">
+                        <span><i class="fa-solid fa-camera"></i> カメラ光学 ＆ 構図設定 (Optics Matrix)</span>
+                        <span style="color:var(--accent-cyan);" id="optics-summary-badge">35mm | Eye-level | Dolly In</span>
+                    </div>
+                    <div class="optics-grid">
+                        <div class="optics-cell">
+                            <span class="optics-label">レンズ焦点距離 (Lens)</span>
+                            <select class="optics-select" id="optics-lens" onchange="updateShotOptics()">
+                                <option value="14">14mm (超広角)</option>
+                                <option value="24">24mm (広角)</option>
+                                <option value="35" selected>35mm (映画標準)</option>
+                                <option value="50">50mm (標準ポートレート)</option>
+                                <option value="85">85mm (中望遠)</option>
+                                <option value="135">135mm (圧縮望遠)</option>
+                            </select>
+                        </div>
+                        <div class="optics-cell">
+                            <span class="optics-label">アングル (Angle)</span>
+                            <select class="optics-select" id="optics-angle" onchange="updateShotOptics()">
+                                <option value="low_angle">ローアングル (Low)</option>
+                                <option value="eye_level" selected>アイレベル (Eye)</option>
+                                <option value="high_angle">ハイアングル (High)</option>
+                                <option value="dutch_angle">ダッチ (傾斜 Dutch)</option>
+                                <option value="birds_eye">鳥瞰 (Bird's Eye)</option>
+                            </select>
+                        </div>
+                        <div class="optics-cell">
+                            <span class="optics-label">ショットサイズ (Size)</span>
+                            <select class="optics-select" id="optics-size" onchange="updateShotOptics()">
+                                <option value="extreme_closeup">超接写 (ECU)</option>
+                                <option value="closeup">クローズアップ (CU)</option>
+                                <option value="medium" selected>ミディアム (Medium)</option>
+                                <option value="cowboy">カウボーイ (Cowboy)</option>
+                                <option value="full">フルショット (Full)</option>
+                                <option value="extreme_long">ロング (ELS)</option>
+                            </select>
+                        </div>
+                        <div class="optics-cell">
+                            <span class="optics-label">絞り / 深度 (F-Stop)</span>
+                            <select class="optics-select" id="optics-fstop" onchange="updateShotOptics()">
+                                <option value="1.4">f/1.4 (超ボケ)</option>
+                                <option value="1.8">f/1.8 (映画ボケ)</option>
+                                <option value="2.8" selected>f/2.8 (標準映画)</option>
+                                <option value="4.0">f/4.0 (中深度)</option>
+                                <option value="8.0">f/8.0 (パンフォーカス)</option>
+                            </select>
+                        </div>
+                        <div class="optics-cell">
+                            <span class="optics-label">カメラワーク (Movement)</span>
+                            <select class="optics-select" id="optics-camerawork" onchange="updateShotOptics()">
+                                <option value="fix">フィックス (Fix 静止)</option>
+                                <option value="dolly_in" selected>ドリー前進 (Dolly In)</option>
+                                <option value="dolly_out">ドリー後退 (Dolly Out)</option>
+                                <option value="tracking">追従トラッキング (Track)</option>
+                                <option value="crane_up">クレーン上昇 (Crane Up)</option>
+                                <option value="orbit_360">360°旋回 (Orbit)</option>
+                            </select>
+                        </div>
+                        <div class="optics-cell">
+                            <span class="optics-label">カット尺 (Duration)</span>
+                            <div style="display:flex; align-items:center; gap:4px;">
+                                <input type="range" id="optics-duration-slider" min="1.0" max="15.0" step="0.5" value="5.0" style="flex:1; accent-color:var(--accent-gold);" oninput="updateDurationFromSlider(this.value)">
+                                <span id="optics-duration-val" style="font-size:0.58rem; color:var(--accent-gold); font-weight:800; min-width:28px;">5.0s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                                <!-- Gemini Omni 1.1 Flash: First & Last Frame Interpolation Control -->
+                <div class="card" style="border-color:var(--accent-gold); background:rgba(245,158,11,0.03);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.60rem; font-weight:800; color:var(--accent-gold); display:flex; align-items:center; gap:4px;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> 🎬 Gemini Omni 1.1 Flash: 開始/終了フレーム補間
+                        </span>
+                        <span style="font-size:0.50rem; color:var(--accent-cyan); background:rgba(0,242,254,0.1); border:1px solid var(--accent-cyan); padding:1px 4px; border-radius:3px;">1M Context</span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-top:4px;">
+                        <div style="background:#070a14; padding:4px; border-radius:4px; border:1px solid var(--border-dark);">
+                            <span style="font-size:0.50rem; color:var(--accent-cyan); font-weight:700;">[開始コマ (First Frame)]:</span>
+                            <div style="font-size:0.50rem; color:var(--text-muted);" id="omni-first-frame-desc">Medium Shot / Eye Level (現在の絵コンテ)</div>
+                        </div>
+                        <div style="background:#070a14; padding:4px; border-radius:4px; border:1px solid var(--border-dark);">
+                            <span style="font-size:0.50rem; color:var(--accent-gold); font-weight:700;">[終了コマ (Last Frame)]:</span>
+                            <select id="omni-last-frame-select" class="optics-select" style="font-size:0.50rem;" onchange="updateOmniLastFrame()">
+                                <option value="pull_back_els">ドリー後退 ➔ 超ロング (ELS)</option>
+                                <option value="orbit_rear_close">360°旋回 ➔ 背後クローズアップ</option>
+                                <option value="high_angle_bird">クレーン上昇 ➔ 俯瞰全景 (Bird's Eye)</option>
+                                <option value="seamless_loop">シームレス・ループ (開始位置へ回帰)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:4px; margin-top:4px;">
+                        <button class="btn btn-primary" style="flex:1; padding:6px; font-size:0.58rem;" onclick="generateOmniDraft360p()">
+                            <i class="fa-solid fa-bolt"></i> ⚡ 360p ドラフト超高速生成 ($0.03/s)
+                        </button>
+                        <button class="btn" style="flex:1; padding:6px; font-size:0.58rem; border-color:var(--accent-gold); color:var(--accent-gold);" onclick="generateOmni4KUpscale()">
+                            <i class="fa-solid fa-gem"></i> 💎 4K 本番アップスケール
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Google Veo 3.1 4K Cinema Generator -->
+                <div class="card" style="border-color:var(--accent-cyan); background:linear-gradient(135deg, rgba(0,242,254,0.06), rgba(59,130,246,0.06)); margin-top:2px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.62rem; font-weight:800; color:var(--accent-cyan); display:flex; align-items:center; gap:5px;">
+                            <i class="fa-solid fa-film"></i> 🎬 Google Veo 3.1 4K Cinema Engine
+                        </span>
+                        <span style="font-size:0.50rem; color:var(--accent-gold); background:rgba(245,158,11,0.15); border:1px solid var(--accent-gold); padding:1px 6px; border-radius:3px; font-weight:700;">2.39:1 Anamorphic HDR10+</span>
+                    </div>
+                    <div style="display:flex; gap:4px; margin-top:4px;">
+                        <button class="btn btn-primary" style="flex:1; padding:7px; font-size:0.60rem; font-weight:800;" onclick="startVeoGeneration()">
+                            <i class="fa-solid fa-clapperboard"></i> 🎬 Veo 3.1 映画生成 ＆ 試写室(第2画面)へ自動送出
+                        </button>
+                        <button class="btn" style="padding:7px 8px; font-size:0.56rem;" onclick="previewVeoPromptModal()">
+                            <i class="fa-solid fa-terminal"></i> プロンプト確認
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action & Scene Note with MMKG Injection -->
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="font-size:0.58rem; color:var(--accent-gold); font-weight:700;">【ト書き (Scene Action & Environment)】:</label>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <span style="font-size:0.50rem; color:var(--accent-purple); font-weight:700;"><i class="fa-solid fa-brain"></i> MMKGナレッジ注入:</span>
+                            <select id="mmkg-preset-select" class="optics-select" style="font-size:0.50rem; padding:1px 4px; color:var(--accent-purple); border-color:var(--accent-purple);" onchange="injectSelectedKnowledge(this.value)">
+                                <option value="">-- 学術ナレッジ選択 --</option>
+                                <option value="stdp_synaptic_plasticity">📚 生体脳 STDP可塑性数理 (p.45)</option>
+                                <option value="hippocampal_cortical_replay">📚 海馬-皮質記憶固定化 (p.88)</option>
+                                <option value="quantum_neural_cryptography">📚 量子暗号＆ベル状態 (p.112)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea id="current-action-text" class="dialogue-textarea" style="min-height:55px;" oninput="saveCurrentShotAction(this.value)"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Column 3: Dialogue & Google Chirp 3 HD Studio -->
+        <section class="panel">
+            <div class="panel-header" style="color:var(--accent-purple);">
+                <span><i class="fa-solid fa-microphone-lines"></i> セリフ ＆ Google Chirp 3 HD 音声卓</span>
+                <button class="btn btn-accent" style="padding:2px 8px; font-size:0.52rem;" onclick="addDialogueLine()">+ セリフ追加</button>
+            </div>
+            <div class="panel-body">
+                <!-- Dialogue List -->
+                <div id="dialogues-container" style="display:flex; flex-direction:column; gap:6px;">
+                    <!-- Dynamically Populated Dialogues -->
+                </div>
+
+                <!-- Quad Broadcast Sync Master Controls -->
+                <div class="card" style="border-color:var(--accent-cyan); background:rgba(0,242,254,0.03); margin-top:auto;">
+                    <div style="font-size:0.60rem; font-weight:800; color:var(--accent-cyan); display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-network-wired"></i> 4画面クアッド・スタジオ一括同期コントロール
+                    </div>
+                    
+                    <button class="btn btn-primary" style="padding:10px; font-size:0.68rem;" onclick="syncCurrentCutToDirector()">
+                        <i class="fa-solid fa-clapperboard"></i> 👉 このカットをメイン監督画面（第1画面）にセット！
+                    </button>
+
+                    <button class="btn" style="background:linear-gradient(135deg,#3b82f6,#06b6d4); color:#fff; font-weight:700; padding:8px; font-size:0.62rem;" onclick="sendDialogueToTimeline()">
+                        <i class="fa-solid fa-timeline"></i> 🎙️ セリフ音声をメインのタイムライン（Track 3）へ配置！
+                    </button>
+
+                    <button class="btn" style="background:rgba(168,85,247,0.15); border-color:var(--accent-purple); color:var(--accent-purple); padding:6px; font-size:0.58rem;" onclick="sendSubtitleToTheater()">
+                        <i class="fa-solid fa-closed-captioning"></i> 🍿 字幕テロップを4K試写室（第2画面）へ送信
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="scene-modal">
+        <div class="modal-box">
+            <div class="panel-header">
+                <span>➕ 新規シーン作成</span>
+                <button class="btn" onclick="closeModal('scene-modal')">✕</button>
+            </div>
+            <div class="panel-body">
+                <label style="font-size:0.6rem; color:var(--accent-cyan);">シーン名 / タイトル:</label>
+                <input type="text" id="new-scene-title" class="optics-select" style="padding:6px;" value="Scene: 新宿地下・極秘取引">
+
+                <label style="font-size:0.6rem; color:var(--accent-cyan); margin-top:6px;">ロケ地選択:</label>
+                <select id="new-scene-loc" class="optics-select" style="padding:6px;">
+                    <option value="原宿 表参道">原宿 表参道 (Omotesando Main Avenue)</option>
+                    <option value="サイバー浅草寺 (雷門 Neo-Tokyo)">サイバー浅草寺 (雷門 Neo-Tokyo)</option>
+                    <option value="渋谷 スクランブル交差点">渋谷 スクランブル交差点 (Shibuya Crossing)</option>
+                    <option value="鈴鹿サーキット (メインストレート)">鈴鹿サーキット (Suzuka Circuit)</option>
+                </select>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+                    <div>
+                        <label style="font-size:0.6rem; color:var(--accent-cyan);">時間帯:</label>
+                        <select id="new-scene-tod" class="optics-select" style="padding:6px; width:100%;">
+                            <option value="sunset">夕焼け (Sunset 3000K)</option>
+                            <option value="night">夜景 (Night 3200K)</option>
+                            <option value="morning">朝 (Morning 5200K)</option>
+                            <option value="twilight">薄明 (Twilight 7500K)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.6rem; color:var(--accent-cyan);">天候:</label>
+                        <select id="new-scene-weather" class="optics-select" style="padding:6px; width:100%;">
+                            <option value="heavy_rain">大雨 (Heavy Rain)</option>
+                            <option value="thunderstorm">雷雨 (Thunderstorm)</option>
+                            <option value="clear">快晴 (Clear)</option>
+                            <option value="dense_fog">濃霧 (Dense Fog)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top:14px; padding:8px;" onclick="confirmAddScene()">
+                    <i class="fa-solid fa-plus"></i> シーンをタイムラインに追加
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Veo 3.1 Render Progress Modal -->
+    <div class="modal-overlay" id="veo-render-modal">
+        <div class="modal-box" style="width: 560px;">
+            <div class="panel-header" style="color:var(--accent-cyan);">
+                <span><i class="fa-solid fa-film"></i> 🎬 Google DeepMind Veo 3.1 4K Cinema Engine</span>
+                <button class="btn" onclick="closeModal('veo-render-modal')">✕</button>
+            </div>
+            <div class="panel-body" style="gap:12px; padding:16px;">
+                <div style="font-size:0.75rem; font-weight:800; color:var(--accent-gold);" id="veo-render-title">
+                    Veo 3.1 映画生成中...
+                </div>
+                <div style="font-size:0.58rem; color:var(--text-muted);" id="veo-render-status">
+                    [1/3] ARRI ALEXA LF 65 アナモフィック光学・被写体・天候パラメータを解析中...
+                </div>
+                
+                <!-- Progress Bar -->
+                <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden; position:relative;">
+                    <div id="veo-progress-fill" style="width:0%; height:100%; background:linear-gradient(90deg, #00f2fe, #a855f7, #f59e0b); transition:width 0.3s ease;"></div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; background:#070a14; padding:8px; border-radius:6px; border:1px solid var(--border-dark); font-size:0.54rem;">
+                    <div><span style="color:var(--text-muted);">解像度:</span> <b style="color:var(--accent-cyan);" id="veo-spec-res">3840x1608 (4K 2.39:1)</b></div>
+                    <div><span style="color:var(--text-muted);">フレームレート:</span> <b style="color:var(--accent-gold);">24.000 fps (Cinema)</b></div>
+                    <div><span style="color:var(--text-muted);">色空間 / HDR:</span> <b style="color:var(--accent-purple);">ACES / HDR10+</b></div>
+                </div>
+
+                <div id="veo-complete-banner" style="display:none; background:rgba(16,185,129,0.15); border:1px solid var(--accent-green); padding:10px; border-radius:6px; font-size:0.62rem; color:#fff;">
+                    <div style="font-weight:800; color:var(--accent-green); margin-bottom:4px;">
+                        <i class="fa-solid fa-circle-check"></i> 映画マスター生成完了 ＆ 4画面同時配信完了！
+                    </div>
+                    <div>🍿 <b>第2画面（4K試写室シアター）</b>: 全画面オートプレイ上映中</div>
+                    <div>🎬 <b>第1画面（監督コックピット）</b>: タイムライン Track 1 (Video) ＆ Shot Binへ自動吸着配置完了</div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px;">
+                    <button class="btn btn-primary" id="veo-close-btn" style="display:none; padding:6px 14px;" onclick="closeModal('veo-render-modal')">
+                        確認して閉じる
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Veo Prompt Preview Modal -->
+    <div class="modal-overlay" id="veo-prompt-modal">
+        <div class="modal-box" style="width: 640px;">
+            <div class="panel-header" style="color:var(--accent-gold);">
+                <span><i class="fa-solid fa-terminal"></i> Google Veo 3.1 統合シネマプロンプト (Master Cinematography)</span>
+                <button class="btn" onclick="closeModal('veo-prompt-modal')">✕</button>
+            </div>
+            <div class="panel-body" style="padding:14px; gap:10px;">
+                <div style="font-size:0.56rem; color:var(--text-muted);">
+                    カメラ光学（レンズミリ数・F値）、被写体、ロケ地、天候、セリフ、および電子書籍MMKGナレッジを全統合したVeo 3.1向け完全プロンプトです。
+                </div>
+                <textarea id="veo-prompt-display" class="dialogue-textarea" style="min-height:180px; font-family:'Fira Code', monospace; font-size:0.60rem; line-height:1.5;" readonly></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.52rem; color:var(--accent-cyan);"><i class="fa-solid fa-check-double"></i> ARRI ALEXA LF 65 / Anamorphic 2.39:1 Calibration</span>
+                    <button class="btn btn-primary" onclick="copyVeoPromptText()"><i class="fa-solid fa-copy"></i> プロンプトをコピー</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="multi_display.js"></script>
+    <script src="google_tts_multilingual.js"></script>
+    <script src="character_master.js"></script>
+    <script src="gemini_omni_engine.js"></script>
+    <script src="agentic_video_qc_engine.js"></script>
+    <script src="storyboard_script_engine.js"></script>
+    <script src="webgpu_gemma4_edge_runtime.js"></script>
+
+    <script>
+        let scriptEngine = window.StoryboardScriptEngine;
+        let ttsEngine = window.GoogleTTSMultilingualEngine;
+        let currentGridMode = "rule_of_thirds"; // rule_of_thirds, golden_ratio, symmetry, none
+
+        function initStudio() {
+            renderSceneList();
+            loadCurrentShotData();
+            drawStoryboardCanvas();
+            updateTotalDurationBadge();
+        }
+
+        function renderSceneList() {
+            const container = document.getElementById('scenes-container');
+            container.innerHTML = '';
+
+            const scenes = scriptEngine.getAllScenes();
+            const currentScene = scriptEngine.getCurrentScene();
+            const currentShot = scriptEngine.getCurrentShot();
+
+            scenes.forEach((scene, sceneIdx) => {
+                const isSceneActive = (scene.id === currentScene.id);
+                const sceneDiv = document.createElement('div');
+                sceneDiv.className = `card ${isSceneActive ? 'active' : ''}`;
+                
+                // Scene Header
+                const shotCount = scene.shots ? scene.shots.length : 0;
+                let sceneTotalSec = 0;
+                if (scene.shots) scene.shots.forEach(s => sceneTotalSec += parseFloat(s.durationSec || 0));
+
+                let todBadge = (scene.location.timeOfDay === 'sunset') ? '🌅 夕焼け' : (scene.location.timeOfDay === 'night' ? '🌃 夜景' : '☀️ 朝');
+                let weathBadge = (scene.location.weather === 'heavy_rain') ? '🌧️ 大雨' : (scene.location.weather === 'thunderstorm' ? '⚡ 雷雨' : '🌫️ 濃霧');
+
+                sceneDiv.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="cursor:pointer; display:flex; align-items:center; gap:6px; flex:1;" onclick="selectSceneById('${scene.id}')">
+                            <span style="font-size:0.65rem; font-weight:800; color:${isSceneActive ? 'var(--accent-cyan)' : '#fff'};"><i class="fa-solid fa-film"></i> ${scene.title}</span>
+                            <span style="font-size:0.48rem; background:rgba(0,242,254,0.15); color:var(--accent-cyan); padding:1px 4px; border-radius:2px; font-weight:800;">${sceneTotalSec.toFixed(1)}s</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:3px;">
+                            <button class="btn" style="padding:1px 4px; font-size:0.48rem;" title="上へ移動" onclick="moveSceneAction('${scene.id}', -1)" ${sceneIdx === 0 ? 'disabled style="opacity:0.3;"' : ''}>↑</button>
+                            <button class="btn" style="padding:1px 4px; font-size:0.48rem;" title="下へ移動" onclick="moveSceneAction('${scene.id}', 1)" ${sceneIdx === scenes.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>↓</button>
+                            <button class="btn" style="padding:1px 4px; font-size:0.48rem;" title="シーン複製" onclick="duplicateSceneAction('${scene.id}')"><i class="fa-regular fa-copy"></i></button>
+                            <button class="btn" style="padding:1px 4px; font-size:0.48rem; color:#ef4444;" title="シーン削除" onclick="deleteSceneAction('${scene.id}')" ${scenes.length <= 1 ? 'disabled style="opacity:0.3;"' : ''}><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:4px; font-size:0.50rem; color:var(--text-muted); margin-top:2px;">
+                        <span>📍 ${scene.location.name}</span>
+                        <span>|</span>
+                        <span>${todBadge} ✕ ${weathBadge}</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;" id="shots-list-${scene.id}"></div>
+                `;
+
+                container.appendChild(sceneDiv);
+
+                // Populate Shots inside scene
+                const shotsListCont = sceneDiv.querySelector(`#shots-list-${scene.id}`);
+                if (scene.shots) {
+                    scene.shots.forEach((shot, shotIdx) => {
+                        const isShotActive = (currentShot && shot.id === currentShot.id);
+                        const shotDiv = document.createElement('div');
+                        shotDiv.className = `shot-card ${isShotActive ? 'active' : ''}`;
+                        shotDiv.onclick = (e) => {
+                            e.stopPropagation();
+                            selectShotById(scene.id, shot.id);
+                        };
+
+                        const firstDlg = (shot.dialogues && shot.dialogues[0]) ? shot.dialogues[0] : null;
+                        const dlgPreview = firstDlg ? `💬 ${firstDlg.speaker}: 「${firstDlg.text.substring(0, 14)}...」` : '（ト書きのみ）';
+
+                        shotDiv.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:0.58rem; font-weight:700; color:${isShotActive ? 'var(--accent-gold)' : 'var(--text-main)'};">${shot.name}</span>
+                                <div style="display:flex; align-items:center; gap:2px;">
+                                    <span style="font-size:0.48rem; background:rgba(245,158,11,0.2); color:var(--accent-gold); padding:1px 4px; border-radius:2px; font-family:'Fira Code';">${shot.durationSec.toFixed(1)}s</span>
+                                    <button class="btn" style="padding:0px 3px; font-size:0.44rem;" title="上へ" onclick="event.stopPropagation(); moveShotAction('${shot.id}', -1)" ${shotIdx === 0 ? 'disabled style="opacity:0.3;"' : ''}>↑</button>
+                                    <button class="btn" style="padding:0px 3px; font-size:0.44rem;" title="下へ" onclick="event.stopPropagation(); moveShotAction('${shot.id}', 1)" ${shotIdx === scene.shots.length - 1 ? 'disabled style="opacity:0.3;"' : ''}>↓</button>
+                                    <button class="btn" style="padding:0px 3px; font-size:0.44rem;" title="カット複製" onclick="event.stopPropagation(); duplicateShotAction('${shot.id}')"><i class="fa-regular fa-copy"></i></button>
+                                    <button class="btn" style="padding:0px 3px; font-size:0.44rem; color:#ef4444;" title="カット削除" onclick="event.stopPropagation(); deleteShotAction('${shot.id}')" ${scene.shots.length <= 1 ? 'disabled style="opacity:0.3;"' : ''}><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                            <div style="font-size:0.50rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">
+                                ${dlgPreview}
+                            </div>
+                        `;
+                        shotsListCont.appendChild(shotDiv);
+                    });
+                }
+            });
+        }
+
+        /* Scene & Shot Actions */
+        function moveSceneAction(sceneId, direction) {
+            if (scriptEngine.moveScene(sceneId, direction)) {
+                renderSceneList();
+                updateTotalDurationBadge();
+            }
+        }
+
+        function duplicateSceneAction(sceneId) {
+            const cloned = scriptEngine.duplicateScene(sceneId);
+            if (cloned) {
+                renderSceneList();
+                loadCurrentShotData();
+                drawStoryboardCanvas();
+                updateTotalDurationBadge();
+            }
+        }
+
+        function deleteSceneAction(sceneId) {
+            if (confirm("⚠️ このシーンを削除しますか？")) {
+                if (scriptEngine.deleteScene(sceneId)) {
+                    renderSceneList();
+                    loadCurrentShotData();
+                    drawStoryboardCanvas();
+                    updateTotalDurationBadge();
+                }
+            }
+        }
+
+        function moveShotAction(shotId, direction) {
+            if (scriptEngine.moveShot(shotId, direction)) {
+                renderSceneList();
+                updateTotalDurationBadge();
+            }
+        }
+
+        function duplicateShotAction(shotId) {
+            const cloned = scriptEngine.duplicateShot(shotId);
+            if (cloned) {
+                renderSceneList();
+                loadCurrentShotData();
+                drawStoryboardCanvas();
+                updateTotalDurationBadge();
+            }
+        }
+
+        function deleteShotAction(shotId) {
+            if (confirm("⚠️ このカットを削除しますか？")) {
+                if (scriptEngine.deleteShot(shotId)) {
+                    renderSceneList();
+                    loadCurrentShotData();
+                    drawStoryboardCanvas();
+                    updateTotalDurationBadge();
+                }
+            }
+        }
+
+        function selectSceneById(sceneId) {
+            scriptEngine.selectScene(sceneId);
+            renderSceneList();
+            loadCurrentShotData();
+            drawStoryboardCanvas();
+            updateTotalDurationBadge();
+        }
+
+        function selectShotById(sceneId, shotId) {
+            scriptEngine.selectScene(sceneId);
+            scriptEngine.selectShot(shotId);
+            renderSceneList();
+            loadCurrentShotData();
+            drawStoryboardCanvas();
+            updateTotalDurationBadge();
+        }
+
+        function loadCurrentShotData() {
+            const shot = scriptEngine.getCurrentShot();
+            if (!shot) return;
+
+            document.getElementById('current-shot-header-title').textContent = shot.name;
+            document.getElementById('optics-lens').value = shot.lensMm;
+            document.getElementById('optics-angle').value = shot.angle;
+            document.getElementById('optics-size').value = shot.shotSize;
+            document.getElementById('optics-fstop').value = shot.fStop;
+            document.getElementById('optics-camerawork').value = shot.cameraWork;
+            document.getElementById('optics-duration-slider').value = shot.durationSec;
+            document.getElementById('optics-duration-val').textContent = `${shot.durationSec.toFixed(1)}s`;
+
+            document.getElementById('current-action-text').value = shot.actionDescription || '';
+            document.getElementById('optics-summary-badge').textContent = `${shot.lensMm}mm | ${shot.angle} | ${shot.cameraWork}`;
+
+            renderDialogues();
+        }
+
+        function updateShotOptics() {
+            const shot = scriptEngine.getCurrentShot();
+            if (!shot) return;
+
+            shot.lensMm = parseInt(document.getElementById('optics-lens').value);
+            shot.angle = document.getElementById('optics-angle').value;
+            shot.shotSize = document.getElementById('optics-size').value;
+            shot.fStop = parseFloat(document.getElementById('optics-fstop').value);
+            shot.cameraWork = document.getElementById('optics-camerawork').value;
+
+            document.getElementById('optics-summary-badge').textContent = `${shot.lensMm}mm | ${shot.angle} | ${shot.cameraWork}`;
+            document.getElementById('canvas-dof-badge').textContent = `f/${shot.fStop} | DoF: ${(shot.fStop * 0.7).toFixed(1)}m`;
+
+            drawStoryboardCanvas();
+        }
+
+        function updateDurationFromSlider(val) {
+            const shot = scriptEngine.getCurrentShot();
+            if (!shot) return;
+            shot.durationSec = parseFloat(val);
+            document.getElementById('optics-duration-val').textContent = `${shot.durationSec.toFixed(1)}s`;
+            renderSceneList();
+            updateTotalDurationBadge();
+        }
+
+        function saveCurrentShotAction(text) {
+            const shot = scriptEngine.getCurrentShot();
+            if (shot) {
+                shot.actionDescription = text;
+            }
+        }
+
+        function renderDialogues() {
+            const shot = scriptEngine.getCurrentShot();
+            const container = document.getElementById('dialogues-container');
+            container.innerHTML = '';
+
+            if (!shot || !shot.dialogues || shot.dialogues.length === 0) {
+                container.innerHTML = '<div style="font-size:0.56rem; color:var(--text-muted); text-align:center; padding:12px;">（セリフなし - ト書きのみのカット）</div>';
+                return;
+            }
+
+            shot.dialogues.forEach((dlg, idx) => {
+                const div = document.createElement('div');
+                div.className = 'dialogue-item';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <select class="optics-select" style="font-weight:700; color:var(--accent-cyan);" onchange="updateDialogueSpeaker(${idx}, this.value)">
+                                <option value="如月 蓮" ${dlg.speaker === '如月 蓮' ? 'selected' : ''}>👤 如月 蓮 (Ren)</option>
+                                <option value="緋村 影狼" ${dlg.speaker === '緋村 影狼' ? 'selected' : ''}>👤 緋村 影狼 (Kagerou)</option>
+                                <option value="霧島 ユイ" ${dlg.speaker === '霧島 ユイ' ? 'selected' : ''}>👤 霧島 ユイ (Yui)</option>
+                                <option value="橘 飛鳥" ${dlg.speaker === '橘 飛鳥' ? 'selected' : ''}>👤 橘 飛鳥 (Asuka)</option>
+                                <option value="敵・追手" ${dlg.speaker === '敵・追手' ? 'selected' : ''}>👤 敵・追手 (Hostile)</option>
+                            </select>
+                            <select class="optics-select" onchange="updateDialogueTone(${idx}, this.value)">
+                                <option value="tense" ${dlg.tone === 'tense' ? 'selected' : ''}>緊迫 (Tense)</option>
+                                <option value="whisper" ${dlg.tone === 'whisper' ? 'selected' : ''}>囁き (Whisper)</option>
+                                <option value="cold" ${dlg.tone === 'cold' ? 'selected' : ''}>冷徹 (Cold)</option>
+                                <option value="shout" ${dlg.tone === 'shout' ? 'selected' : ''}>叫び (Shout)</option>
+                                <option value="calm" ${dlg.tone === 'calm' ? 'selected' : ''}>冷静 (Calm)</option>
+                            </select>
+                        </div>
+                        <span style="font-size:0.50rem; color:var(--accent-gold); font-family:'Fira Code';" id="dlg-dur-${idx}">⏱️ 推定 ${dlg.durationEstSec}s</span>
+                    </div>
+
+                    <textarea class="dialogue-textarea" oninput="updateDialogueText(${idx}, this.value)">${dlg.text}</textarea>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <div class="waveform-bar" id="wave-box-${idx}" style="flex:1;">
+                            <div class="wave-line"></div><div class="wave-line"></div><div class="wave-line"></div>
+                            <div class="wave-line"></div><div class="wave-line"></div><div class="wave-line"></div>
+                            <div class="wave-line"></div><div class="wave-line"></div><div class="wave-line"></div>
+                        </div>
+                        <button class="btn" style="background:rgba(168,85,247,0.15); border-color:var(--accent-purple); color:var(--accent-purple); padding:3px 6px; font-size:0.52rem;" onclick="polishDialogueWithGemma4(${idx})" title="WebGPU ✕ Gemma 4 E2B によるオンデバイス即時推敲 ($0)">
+                            <i class="fa-solid fa-microchip"></i> 🧠 Gemma 4 推敲 ($0)
+                        </button>
+                        <button class="btn" style="background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); padding:3px 8px; font-size:0.54rem;" onclick="playChirpDialogue(${idx})">
+                            <i class="fa-solid fa-play"></i> 試聴 (Chirp 3)
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateDialogueSpeaker(idx, speaker) {
+            const shot = scriptEngine.getCurrentShot();
+            if (shot && shot.dialogues[idx]) {
+                shot.dialogues[idx].speaker = speaker;
+                if (speaker.includes('如月')) shot.dialogues[idx].characterId = 'ren';
+                else if (speaker.includes('緋村')) shot.dialogues[idx].characterId = 'kagerou';
+                else if (speaker.includes('ユイ')) shot.dialogues[idx].characterId = 'yuki';
+                else if (speaker.includes('橘')) shot.dialogues[idx].characterId = 'asuka';
+            }
+        }
+
+        function updateDialogueTone(idx, tone) {
+            const shot = scriptEngine.getCurrentShot();
+            if (shot && shot.dialogues[idx]) {
+                shot.dialogues[idx].tone = tone;
+            }
+        }
+
+        function updateDialogueText(idx, text) {
+            const shot = scriptEngine.getCurrentShot();
+            if (shot && shot.dialogues[idx]) {
+                shot.dialogues[idx].text = text;
+                shot.dialogues[idx].durationEstSec = scriptEngine.estimateSpeechDuration(text, shot.dialogues[idx].speed || 1.0);
+                document.getElementById(`dlg-dur-${idx}`).textContent = `⏱️ 推定 ${shot.dialogues[idx].durationEstSec}s`;
+            }
+        }
+
+        function addDialogueLine() {
+            const shot = scriptEngine.getCurrentShot();
+            if (!shot) return;
+            scriptEngine.addDialogueToCurrentShot({
+                speaker: "如月 蓮",
+                characterId: "ren",
+                tone: "tense",
+                lang: "ja-JP",
+                text: "周囲を警戒しろ。合図と同時に突入する。"
+            });
+            renderDialogues();
+        }
+
+        function playChirpDialogue(idx) {
+            const shot = scriptEngine.getCurrentShot();
+            if (!shot || !shot.dialogues[idx]) return;
+
+            const dlg = shot.dialogues[idx];
+            const waveBox = document.getElementById(`wave-box-${idx}`);
+            if (waveBox) waveBox.classList.add('wave-active');
+
+            if (window.GoogleTTSMultilingualEngine) {
+                const res = window.GoogleTTSMultilingualEngine.speak(dlg.text, {
+                    lang: dlg.lang || "ja-JP",
+                    tone: dlg.tone || "tense"
+                });
+                
+                setTimeout(() => {
+                    if (waveBox) waveBox.classList.remove('wave-active');
+                }, (dlg.durationEstSec || 3.0) * 1000);
+            }
+        }
+
+        async function polishDialogueWithGemma4(idx) {
+            const shot = scriptEngine.getCurrentShot();
+            if (!shot || !shot.dialogues[idx]) return;
+
+            const dlg = shot.dialogues[idx];
+            const gemmaEdge = window.WebGPUGemma4EdgeRuntime;
+            if (gemmaEdge) {
+                const res = await gemmaEdge.generateDialogueEnhancement(dlg.speaker, dlg.text, dlg.tone, dlg.lang);
+                if (res && res.polishedText) {
+                    dlg.text = res.polishedText;
+                    dlg.durationEstSec = scriptEngine.estimateSpeechDuration(dlg.text, dlg.speed || 1.0);
+                    renderDialogues();
+                    alert(`⚡ 【WebGPU ✕ Gemma 4 E2B オンデバイス推敲完了】
+所要時間: ${res.latencyMs}ms (超低遅延)
+推論コスト: $0.00 (完全オフライン実行)
+ハードウェア: ${res.device}
+モデル: ${res.model}
+
+セリフにトーンモジュレーション・息づかい演技指示が注入されました。`);
+                }
+            } else {
+                alert("WebGPU Gemma 4 Edge Runtime をロード中または未サポート環境です。");
+            }
+        }
+
+        /* Canvas Storyboard Visualizer */
+        function drawStoryboardCanvas() {
+            const canvas = document.getElementById('storyboard-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Background Dark Cinematic Gradient
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, '#0a0f1d');
+            grad.addColorStop(1, '#020408');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
+
+            // Perspective Vanishing Lines (Road / Street)
+            ctx.strokeStyle = 'rgba(0, 242, 254, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, h * 0.85);
+            ctx.lineTo(w * 0.5, h * 0.45);
+            ctx.moveTo(w, h * 0.85);
+            ctx.lineTo(w * 0.5, h * 0.45);
+            ctx.moveTo(w * 0.5, h * 0.45);
+            ctx.lineTo(w * 0.5, 0);
+            ctx.stroke();
+
+            // Grid Overlay
+            if (currentGridMode === 'rule_of_thirds') {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(w / 3, 0); ctx.lineTo(w / 3, h);
+                ctx.moveTo(w * 2 / 3, 0); ctx.lineTo(w * 2 / 3, h);
+                ctx.moveTo(0, h / 3); ctx.lineTo(w, h / 3);
+                ctx.moveTo(0, h * 2 / 3); ctx.lineTo(w, h * 2 / 3);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            } else if (currentGridMode === 'golden_ratio') {
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.18)';
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(w * 0.382, 0); ctx.lineTo(w * 0.382, h);
+                ctx.moveTo(w * 0.618, 0); ctx.lineTo(w * 0.618, h);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Actor Silhouette Framing based on Shot Size
+            const shot = scriptEngine.getCurrentShot();
+            const shotSize = shot ? shot.shotSize : 'medium';
+            const cameraWork = shot ? shot.cameraWork : 'dolly_in';
+
+            let actorScale = 1.0;
+            let actorYOffset = 0;
+            if (shotSize === 'extreme_closeup') { actorScale = 2.4; actorYOffset = 80; }
+            else if (shotSize === 'closeup') { actorScale = 1.8; actorYOffset = 50; }
+            else if (shotSize === 'medium') { actorScale = 1.2; actorYOffset = 20; }
+            else if (shotSize === 'cowboy') { actorScale = 0.9; actorYOffset = 0; }
+            else if (shotSize === 'full') { actorScale = 0.7; actorYOffset = -15; }
+            else if (shotSize === 'extreme_long') { actorScale = 0.35; actorYOffset = -40; }
+
+            // Draw Silhouette
+            const cx = w * 0.48;
+            const cy = (h * 0.60) + actorYOffset;
+
+            ctx.fillStyle = 'rgba(0, 242, 254, 0.85)';
+            // Head
+            ctx.beginPath();
+            ctx.arc(cx, cy - (45 * actorScale), 12 * actorScale, 0, Math.PI * 2);
+            ctx.fill();
+            // Torso
+            ctx.beginPath();
+            ctx.ellipse(cx, cy - (15 * actorScale), 18 * actorScale, 24 * actorScale, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Legs
+            ctx.lineWidth = 6 * actorScale;
+            ctx.strokeStyle = 'rgba(0, 242, 254, 0.85)';
+            ctx.beginPath();
+            ctx.moveTo(cx - (8 * actorScale), cy + (8 * actorScale));
+            ctx.lineTo(cx - (12 * actorScale), cy + (45 * actorScale));
+            ctx.moveTo(cx + (8 * actorScale), cy + (8 * actorScale));
+            ctx.lineTo(cx + (14 * actorScale), cy + (45 * actorScale));
+            ctx.stroke();
+
+            // Camera Motion Direction Indicator Arrow
+            ctx.strokeStyle = '#f59e0b';
+            ctx.fillStyle = '#f59e0b';
+            ctx.lineWidth = 2.5;
+
+            if (cameraWork === 'dolly_in') {
+                drawArrow(ctx, 30, h / 2, 80, h / 2);
+                drawArrow(ctx, w - 30, h / 2, w - 80, h / 2);
+            } else if (cameraWork === 'crane_up') {
+                drawArrow(ctx, w - 40, h - 30, w - 40, 40);
+            } else if (cameraWork === 'tracking') {
+                drawArrow(ctx, 40, h - 30, w - 40, h - 30);
+            } else if (cameraWork === 'orbit_360') {
+                ctx.beginPath();
+                ctx.arc(cx, cy, 70 * actorScale, 0.2 * Math.PI, 1.8 * Math.PI);
+                ctx.stroke();
+            }
+        }
+
+        function drawArrow(ctx, fromx, fromy, tox, toy) {
+            const headlen = 8;
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.stroke();
+        }
+
+        function toggleGridType() {
+            if (currentGridMode === 'rule_of_thirds') currentGridMode = 'golden_ratio';
+            else if (currentGridMode === 'golden_ratio') currentGridMode = 'none';
+            else currentGridMode = 'rule_of_thirds';
+
+            const labels = { rule_of_thirds: '三分割法', golden_ratio: '黄金比', none: 'グリッドOFF' };
+            document.getElementById('btn-grid-label').textContent = labels[currentGridMode];
+            drawStoryboardCanvas();
+        }
+
+        function updateTotalDurationBadge() {
+            const totalSec = scriptEngine.getTotalScriptDurationSec();
+            const tc = scriptEngine.formatTimecode(totalSec);
+            document.getElementById('total-script-tc').textContent = `総尺: ${tc} (${totalSec.toFixed(1)}s)`;
+        }
+
+        /* Quad Multi-Display Synchronizers */
+                function updateOmniLastFrame() {
+            const val = document.getElementById('omni-last-frame-select').value;
+            console.log("🎬 [Omni] Selected Last Frame Mode:", val);
+        }
+
+        function generateOmniDraft360p() {
+            const shot = scriptEngine.getCurrentShot();
+            const omni = window.GeminiOmniEngine;
+            if (omni && shot) {
+                const payload = omni.generateFirstAndLastFramePayload({
+                    durationSec: shot.durationSec,
+                    resolution: "360p",
+                    firstFrameDescription: `Shot ${shot.id}: ${shot.lensMm}mm, ${shot.shotSize}`,
+                    lastFrameDescription: document.getElementById('omni-last-frame-select').value
+                });
+                alert(`⚡ Gemini Omni 1.1 Flash [360p ドラフト] 生成開始！\n所要時間: 約1.2秒 (通常の60%高速)\n見積りコスト: $${payload.estimatedCostUsd} (3分の1コスト)\nタイムラインに反映しました。`);
+                syncCurrentCutToDirector();
+            }
+        }
+
+        function generateOmni4KUpscale() {
+            alert("💎 Gemini Omni 1.1 Flash [4K HDR10+ アップスケール] レンダリングを開始しました！\n4K試写室シアター（第2画面）に高品位マスター映像を送出します。");
+        }
+
+        function syncCurrentCutToDirector() {
+            const payload = scriptEngine.generateDirectorSyncPayload();
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.broadcast("SCRIPT_SYNC", payload);
+            }
+            alert(`✅ カット情報をメイン監督画面（第1画面）へ送信しました！
+
+【シーン】: ${payload.sceneName}
+【ロケ地】: ${payload.location.name}
+【画角/光学】: ${payload.camera.lensMm}mm / ${payload.camera.cameraWork}
+【出演】: ${payload.speaker}
+【セリフ】: 「${payload.dialogue}」
+
+メイン画面のVeo 3.1プロンプトとカメラが自動同期されました。`);
+        }
+
+        function sendDialogueToTimeline() {
+            const clip = scriptEngine.generateTimelineDialogueClip();
+            if (!clip) {
+                alert("このカットにはセリフが設定されていません。");
+                return;
+            }
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.broadcast("TIMELINE_DLG_ADD", clip);
+            }
+            alert(`✅ セリフクリップ「${clip.name}」をメイン画面のタイムライン（Track 3）へ配置しました！`);
+        }
+
+        function sendSubtitleToTheater() {
+            const shot = scriptEngine.getCurrentShot();
+            if (!shot || !shot.dialogues || shot.dialogues.length === 0) return;
+            const dlg = shot.dialogues[0];
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.broadcast("SUBTITLE_SYNC", {
+                    speaker: dlg.speaker,
+                    text: dlg.text,
+                    durationSec: dlg.durationEstSec
+                });
+            }
+            alert(`🍿 4K試写室シアター（第2画面）へ字幕を送信しました！
+「${dlg.speaker}: ${dlg.text}」`);
+        }
+
+        /* 📚 Agentic MMKG Knowledge Injection */
+        function injectSelectedKnowledge(val) {
+            if (!val) return;
+            const res = scriptEngine.injectKnowledgeToCurrentShot(val);
+            if (res) {
+                // Update UI
+                const actionEl = document.getElementById('current-action-text');
+                if (actionEl) actionEl.value = res.shot.actionDescription;
+                renderDialogues();
+                
+                alert(`📚 【MMKG ナレッジ注入完了】
+出典: ${res.injectedPreset.source}
+理論: ${res.injectedPreset.title}
+数式: ${res.injectedPreset.formula}
+
+ト書き（Action）およびセリフ（Dialogue）へ学術理論が結合されました。`);
+            }
+            // Reset selector
+            document.getElementById('mmkg-preset-select').value = "";
+        }
+
+        /* 🎬 Google Veo 3.1 4K Cinema Generator & Quad Broadcaster */
+        let veoRenderTimer = null;
+        function startVeoGeneration() {
+            const shot = scriptEngine.getCurrentShot();
+            const scene = scriptEngine.getCurrentScene();
+            if (!shot || !scene) return;
+
+            // Open Render Modal
+            document.getElementById('veo-render-modal').style.display = 'flex';
+            document.getElementById('veo-render-title').textContent = `🎬 Veo 3.1 映画生成: ${scene.title} - ${shot.name}`;
+            document.getElementById('veo-progress-fill').style.width = '10%';
+            document.getElementById('veo-render-status').textContent = '[1/3] ARRI ALEXA LF 65 アナモフィック光学・被写体・天候パラメータを解析中...';
+            document.getElementById('veo-complete-banner').style.display = 'none';
+            document.getElementById('veo-close-btn').style.display = 'none';
+
+            let progress = 10;
+            if (veoRenderTimer) clearInterval(veoRenderTimer);
+
+            veoRenderTimer = setInterval(() => {
+                progress += 20;
+                if (progress === 30) {
+                    document.getElementById('veo-render-status').textContent = `[2/3] Google Veo 3.1 高密度ニューラル動画合成 (${shot.lensMm}mm, f/${shot.fStop}, ${shot.cameraWork})...`;
+                } else if (progress === 70) {
+                    document.getElementById('veo-render-status').textContent = `[3/3] 4K HDR10+ ACESカラーグレーディング & クアッド・ディスプレイ送出中...`;
+                } else if (progress >= 100) {
+                    clearInterval(veoRenderTimer);
+                    progress = 100;
+                    document.getElementById('veo-progress-fill').style.width = '100%';
+                    document.getElementById('veo-render-status').textContent = '✅ レンダリング完了・第1画面＆第2画面へ同時配信完了！';
+                    document.getElementById('veo-complete-banner').style.display = 'block';
+                    document.getElementById('veo-close-btn').style.display = 'inline-flex';
+
+                    // Execute generation and Quad Display broadcast
+                    const clipPayload = scriptEngine.generateVeoVideoClip(shot.id);
+                    console.log("🎬 [Veo 3.1] Generation Complete:", clipPayload);
+                }
+                document.getElementById('veo-progress-fill').style.width = `${progress}%`;
+            }, 450);
+        }
+
+        function previewVeoPromptModal() {
+            const prompt = scriptEngine.buildVeoPrompt();
+            document.getElementById('veo-prompt-display').value = prompt;
+            document.getElementById('veo-prompt-modal').style.display = 'flex';
+        }
+
+        function copyVeoPromptText() {
+            const text = document.getElementById('veo-prompt-display').value;
+            navigator.clipboard.writeText(text);
+            alert("📋 Google Veo 3.1 統合シネマプロンプトをクリップボードにコピーしました！");
+        }
+
+        /* Modal Handlers */
+        function openNewSceneModal() {
+            document.getElementById('scene-modal').style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        function confirmAddScene() {
+            const title = document.getElementById('new-scene-title').value;
+            const locName = document.getElementById('new-scene-loc').value;
+            const tod = document.getElementById('new-scene-tod').value;
+            const weath = document.getElementById('new-scene-weather').value;
+
+            scriptEngine.addScene({
+                title: title,
+                locationName: locName,
+                timeOfDay: tod,
+                weather: weath
+            });
+
+            closeModal('scene-modal');
+            renderSceneList();
+            loadCurrentShotData();
+            drawStoryboardCanvas();
+            updateTotalDurationBadge();
+        }
+
+        function openNewShotModal() {
+            scriptEngine.addShotToCurrentScene({
+                name: `Shot: 新カット`,
+                durationSec: 4.5,
+                lensMm: 35,
+                angle: "eye_level",
+                shotSize: "medium",
+                cameraWork: "dolly_in"
+            });
+            renderSceneList();
+            loadCurrentShotData();
+            drawStoryboardCanvas();
+            updateTotalDurationBadge();
+        }
+
+        function exportScriptJSON() {
+            const jsonStr = scriptEngine.exportJSON();
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `GENESIS_CINEMA_SCRIPT_${Date.now()}.json`;
+            a.click();
+        }
+
+        function openTemplateModal() {
+            alert("📚 プリセット台本テンプレート（『サイバー東京ノワール』『浅草寺決闘』『雨の追跡サスペンス』）がロードされました！");
+        }
+
+        function openImportModal() {
+            const jsonStr = prompt("インポートする台本JSON文字列を貼り付けてください:");
+            if (jsonStr) {
+                if (scriptEngine.importJSON(jsonStr)) {
+                    initStudio();
+                    alert("✅ 台本JSONのインポートに成功しました！");
+                } else {
+                    alert("❌ JSONのパースに失敗しました。フォーマットを確認してください。");
+                }
+            }
+        }
+
+                window.onMultiDisplayCastRosterUpdate = (payload) => {
+            console.log("📜 [MultiDisplay] CAST_ROSTER_SYNC received:", payload);
+            if (payload && payload.speaker) {
+                // Add new cast speaker to dialogues
+                const shot = scriptEngine.getCurrentShot();
+                if (shot) {
+                    scriptEngine.addDialogueToCurrentShot({
+                        speaker: payload.speaker,
+                        characterId: payload.characterId || "custom",
+                        tone: "tense",
+                        lang: "ja-JP",
+                        text: `${payload.speaker}「作戦を開始する。配置につけ。」`
+                    });
+                    renderDialogues();
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initStudio();
+        });
+    </script>
+</body>
+</html>

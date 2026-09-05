@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS CINEMA STUDIO - Main Director Cockpit & 5-Track Timeline NLE</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-panel: #090d1a;
+            --bg-card: #0e1526;
+            --border-dark: #1e293b;
+            --border-glow: rgba(0, 242, 254, 0.4);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Top Header */
+        .studio-header {
+            height: 42px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        .studio-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            font-size: 0.88rem;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #00f2fe 0%, #38bdf8 50%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 3-Column Studio Layout */
+        .studio-layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 390px 1fr 380px;
+            gap: 6px;
+            padding: 6px;
+            overflow: hidden;
+            background: #02040a;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header {
+            height: 32px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+        }
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .box-title { 
+            font-size: 0.65rem; 
+            font-weight: 700; 
+            color: var(--accent-gold); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .btn-opt {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+        .btn-opt:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        .btn-opt.active { border-color: var(--accent-cyan); background: rgba(0, 242, 254, 0.18); color: var(--accent-cyan); }
+
+        .btn-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .btn-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; }
+        .btn-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3px; }
+
+        /* Draggable Footage Card in Shot Bin */
+        .footage-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        .footage-card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,242,254,0.25);
+        }
+        .footage-card:active {
+            cursor: grabbing;
+        }
+
+        /* Stage Viewport Area */
+        .stage-wrapper {
+            flex: 1;
+            position: relative;
+            background: #000;
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .stage-view-tabs {
+            height: 34px;
+            background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            padding: 2px 6px;
+            gap: 6px;
+            align-items: center;
+            z-index: 50;
+        }
+        .stage-tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stage-tab-btn.active {
+            background: rgba(0, 242, 254, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .stage-main-area {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #080c18;
+            overflow: hidden;
+        }
+
+        /* Google Official Street View Embed */
+        #google-streetview-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            background: #080c18;
+        }
+
+        /* Interactive Map View */
+        #stage-map-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: none;
+            background: #080c18;
+        }
+
+        .stage-hud-overlay {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            background: rgba(3, 7, 18, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-glow);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.56rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            z-index: 35;
+            pointer-events: none;
+        }
+
+        /* Return to Map Floating Button on Stage */
+        #btn-floating-return-map {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 36;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            transition: all 0.2s ease;
+        }
+        #btn-floating-return-map:hover {
+            background: rgba(245, 158, 11, 0.25);
+            transform: scale(1.05);
+        }
+
+        /* Zoom Info Banner in Map Mode */
+        #map-zoom-banner {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid var(--accent-cyan);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.62rem;
+            color: var(--accent-cyan);
+            z-index: 35;
+            display: none;
+            box-shadow: 0 0 15px rgba(0,242,254,0.3);
+            pointer-events: none;
+        }
+
+        /* Viewport Bottom Controls */
+        .stage-bottom-bar {
+            height: 38px;
+            background: rgba(10, 14, 26, 0.98);
+            border-top: 1px solid var(--border-dark);
+            padding: 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 40;
+        }
+
+        /* 4-View Turnaround Mini-Card Grid */
+        .turnaround-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .turnaround-view-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.2s ease;
+        }
+        .turnaround-view-card.active-aspect {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.12);
+            box-shadow: 0 0 10px rgba(0,242,254,0.3);
+        }
+        .turnaround-canvas-preview {
+            width: 44px;
+            height: 75px;
+            background: #050811;
+            border-radius: 3px;
+        }
+        .aspect-title {
+            font-size: 0.48rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .turnaround-view-card.active-aspect .aspect-title {
+            color: var(--accent-cyan);
+        }
+
+        /* 5-Layer Multi-Track NLE Timeline */
+        .timeline-container {
+            height: 155px;
+            background: rgba(6, 10, 20, 0.98);
+            border-top: 1px solid var(--border-dark);
+            display: flex;
+            flex-direction: column;
+            z-index: 40;
+        }
+        .timeline-header {
+            height: 24px;
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.58rem;
+        }
+        .timeline-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 3px 10px;
+            gap: 2px;
+            overflow-y: auto;
+        }
+        .track-row {
+            display: flex;
+            align-items: center;
+            height: 20px;
+            gap: 6px;
+        }
+        .track-label {
+            width: 110px;
+            font-size: 0.52rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .track-lane {
+            flex: 1;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
+            gap: 4px;
+            overflow-x: auto;
+            transition: background 0.2s ease;
+        }
+        .track-lane.drag-over {
+            background: rgba(0, 242, 254, 0.15);
+            border-color: var(--accent-cyan);
+        }
+        .clip-block {
+            height: 16px;
+            border-radius: 2px;
+            padding: 0 6px;
+            color: #fff;
+            font-size: 0.50rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+
+        /* 🎭 Character & Wardrobe Master Studio Modal */
+        #modal-character-studio {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 7, 18, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        .char-studio-container {
+            width: 95vw;
+            max-width: 1380px;
+            height: 90vh;
+            background: #090e1a;
+            border: 1px solid var(--accent-cyan);
+            box-shadow: 0 0 35px rgba(0, 242, 254, 0.25);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .char-studio-header {
+            height: 44px;
+            background: rgba(15, 23, 42, 0.98);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .char-studio-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 360px 1fr 320px;
+            gap: 12px;
+            padding: 12px;
+            overflow-y: auto;
+        }
+        .char-mode-tabs {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid var(--border-dark);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+        }
+        .char-mode-tab {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            color: #94a3b8;
+            padding: 6px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .char-mode-tab.active {
+            background: rgba(0, 242, 254, 0.18);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        .char-dropzone {
+            border: 1.5px dashed rgba(0, 242, 254, 0.4);
+            border-radius: 6px;
+            background: rgba(0, 242, 254, 0.03);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 120px;
+        }
+        .char-dropzone:hover, .char-dropzone.dragover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.1);
+        }
+        .checkered-bg {
+            background: repeating-conic-gradient(#1e293b 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-dark);
+        }
+        .wardrobe-item-card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .wardrobe-item-card:hover, .wardrobe-item-card.active {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.12);
+        }
+        .vault-char-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-dark);
+            border-radius: 5px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .vault-char-card:hover, .vault-char-card.active {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header -->
+    <header class="studio-header">
+        <div class="studio-brand">
+            <i class="fa-solid fa-earth-americas" style="color:var(--accent-cyan);"></i>
+            <span>GENESIS GLOBAL CINEMA STUDIO</span>
+            <span style="font-size:0.55rem; background:rgba(0,242,254,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:3px; font-weight:700;">Director Cockpit ✕ 5-Track Timeline NLE</span>
+        </div>
+
+        <div class="header-actions" style="display:flex; gap:6px;">
+            <button class="btn-opt" style="background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:var(--accent-gold);" onclick="openLocationVaultModal()">
+                <i class="fa-solid fa-folder-open"></i> 📂 登録ロケ地台帳
+            </button>
+            <button class="btn-opt" style="background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan);" onclick="launchTripleDisplays()">
+                <i class="fa-solid fa-display"></i> 🖥️ 4画面スタジオ展開 (①監督 ②試写 ③工房 ④台本)
+            </button>
+            <button class="btn-opt" style="background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(168,85,247,0.25)); border-color:var(--accent-cyan); color:#fff; font-weight:800;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.openModal()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 🎭 キャスト＆クローゼット制作
+            </button>
+            <button class="btn-opt" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border:none; padding:6px 12px; font-weight:800;" onclick="triggerDirectVeoCinemaGeneration()">
+                <i class="fa-solid fa-play"></i> 4K試写室シアターで上映
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Studio Grid -->
+    <main class="studio-layout">
+
+        <!-- Column 1: Left Controls (Cast Selector + Footage Bin D&D + World Scout & Dolly) -->
+        <aside class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-sliders"></i> 出演キャスト ＆ 生成動画フッテージ ＆ 撮影制御</span>
+            </div>
+            <div class="panel-body">
+
+                <!-- 👥 1. Character Cast Selector (サード画面で作成されたキャストをワンクリック選択) -->
+                <div class="control-box" style="border:1px solid var(--accent-blue); background:rgba(59,130,246,0.03);">
+                    <div class="box-title" style="color:var(--accent-cyan);">
+                        <span><i class="fa-solid fa-user-astronaut"></i> ① 出演キャスト選択 ＆ 4面アスペクト</span>
+                        <span id="badge-char-aspect" style="background:var(--accent-cyan); color:#000; padding:1px 4px; border-radius:3px; font-size:0.52rem; font-weight:800;">正面 (Front)</span>
+                    </div>
+
+                    <!-- Cast Selection -->
+                    <div class="btn-grid-4" id="cockpit-cast-buttons">
+                        <button class="btn-opt active" id="btn-cast-ren" onclick="selectActor('ren')">如月 蓮</button>
+                        <button class="btn-opt" id="btn-cast-kagerou" onclick="selectActor('kagerou')">緋村 影狼</button>
+                        <button class="btn-opt" id="btn-cast-yuki" onclick="selectActor('yuki')">霧島 結衣</button>
+                        <button class="btn-opt" id="btn-cast-asuka" onclick="selectActor('asuka')">橘 飛鳥</button>
+                    </div>
+
+                    <!-- Stage Summon & Studio Buttons -->
+                    <div style="display:flex; gap:4px; margin-top:2px;">
+                        <button class="btn-opt" id="btn-summon-stage-actor" style="flex:1; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.toggleStageActor()">
+                            <i class="fa-solid fa-person-walking-arrow-right"></i> 📍 街角セットに召喚
+                        </button>
+                        <button class="btn-opt" style="flex:1; background:rgba(168,85,247,0.15); border-color:var(--accent-purple); color:#c084fc; font-weight:800;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.openModal()">
+                            <i class="fa-solid fa-shirt"></i> 🎭 キャスト工房
+                        </button>
+                    </div>
+
+                    <!-- Costume & Acting Tone -->
+                    <div style="display:flex; gap:4px;">
+                        <select id="select-actor-costume" onchange="onCostumeChange()" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.55rem; padding:3px;">
+                            <option value="noir_suit">🧥 ノワール・ロングトレンチコート</option>
+                            <option value="casual_jacket">🧥 ヴィンテージ・レザージャケット</option>
+                            <option value="tactical_gear">🛡️ タクティカル・オペレーションギア</option>
+                        </select>
+                        <select id="select-acting-tone" onchange="onActingToneChange()" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.55rem; padding:3px;">
+                            <option value="tense">😠 緊迫・警戒 (Tense)</option>
+                            <option value="confident">😎 自信・圧倒 (Confident)</option>
+                            <option value="angry">🔥 激昂・鋭利 (Angry)</option>
+                            <option value="calm">🧊 冷静・沈着 (Calm)</option>
+                        </select>
+                    </div>
+
+                    <!-- 4-View Turnaround Mini-Card Preview -->
+                    <div class="turnaround-grid">
+                        <div class="turnaround-view-card active-aspect" id="card-aspect-front">
+                            <span class="aspect-title">正面 (Front)</span>
+                            <canvas id="canvas-aspect-front" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                        <div class="turnaround-view-card" id="card-aspect-right">
+                            <span class="aspect-title">右側面 (Right)</span>
+                            <canvas id="canvas-aspect-right" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                        <div class="turnaround-view-card" id="card-aspect-back">
+                            <span class="aspect-title">背面 (Back)</span>
+                            <canvas id="canvas-aspect-back" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                        <div class="turnaround-view-card" id="card-aspect-left">
+                            <span class="aspect-title">左側面 (Left)</span>
+                            <canvas id="canvas-aspect-left" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🎬 2. Generated Footage Bin (生成動画フッテージ選択 ＆ タイムラインD&D) -->
+                <div class="control-box" style="border:1px solid var(--accent-cyan); background:rgba(0,242,254,0.03);">
+                    <div class="box-title" style="color:var(--accent-cyan);">
+                        <span><i class="fa-solid fa-film"></i> ② 生成動画フッテージ (Shot Bin)</span>
+                        <span style="font-size:0.50rem; color:var(--text-muted);">🖱️ 掴んで下部タイムラインに落とす (D&D)</span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="footage-bin-container">
+                        <div class="footage-card" draggable="true" ondragstart="handleDragStart(event, 'Shot 1: 表参道・正面ドリー (40m)', 5.0, 'video')">
+                            <div style="font-size:0.56rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 1: 表参道ドリー</div>
+                            <div style="font-size:0.50rem; color:#94a3b8;">4K 60fps / 5.0秒 / 40m前進</div>
+                            <div style="font-size:0.48rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 35.6715, 139.7032</div>
+                        </div>
+                        <div class="footage-card" draggable="true" ondragstart="handleDragStart(event, 'Shot 2: 浅草寺・夕焼けクレーン', 4.5, 'video')">
+                            <div style="font-size:0.56rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 2: 浅草寺夕焼け</div>
+                            <div style="font-size:0.50rem; color:#94a3b8;">4K 60fps / 4.5秒 / 降下</div>
+                            <div style="font-size:0.48rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 35.7111, 139.7963</div>
+                        </div>
+                        <div class="footage-card" draggable="true" ondragstart="handleDragStart(event, 'Shot 3: 鈴鹿・直進トラッキング', 6.0, 'video')">
+                            <div style="font-size:0.56rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 3: 鈴鹿直線</div>
+                            <div style="font-size:0.50rem; color:#94a3b8;">4K 60fps / 6.0秒 / 50m前進</div>
+                            <div style="font-size:0.48rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 34.8431, 136.5410</div>
+                        </div>
+                        <div class="footage-card" draggable="true" ondragstart="handleDragStart(event, 'Shot 4: NYタイムズ・夜景アップ', 4.0, 'video')">
+                            <div style="font-size:0.56rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 4: NYタイムズ夜景</div>
+                            <div style="font-size:0.50rem; color:#94a3b8;">4K 60fps / 4.0秒 / クローズ</div>
+                            <div style="font-size:0.48rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 40.7580, -73.9855</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🗺️ 3. Global World Scout & Dolly Sequence -->
+                <div class="control-box" style="border:1px solid var(--accent-gold); background:rgba(245,158,11,0.03);">
+                    <div class="box-title" style="color:var(--accent-gold);">
+                        <span><i class="fa-solid fa-globe"></i> ③ ロケ地 ＆ 連続ドリー撮影パス</span>
+                        <span id="badge-dolly-status" style="background:var(--accent-gold); color:#000; padding:1px 4px; border-radius:3px; font-size:0.52rem; font-weight:800;">4ノード (40m)</span>
+                    </div>
+
+                    <div style="display:flex; gap:4px;">
+                        <input type="text" id="input-scout-query" placeholder="例: 浅草寺, 鈴鹿, Big Ben" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.58rem; padding:3px;">
+                        <button class="btn-opt" style="padding:3px 6px;" onclick="executeLocationSearch()">探索ワープ</button>
+                    </div>
+
+                    <div class="btn-grid-3">
+                        <button class="btn-opt" onclick="jumpToLocation(35.7111, 139.7963, 180, '浅草寺 雷門 (東京)')">⛩️ 浅草寺</button>
+                        <button class="btn-opt" onclick="jumpToLocation(34.8431, 136.5410, 45, '鈴鹿サーキット')">🏎️ 鈴鹿</button>
+                        <button class="btn-opt" onclick="jumpToLocation(51.5007, -0.1246, 270, 'ロンドン ビッグベン')">🇬🇧 ビッグベン</button>
+                        <button class="btn-opt" onclick="jumpToLocation(40.7580, -73.9855, 0, 'NY タイムズスクエア')">🗽 NYタイムズ</button>
+                        <button class="btn-opt" onclick="jumpToLocation(43.7384, 7.4246, 220, 'モナコ 市街地')">🇲🇨 モナコ</button>
+                        <button class="btn-opt" onclick="jumpToLocation(48.8584, 2.2945, 135, 'パリ エッフェル塔')">🇫🇷 パリ</button>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.52rem; color:var(--text-muted);">ドリー前進距離:</span>
+                        <div style="display:flex; gap:2px;">
+                            <button class="btn-opt" style="padding:1px 4px; font-size:0.52rem;" onclick="setDollyDistance(20)">20m</button>
+                            <button class="btn-opt" style="padding:1px 4px; font-size:0.52rem;" onclick="setDollyDistance(30)">30m</button>
+                            <button class="btn-opt active" id="btn-dolly-40" style="padding:1px 4px; font-size:0.52rem;" onclick="setDollyDistance(40)">40m</button>
+                            <button class="btn-opt" style="padding:1px 4px; font-size:0.52rem;" onclick="setDollyDistance(50)">50m</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⛅ 4. Time of Day & Weather Atmosphere -->
+                <div class="control-box" style="border:1px solid var(--accent-purple); background:rgba(168,85,247,0.03);">
+                    <div class="box-title" style="color:var(--accent-purple);">
+                        <span><i class="fa-solid fa-cloud-sun"></i> ④ 時間帯 ＆ 天候ライティング</span>
+                        <span id="badge-weather-status" style="background:var(--accent-purple); color:#fff; padding:1px 4px; border-radius:3px; font-size:0.52rem; font-weight:800;">🌆 夕焼け ✕ ☀️ 快晴</span>
+                    </div>
+
+                    <div class="btn-grid-4">
+                        <button class="btn-opt" id="btn-tod-sunrise" onclick="selectTimeOfDay('sunrise')">🌅 朝焼け</button>
+                        <button class="btn-opt" id="btn-tod-morning" onclick="selectTimeOfDay('morning')">☀️ 朝</button>
+                        <button class="btn-opt" id="btn-tod-noon" onclick="selectTimeOfDay('noon')">🌤️ 昼</button>
+                        <button class="btn-opt" id="btn-tod-late_afternoon" onclick="selectTimeOfDay('late_afternoon')">🌇 夕方</button>
+                    </div>
+                    <div class="btn-grid-3" style="margin-top:2px;">
+                        <button class="btn-opt active" id="btn-tod-sunset" onclick="selectTimeOfDay('sunset')">🌆 夕焼け (3000K)</button>
+                        <button class="btn-opt" id="btn-tod-night" onclick="selectTimeOfDay('night')">🌙 夜景 (ネオン)</button>
+                        <button class="btn-opt" id="btn-tod-twilight" onclick="selectTimeOfDay('twilight')">🌌 薄明</button>
+                    </div>
+
+                    <div class="btn-grid-3" style="margin-top:2px;">
+                        <button class="btn-opt active" id="btn-weath-clear" onclick="selectWeather('clear')">☀️ 快晴</button>
+                        <button class="btn-opt" id="btn-weath-overcast" onclick="selectWeather('overcast')">☁️ 曇天</button>
+                        <button class="btn-opt" id="btn-weath-heavy_rain" onclick="selectWeather('heavy_rain')">🌧️ 大雨・路面反射</button>
+                        <button class="btn-opt" id="btn-weath-wind_storm" onclick="selectWeather('wind_storm')">💨 強風</button>
+                        <button class="btn-opt" id="btn-weath-thunderstorm" onclick="selectWeather('thunderstorm')">⚡ 雷雨</button>
+                        <button class="btn-opt" id="btn-weath-dense_fog" onclick="selectWeather('dense_fog')">🌫️ 濃霧</button>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Column 2: Center Stage Viewport (Street View Shoot & Map Viewport) -->
+        <section class="stage-wrapper">
+            <div class="stage-view-tabs">
+                <button class="stage-tab-btn active" id="tab-btn-streetview" onclick="switchStageMode('streetview')">
+                    <i class="fa-solid fa-street-view"></i> 🌐 ① 360°実写ストリートビュー撮影空間 (LIVE)
+                </button>
+                <button class="stage-tab-btn" id="tab-btn-map" onclick="switchStageMode('map')">
+                    <i class="fa-solid fa-map-marked-alt"></i> 🗺️ ② 全体マップ探索 (Google公式青線 ✕ ペグマン)
+                </button>
+                <div style="margin-left:auto; display:flex; gap:4px;">
+                    <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:var(--accent-gold);" onclick="openLocationVaultModal()">
+                        <i class="fa-solid fa-book-bookmark"></i> ロケ地台帳
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stage Viewport Container -->
+            <div class="stage-main-area" id="stage-viewport-container">
+                <iframe id="google-streetview-iframe" 
+                        src="https://maps.google.com/maps?layer=c&cbll=35.7111,139.7963&cbp=11,180,0,0,0&output=svembed"
+                        allowfullscreen
+                        loading="eager"></iframe>
+
+                <!-- 🎭 Stage Actor Overlay Layer (32bit Transparent PNG + Contact Drop Shadow) -->
+                <div id="stage-actor-layer" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:35; overflow:hidden;">
+                    <div id="stage-actor-entity" style="position:absolute; bottom:14%; left:50%; transform:translateX(-50%); pointer-events:auto; cursor:grab; user-select:none; display:flex; flex-direction:column; align-items:center;">
+                        <div id="stage-actor-bubble" style="background:rgba(6,10,20,0.92); border:1px solid var(--accent-cyan); border-radius:4px; padding:3px 8px; font-size:0.55rem; color:var(--accent-cyan); font-weight:700; margin-bottom:4px; white-space:nowrap; display:flex; align-items:center; gap:6px; box-shadow:0 0 10px rgba(0,242,254,0.3);">
+                            <span id="stage-actor-name-badge">如月 蓮 (1.80m)</span>
+                            <button onclick="window.CharacterStudioUI && window.CharacterStudioUI.cycleStageActorAspect(event)" style="background:rgba(0,242,254,0.2); border:none; color:#fff; border-radius:2px; font-size:0.52rem; padding:1px 5px; cursor:pointer;" title="アングル切替 (正面/右/後/左)">🔄 <span id="stage-actor-aspect-badge">正面</span></button>
+                            <button onclick="window.CharacterStudioUI && window.CharacterStudioUI.dismissStageActor(event)" style="background:rgba(239,68,68,0.3); border:none; color:#f87171; border-radius:2px; font-size:0.52rem; padding:1px 5px; cursor:pointer;" title="退場">✕ 退場</button>
+                        </div>
+                        <img id="stage-actor-img" src="/characters/test_ren_e2e/front.png" alt="Actor" style="height:380px; width:auto; object-fit:contain; filter:drop-shadow(0 0 1px rgba(0,0,0,0.8));">
+                        <!-- Contact Drop Shadow -->
+                        <div id="stage-actor-shadow" style="width:140px; height:24px; background:radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 80%); border-radius:50%; margin-top:-14px; transform:scaleY(0.55); pointer-events:none;"></div>
+                    </div>
+                </div>
+
+                <!-- Direct Cinema Movie Player on Director Stage -->
+                <div id="stage-cinema-wrapper" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column; align-items:center; justify-content:center;">
+                    <video id="stage-cinema-video" style="width:100%; height:100%; object-fit:contain; background:#000;" controls autoplay playsinline></video>
+                    <button class="btn-opt" style="position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.85); border:1px solid #ef4444; color:#ef4444; font-size:0.68rem; font-weight:700; padding:6px 12px; z-index:10000; cursor:pointer; border-radius:4px;" onclick="closeStageCinemaPlayer()">
+                        ✕ 映画上映を閉じてロケ地に戻る
+                    </button>
+                    <div style="position:absolute; bottom:14px; left:16px; background:rgba(0,0,0,0.85); border:1px solid var(--accent-cyan); color:var(--accent-cyan); padding:6px 12px; border-radius:4px; font-family:'Fira Code'; font-size:0.68rem; z-index:10000; display:flex; align-items:center; gap:8px;" id="stage-cinema-badge">
+                        🎬 4K 2.39:1 Anamorphic Cinemascope Master Playback
+                    </div>
+                    <button id="stage-unmute-btn" style="display:none; position:absolute; bottom:14px; right:16px; background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border:none; border-radius:4px; padding:6px 14px; font-size:0.7rem; font-weight:800; cursor:pointer; z-index:10000;" onclick="unmuteStageVideo()">
+                        <i class="fa-solid fa-volume-high"></i> 🔊 音声をONにする (Unmute)
+                    </button>
+                </div>
+
+                <!-- Return to Map Floating Button -->
+                <button id="btn-floating-return-map" onclick="switchStageMode('map')">
+                    <i class="fa-solid fa-map-marked-alt"></i> 🗺️ 全体マップ画面に戻る
+                </button>
+
+                <div id="stage-map-view"></div>
+
+                <div id="map-zoom-banner">
+                    <i class="fa-solid fa-circle-info"></i> <span id="map-zoom-text">🔍 拡大するとGoogle公式の青いストリートビュー線と人形（ペグマン）が現れます</span>
+                </div>
+
+                <!-- Stage HUD Info -->
+                <div class="stage-hud-overlay">
+                    <span style="color:var(--accent-gold);"><i class="fa-solid fa-location-dot"></i> <span id="hud-location-title">浅草寺 雷門 (東京)</span></span>
+                    <span style="color:var(--accent-cyan);"><i class="fa-solid fa-compass"></i> 方位: <span id="hud-yaw-val">180°</span></span>
+                    <span style="color:var(--accent-blue);"><i class="fa-solid fa-user"></i> 主役: <span id="hud-actor-val">如月 蓮 (1.80m / 正面)</span></span>
+                    <span style="color:var(--accent-purple);"><i class="fa-solid fa-cloud-sun"></i> 光線: <span id="hud-lighting-val">夕焼け (3000K) ✕ 快晴</span></span>
+                </div>
+            </div>
+
+            <!-- Bottom Status Bar -->
+            <div class="stage-bottom-bar">
+                <div style="font-size:0.55rem; color:var(--text-muted);" id="stage-status-msg">
+                    💡 <span style="color:var(--accent-cyan);">左の生成動画カードを掴んで、下のタイムラインへドラッグ＆ドロップして映画を繋ぎます。</span>
+                </div>
+                <div style="display:flex; gap:4px;">
+                    <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:var(--accent-gold);" onclick="switchStageMode('map')">
+                        <i class="fa-solid fa-map"></i> 🗺️ 全体マップに戻る
+                    </button>
+                    <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan);" onclick="lockCurrentLocation()">
+                        <i class="fa-solid fa-location-pin"></i> 📍 現在の全設定を決定！
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Column 3: Right Panel (AI Master Prompt Synthesis & Direct Veo 3.1 Synthesis) -->
+        <aside class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-wand-magic-sparkles"></i> AI映画プロンプト合成 ＆ 4K生成</span>
+            </div>
+            <div class="panel-body">
+                
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.6rem; font-weight:700; color:var(--accent-cyan);"><i class="fa-solid fa-globe"></i> Veo 3.1 映画生成マスタープロンプト</span>
+                    <button class="btn-opt" style="padding:1px 5px; font-size:0.55rem;" onclick="copyPromptEn()">コピー</button>
+                </div>
+                <textarea id="ai-prompt-en" readonly style="width:100%; height:160px; background:#070a14; color:#f8fafc; border:1px solid var(--border-dark); border-radius:3px; font-family:'Fira Code'; font-size:0.54rem; padding:4px; resize:none; line-height:1.35;"></textarea>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                    <span style="font-size:0.6rem; font-weight:700; color:var(--accent-gold);"><i class="fa-solid fa-film"></i> 映画監督指示書 ＆ 美術・座標調書</span>
+                    <button class="btn-opt" style="padding:1px 5px; font-size:0.55rem;" onclick="copyPromptJa()">コピー</button>
+                </div>
+                <textarea id="ai-prompt-ja" readonly style="width:100%; height:150px; background:#070a14; color:#f8fafc; border:1px solid var(--border-dark); border-radius:3px; font-family:'Fira Code'; font-size:0.54rem; padding:4px; resize:none; line-height:1.35;"></textarea>
+
+                <!-- Veo Direct Synthesis Box -->
+                <div class="control-box" style="border:1px solid var(--accent-gold); background:rgba(245,158,11,0.08); margin-top:auto;">
+                    <div class="box-title" style="color:var(--accent-gold);">
+                        <span><i class="fa-solid fa-wand-magic-sparkles"></i> Google DeepMind Veo 3.1 ダイレクト生成</span>
+                    </div>
+                    <div id="veo-progress-container" style="display:none; flex-direction:column; gap:3px; margin: 4px 0;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.55rem; color:var(--accent-gold);">
+                            <span id="veo-status-text">AI レンダリング処理中...</span>
+                            <span id="veo-pct-text">0%</span>
+                        </div>
+                        <div style="width:100%; height:4px; background:#000; border-radius:2px; overflow:hidden;">
+                            <div id="veo-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #f59e0b, #ec4899); transition:width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                    <button class="btn-opt" id="btn-veo-generate" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; font-weight:800; padding:10px; border:none; width:100%; font-size:0.68rem;" onclick="triggerDirectVeoCinemaGeneration()">
+                        <i class="fa-solid fa-play"></i> 🚀 Google Veo 3.1 映画動画を生成 ➔ 4K試写室上映
+                    </button>
+                </div>
+
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- Bottom 5-Track Multi-Track NLE Timeline -->
+    <footer class="timeline-container">
+        <div class="timeline-header">
+            <div style="display:flex; align-items:center; gap:6px; color:var(--accent-gold); font-weight:700;">
+                <i class="fa-solid fa-timeline"></i> プロ・5層マルチトラック・タイムライン (動画 ✕ 静止画 ✕ セリフ ✕ SE ✕ BGM)
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button class="btn-opt" style="padding:2px 8px; background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:800; border:none;" onclick="loadHackathonMasterSequence()" title="ハッカソン公式3分映画マスターシーケンスを一括展開し、4Kシアターで通し上映">
+                    <i class="fa-solid fa-clapperboard"></i> 🎬 公式マスター映画ロード ＆ 4Kシアター上映
+                </button>
+                <span id="timeline-tc-display" style="font-family:'Fira Code'; color:#fff; font-size:0.62rem; font-weight:700;">00:00:09:15</span>
+                <span id="timeline-total-dur" style="font-size:0.52rem; color:var(--text-muted);">(総尺: 9.5秒)</span>
+                <button class="btn-opt" id="btn-timeline-play" style="padding:2px 8px; background:var(--accent-gold); color:#000; font-weight:800; border:none;" onclick="triggerTimelinePlay()">
+                    <i class="fa-solid fa-play"></i> 連続試写再生
+                </button>
+            </div>
+        </div>
+        <div class="timeline-body">
+            <!-- Track 1: Video -->
+            <div class="track-row">
+                <div class="track-label"><i class="fa-solid fa-video" style="color:#38bdf8;"></i> 🎥 動画 (Video)</div>
+                <div class="track-lane" id="lane-track-video" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'video')">
+                    <div class="clip-block" style="background:linear-gradient(90deg,#0284c7,#0d9488);">🎬 Shot 1: 表参道ドリー (5.0s)</div>
+                    <div class="clip-block" style="background:linear-gradient(90deg,#0284c7,#3b82f6);">🎬 Shot 2: 浅草寺夕焼け (4.5s)</div>
+                </div>
+            </div>
+            <!-- Track 2: Image / Background -->
+            <div class="track-row">
+                <div class="track-label"><i class="fa-solid fa-image" style="color:#a855f7;"></i> 🖼️ 静止画・背景 (Img)</div>
+                <div class="track-lane" id="lane-track-image" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'image')">
+                    <div class="clip-block" style="background:linear-gradient(90deg,#6366f1,#8b5cf6);">🖼️ 360° 実写背景 (浅草寺雷門 GPS:35.7111)</div>
+                </div>
+            </div>
+            <!-- Track 3: Dialogue / Voice -->
+            <div class="track-row">
+                <div class="track-label"><i class="fa-solid fa-comment-dots" style="color:#06b6d4;"></i> 💬 セリフ (Speech)</div>
+                <div class="track-lane" id="lane-track-dialogue" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'dialogue')">
+                    <div class="clip-block" style="background:linear-gradient(90deg,#3b82f6,#06b6d4);">💬 如月 蓮: 「時間がない。追手が近い」 (3.6s)</div>
+                </div>
+            </div>
+            <!-- Track 4: Sound Effects (SE) -->
+            <div class="track-row">
+                <div class="track-label"><i class="fa-solid fa-bolt" style="color:#10b981;"></i> 💥 効果音 (SE)</div>
+                <div class="track-lane" id="lane-track-se" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'se')">
+                    <div class="clip-block" style="background:linear-gradient(90deg,#10b981,#059669);">💥 大雨・アスファルト雨滴音 ✕ 足音</div>
+                </div>
+            </div>
+            <!-- Track 5: Music / BGM -->
+            <div class="track-row">
+                <div class="track-label"><i class="fa-solid fa-music" style="color:#ec4899;"></i> 🎵 音楽 (Music)</div>
+                <div class="track-lane" id="lane-track-music" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'music')">
+                    <div class="clip-block" style="background:linear-gradient(90deg,#f59e0b,#ec4899);">🎵 映画サスペンス・シンセ (BPM 132)</div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 📂 Location Vault Modal Popup -->
+    <div id="vault-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span><i class="fa-solid fa-book-bookmark"></i> 📂 登録ロケ地台帳 (Global Location Vault)</span>
+                <button class="btn-opt" style="padding:2px 8px;" onclick="closeLocationVaultModal()">✕ 閉じる</button>
+            </div>
+            <div class="modal-body" id="vault-cards-container"></div>
+        </div>
+    </div>
+
+    <!-- 🎭 GENESIS Character & Wardrobe Master Studio Modal -->
+    <div id="modal-character-studio">
+        <div class="char-studio-container">
+            <!-- Modal Header -->
+            <div class="char-studio-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent-cyan); font-size:1.1rem;"></i>
+                    <span style="font-size:0.85rem; font-weight:800; letter-spacing:0.5px; color:#fff;">GENESIS CHARACTER & WARDROBE MASTER STUDIO</span>
+                    <span style="font-size:0.52rem; background:rgba(0,242,254,0.18); color:var(--accent-cyan); padding:2px 6px; border-radius:3px; font-weight:700;">Zero-Drift ✕ 32bit Alpha Matting</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div id="char-studio-status" style="font-size:0.58rem; color:var(--accent-gold); font-weight:700;">💡 プロンプトまたは実在人物のスマホ写真4枚から完全透過キャストを生成できます。</div>
+                    <button class="btn-opt" style="background:rgba(239,68,68,0.2); border-color:#ef4444; color:#f87171; padding:4px 10px; font-weight:700;" onclick="window.CharacterStudioUI.closeModal()">✕ 閉じる</button>
+                </div>
+            </div>
+
+            <!-- Studio 3-Column Layout -->
+            <div class="char-studio-grid">
+
+                <!-- Column 1: Cast Generator Settings -->
+                <div class="control-box" style="display:flex; flex-direction:column; gap:8px;">
+                    <div class="char-mode-tabs">
+                        <div class="char-mode-tab active" id="tab-char-prompt" onclick="window.CharacterStudioUI.switchMode('prompt')">
+                            <i class="fa-solid fa-feather-pointed"></i> 🅰️ 設定プロンプト生成
+                        </div>
+                        <div class="char-mode-tab" id="tab-char-photos" onclick="window.CharacterStudioUI.switchMode('photos')">
+                            <i class="fa-solid fa-camera-retro"></i> 🅱️ 実在人物4枚写真
+                        </div>
+                        <div class="char-mode-tab" id="tab-char-mocap" onclick="window.CharacterStudioUI.switchMode('mocap')">
+                            <i class="fa-solid fa-person-running"></i> 🎬 簡易モーキャプ・演技
+                        </div>
+                    </div>
+
+                    <!-- 🅰️ Mode A: Prompt Inputs -->
+                    <div id="section-char-prompt">
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <div style="display:flex; gap:6px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:0.52rem; color:var(--text-muted);">氏名 (日本語)</label>
+                                    <input type="text" id="char-input-name" value="如月 蓮" style="width:100%; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.62rem; padding:4px;">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:0.52rem; color:var(--text-muted);">Name (English)</label>
+                                    <input type="text" id="char-input-name-en" value="Ren Kisaragi" style="width:100%; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.62rem; padding:4px;">
+                                </div>
+                            </div>
+
+                            <div style="display:flex; gap:6px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:0.52rem; color:var(--text-muted);">年齢</label>
+                                    <input type="number" id="char-input-age" value="26" style="width:100%; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.62rem; padding:4px;">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:0.52rem; color:var(--text-muted);">性別</label>
+                                    <select id="char-select-gender" style="width:100%; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.60rem; padding:4px;">
+                                        <option value="male">男性 (Male)</option>
+                                        <option value="female">女性 (Female)</option>
+                                    </select>
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:0.52rem; color:var(--text-muted);">体格 (Build)</label>
+                                    <select id="char-select-build" style="width:100%; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.60rem; padding:4px;">
+                                        <option value="athletic">筋肉質 (Athletic)</option>
+                                        <option value="slender">細身 (Slender)</option>
+                                        <option value="heavy">大柄 (Heavy)</option>
+                                        <option value="tactical">ミリタリー (Tactical)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <label style="font-size:0.52rem; color:var(--text-muted);">実寸身長 (Physical Height)</label>
+                                    <span id="char-height-val" style="font-size:0.55rem; color:var(--accent-cyan); font-weight:800; font-family:'Fira Code';">1.80m</span>
+                                </div>
+                                <input type="range" id="char-input-height" min="1.40" max="2.05" step="0.01" value="1.80" style="width:100%; accent-color:var(--accent-cyan);" oninput="document.getElementById('char-height-val').textContent = parseFloat(this.value).toFixed(2) + 'm'">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🅱️ Mode B: 4-Photo Drag & Drop Dropzones -->
+                    <div id="section-char-photos" style="display:none;">
+                        <div style="font-size:0.52rem; color:var(--accent-gold); margin-bottom:4px;">
+                            📸 地下アイドル・俳優・ご自身のスマホ写真（前後左右）をドロップ
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                            <!-- Front -->
+                            <div class="char-dropzone" id="dropzone-front" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="window.CharacterStudioUI.handlePhotoDrop(event, 'front')" onclick="document.getElementById('file-photo-front').click()">
+                                <i class="fa-solid fa-image" style="color:var(--accent-cyan); font-size:1.1rem; margin-bottom:4px;"></i>
+                                <span style="font-size:0.55rem; font-weight:800; color:#fff;">① 正面 (Front)</span>
+                                <span style="font-size:0.46rem; color:#94a3b8;">写真D&D または クリック</span>
+                                <input type="file" id="file-photo-front" accept="image/*" style="display:none;" onchange="window.CharacterStudioUI.handlePhotoSelect(this, 'front')">
+                            </div>
+                            <!-- Right -->
+                            <div class="char-dropzone" id="dropzone-right" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="window.CharacterStudioUI.handlePhotoDrop(event, 'right')" onclick="document.getElementById('file-photo-right').click()">
+                                <i class="fa-solid fa-image" style="color:var(--accent-cyan); font-size:1.1rem; margin-bottom:4px;"></i>
+                                <span style="font-size:0.55rem; font-weight:800; color:#fff;">② 右側面 (Right)</span>
+                                <span style="font-size:0.46rem; color:#94a3b8;">写真D&D または クリック</span>
+                                <input type="file" id="file-photo-right" accept="image/*" style="display:none;" onchange="window.CharacterStudioUI.handlePhotoSelect(this, 'right')">
+                            </div>
+                            <!-- Back -->
+                            <div class="char-dropzone" id="dropzone-back" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="window.CharacterStudioUI.handlePhotoDrop(event, 'back')" onclick="document.getElementById('file-photo-back').click()">
+                                <i class="fa-solid fa-image" style="color:var(--accent-cyan); font-size:1.1rem; margin-bottom:4px;"></i>
+                                <span style="font-size:0.55rem; font-weight:800; color:#fff;">③ 背面 (Back)</span>
+                                <span style="font-size:0.46rem; color:#94a3b8;">写真D&D または クリック</span>
+                                <input type="file" id="file-photo-back" accept="image/*" style="display:none;" onchange="window.CharacterStudioUI.handlePhotoSelect(this, 'back')">
+                            </div>
+                            <!-- Left -->
+                            <div class="char-dropzone" id="dropzone-left" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="window.CharacterStudioUI.handlePhotoDrop(event, 'left')" onclick="document.getElementById('file-photo-left').click()">
+                                <i class="fa-solid fa-image" style="color:var(--accent-cyan); font-size:1.1rem; margin-bottom:4px;"></i>
+                                <span style="font-size:0.55rem; font-weight:800; color:#fff;">④ 左側面 (Left)</span>
+                                <span style="font-size:0.46rem; color:#94a3b8;">写真D&D または クリック</span>
+                                <input type="file" id="file-photo-left" accept="image/*" style="display:none;" onchange="window.CharacterStudioUI.handlePhotoSelect(this, 'left')">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🎬 Mode C: Mocap & Pose-Acting Transfer Dropzone -->
+                    <div id="section-char-mocap" style="display:none; flex-direction:column; gap:6px;">
+                        <div style="font-size:0.52rem; color:var(--accent-gold); font-weight:700;">
+                            📱 スマホで自撮りしたダンス・演技動画（MP4/WebM）をドロップ
+                        </div>
+                        <div class="char-dropzone" id="dropzone-mocap-video" style="padding:16px; border:2px dashed var(--accent-cyan);" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="window.CharacterStudioUI.handleMocapDrop(event)" onclick="document.getElementById('file-mocap-video').click()">
+                            <i class="fa-solid fa-person-running" style="color:var(--accent-cyan); font-size:1.8rem; margin-bottom:6px;"></i>
+                            <span style="font-size:0.62rem; font-weight:800; color:#fff;" id="mocap-file-label">演技・ダンス動画をドロップ または クリック</span>
+                            <span style="font-size:0.48rem; color:#94a3b8;">スマホ録画 / YouTube切り抜き (MP4, WebM, MOV)</span>
+                            <input type="file" id="file-mocap-video" accept="video/*" style="display:none;" onchange="window.CharacterStudioUI.handleMocapSelect(this)">
+                        </div>
+
+                        <!-- Trim Range Sliders -->
+                        <div style="display:flex; gap:6px; background:#070a14; padding:6px; border-radius:4px; border:1px solid var(--border-dark);">
+                            <div style="flex:1;">
+                                <label style="font-size:0.48rem; color:var(--text-muted);">開始 (秒): <span id="mocap-start-label" style="color:var(--accent-cyan); font-weight:700;">0.0s</span></label>
+                                <input type="range" id="mocap-input-start" min="0" max="30" step="0.5" value="0.0" style="width:100%; accent-color:var(--accent-cyan);" oninput="document.getElementById('mocap-start-label').textContent=this.value+'s'">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:0.48rem; color:var(--text-muted);">終了 (秒): <span id="mocap-end-label" style="color:var(--accent-cyan); font-weight:700;">3.0s</span></label>
+                                <input type="range" id="mocap-input-end" min="0.5" max="30" step="0.5" value="3.0" style="width:100%; accent-color:var(--accent-cyan);" oninput="document.getElementById('mocap-end-label').textContent=this.value+'s'">
+                            </div>
+                        </div>
+
+                        <!-- Mocap Status & Gemma 4 Acting Output Card -->
+                        <div id="mocap-result-card" style="display:none; background:#0d1117; border:1px solid var(--accent-gold); border-radius:4px; padding:6px; flex-direction:column; gap:4px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:0.52rem; font-weight:800; color:var(--accent-gold);"><i class="fa-solid fa-brain"></i> Gemma 4 演技ト書き ＆ 骨格解析</span>
+                                <span id="mocap-latency-badge" style="font-size:0.46rem; color:var(--accent-cyan); font-family:'Fira Code';">8.5ms ($0)</span>
+                            </div>
+                            <div id="mocap-acting-direction" style="font-size:0.52rem; color:#f1f5f9; line-height:1.3; background:rgba(0,0,0,0.5); padding:4px; border-radius:3px;"></div>
+                            <div id="mocap-veo-prompt" style="font-size:0.48rem; color:#38bdf8; font-family:'Fira Code'; line-height:1.2; word-break:break-all;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Execution Action Button -->
+                    <button id="btn-exec-char-gen" class="btn-opt" style="margin-top:auto; padding:8px; font-size:0.68rem; font-weight:800; background:linear-gradient(135deg, var(--accent-cyan), #3b82f6); color:#000; border:none; border-radius:4px;" onclick="window.CharacterStudioUI.executeCharacterGeneration()">
+                        <i class="fa-solid fa-bolt"></i> ⚡ 4面高精度切り抜き ＆ 透過アセット生成
+                    </button>
+                </div>
+
+                <!-- Column 2: 4-View Transparent Preview & Defringe Inspector -->
+                <div class="control-box" style="display:flex; flex-direction:column; gap:8px;">
+                    <div class="box-title" style="color:var(--accent-cyan);">
+                        <span><i class="fa-solid fa-eye"></i> 4面32bit完全透過プレビュー ＆ Defringe（フチ消し）</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:0.52rem; color:var(--text-muted);">Defringe強度:</span>
+                            <input type="range" id="slider-defringe-strength" min="0" max="100" value="80" style="width:70px; accent-color:var(--accent-cyan);" oninput="window.CharacterStudioUI.updateDefringeFilter()">
+                            <span id="label-defringe-val" style="font-size:0.52rem; color:var(--accent-cyan); font-weight:800; font-family:'Fira Code';">80%</span>
+                        </div>
+                    </div>
+
+                    <!-- 4-View Grid with Checkered Transparency Background -->
+                    <div style="flex:1; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; min-height:340px;">
+                        <!-- Front -->
+                        <div class="checkered-bg" style="display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px; position:relative; overflow:hidden;">
+                            <span style="font-size:0.52rem; font-weight:800; color:var(--accent-cyan); background:rgba(0,0,0,0.7); padding:1px 6px; border-radius:3px;">正面 (Front)</span>
+                            <img id="preview-matte-front" src="/characters/test_ren_e2e/front.png" style="max-height:82%; width:auto; object-fit:contain;" alt="Front">
+                            <div style="font-size:0.48rem; color:#94a3b8; font-family:'Fira Code';">接触接地: OK</div>
+                        </div>
+                        <!-- Right -->
+                        <div class="checkered-bg" style="display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px; position:relative; overflow:hidden;">
+                            <span style="font-size:0.52rem; font-weight:800; color:var(--accent-cyan); background:rgba(0,0,0,0.7); padding:1px 6px; border-radius:3px;">右側面 (Right)</span>
+                            <img id="preview-matte-right" src="/characters/test_ren_e2e/right.png" style="max-height:82%; width:auto; object-fit:contain;" alt="Right">
+                            <div style="font-size:0.48rem; color:#94a3b8; font-family:'Fira Code';">接触接地: OK</div>
+                        </div>
+                        <!-- Back -->
+                        <div class="checkered-bg" style="display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px; position:relative; overflow:hidden;">
+                            <span style="font-size:0.52rem; font-weight:800; color:var(--accent-cyan); background:rgba(0,0,0,0.7); padding:1px 6px; border-radius:3px;">背面 (Back)</span>
+                            <img id="preview-matte-back" src="/characters/test_ren_e2e/back.png" style="max-height:82%; width:auto; object-fit:contain;" alt="Back">
+                            <div style="font-size:0.48rem; color:#94a3b8; font-family:'Fira Code';">接触接地: OK</div>
+                        </div>
+                        <!-- Left -->
+                        <div class="checkered-bg" style="display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:6px; position:relative; overflow:hidden;">
+                            <span style="font-size:0.52rem; font-weight:800; color:var(--accent-cyan); background:rgba(0,0,0,0.7); padding:1px 6px; border-radius:3px;">左側面 (Left)</span>
+                            <img id="preview-matte-left" src="/characters/test_ren_e2e/left.png" style="max-height:82%; width:auto; object-fit:contain;" alt="Left">
+                            <div style="font-size:0.48rem; color:#94a3b8; font-family:'Fira Code';">接触接地: OK</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:0.50rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+                        <span>💡 市松模様は32bit完全透過（アルファチャンネル）を表します。白フチ・黒フチはDefringe処理で消去されています。</span>
+                    </div>
+                </div>
+
+                <!-- Column 3: Wardrobe & Vault Catalog -->
+                <div class="control-box" style="display:flex; flex-direction:column; gap:8px;">
+                    <!-- Virtual Wardrobe & EC Integration -->
+                    <div class="box-title" style="color:var(--accent-purple);">
+                        <span><i class="fa-solid fa-shirt"></i> 衣装クローゼット ＆ EC商品着せ替え</span>
+                    </div>
+
+                    <!-- EC Drag & Drop Zone -->
+                    <div class="char-dropzone" id="dropzone-costume-ec" style="border-color:rgba(168,85,247,0.5); background:rgba(168,85,247,0.04); min-height:80px;" ondragover="event.preventDefault(); this.classList.add('dragover');" ondragleave="this.classList.remove('dragover');" ondrop="window.CharacterStudioUI.handleCostumeDrop(event)">
+                        <i class="fa-solid fa-bag-shopping" style="color:#c084fc; font-size:1.1rem; margin-bottom:2px;"></i>
+                        <span style="font-size:0.55rem; font-weight:800; color:#fff;">ECサイトの商品画像 / URL をドロップ</span>
+                        <span style="font-size:0.48rem; color:#c084fc;">ZARA / ユニクロ / Amazon等の服画像をペースト</span>
+                    </div>
+
+                    <div style="display:flex; gap:4px;">
+                        <input type="text" id="char-costume-tag" value="ノワール・ロングトレンチコート" placeholder="現在の衣装タグ" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.55rem; padding:3px;">
+                    </div>
+
+                    <div id="wardrobe-items-tray" style="display:flex; flex-direction:column; gap:4px; max-height:120px; overflow-y:auto;">
+                        <div class="wardrobe-item-card active" onclick="window.CharacterStudioUI.selectCostumeCard(this, 'ノワール・ロングトレンチコート')">
+                            <div style="width:28px; height:28px; background:#0f172a; border-radius:3px; display:flex; justify-content:center; align-items:center; color:var(--accent-cyan); font-size:0.7rem;">🧥</div>
+                            <div style="flex:1;">
+                                <div style="font-size:0.54rem; font-weight:700; color:#fff;">ノワール・ロングトレンチコート</div>
+                                <div style="font-size:0.45rem; color:var(--accent-cyan);">#漆黒トレンチ #探偵衣装</div>
+                            </div>
+                        </div>
+                        <div class="wardrobe-item-card" onclick="window.CharacterStudioUI.selectCostumeCard(this, 'タクティカル・オペレーションギア')">
+                            <div style="width:28px; height:28px; background:#1e293b; border-radius:3px; display:flex; justify-content:center; align-items:center; color:#10b981; font-size:0.7rem;">🛡️</div>
+                            <div style="flex:1;">
+                                <div style="font-size:0.54rem; font-weight:700; color:#fff;">タクティカル・オペレーションギア</div>
+                                <div style="font-size:0.45rem; color:#10b981;">#防弾ベスト #特殊作戦</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Registered Characters Catalog -->
+                    <div class="box-title" style="color:var(--accent-gold); margin-top:4px;">
+                        <span><i class="fa-solid fa-users"></i> 登録済みキャスト台帳 (Vault)</span>
+                    </div>
+                    <div id="vault-character-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; flex:1; overflow-y:auto; max-height:180px;"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="multi_display.js"></script>
+    <script src="google_tts_multilingual.js"></script>
+    <script src="workspace_production_vault.js"></script>
+    <script src="hollywood_3d_spatial_engine.js"></script>
+    <script src="cinema_video_recorder.js"></script>
+    <script src="character_master.js"></script>
+    <script src="character_turnaround_engine.js"></script>
+    <script src="character_studio_ui.js"></script>
+    <script src="stage_prop_engine.js"></script>
+    <script src="small_prop_engine.js"></script>
+    <script src="gemini_omni_engine.js"></script>
+    <script src="agentic_video_qc_engine.js"></script>
+    <script src="timeline_editor.js"></script>
+    <script src="streetview_engine.js"></script>
+    <script src="streetview_auto_aligner.js"></script>
+    <script src="streetview_live_scout.js"></script>
+    <script src="prompt_director_engine.js"></script>
+    <script src="google_veo_direct_generator.js"></script>
+
+    <script>
+        // Studio State
+        let currentLocTitle = "浅草寺 雷門 (東京)";
+        let currentCoords = { lat: 35.7111, lng: 139.7963 };
+        let currentHeading = 180.0;
+        let currentPitch = -1.0;
+        let currentMapsUrl = `https://www.google.com/maps/@35.7111,139.7963,3a,75y,180h,90t`;
+
+        let selectedActorId = "ren";
+        let selectedCostumeKey = "noir_suit";
+        let selectedActingTone = "tense";
+
+        let selectedTimeOfDay = "sunset";
+        let selectedWeather = "clear";
+        let dollyDistanceM = 40;
+        let activeDollyNodes = [];
+        let isDollyPlaying = false;
+        let dollyPlayTimer = null;
+        let currentDollyIndex = 0;
+
+        let currentStageMode = 'streetview';
+        let leafletMap = null;
+        let pegmanMarker = null;
+        let baseMapTileLayer = null;
+
+        const GOOGLE_BASE_MAP_URL = 'https://mt{s}.google.com/vt/lyrs=m&hl=ja&x={x}&y={y}&z={z}';
+        const GOOGLE_STREETVIEW_BLUE_ROADS_URL = 'https://mt{s}.google.com/vt/lyrs=m,svv&hl=ja&x={x}&y={y}&z={z}';
+
+        function launchTripleDisplays() {
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.launchTripleMonitorCockpit();
+            }
+        }
+
+        /**
+         * 🖱️ Drag and Drop (D&D) Handlers for Footage Bin & Timeline
+         */
+        function handleDragStart(e, clipName, durationSec, trackType) {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                name: clipName,
+                durationSec: durationSec,
+                trackType: trackType
+            }));
+            e.dataTransfer.effectAllowed = 'copy';
+        }
+
+        function allowDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDrop(e, targetTrack) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            try {
+                const dataStr = e.dataTransfer.getData('text/plain');
+                if (!dataStr) return;
+                const clipData = JSON.parse(dataStr);
+
+                if (window.TimelineEditorEngine) {
+                    const added = window.TimelineEditorEngine.addClipToTrack(targetTrack, {
+                        name: clipData.name,
+                        durationSec: clipData.durationSec
+                    });
+
+                    renderTimelineTracks();
+                    alert(`✅ タイムライン [${targetTrack}] にクリップ「${clipData.name}」を追加・連結しました！`);
+                }
+            } catch (err) {
+                console.warn("Drop parse error:", err);
+            }
+        }
+
+                function renderTimelineTracks() {
+            if (!window.TimelineEditorEngine) return;
+            const tracks = window.TimelineEditorEngine.tracks;
+
+            ['video', 'image', 'dialogue', 'se', 'music'].forEach(tKey => {
+                const lane = document.getElementById(`lane-track-${tKey}`);
+                if (lane) {
+                    lane.innerHTML = '';
+                    tracks[tKey].forEach(clip => {
+                        const block = document.createElement('div');
+                        block.className = 'clip-block';
+                        block.style.background = clip.color || window.TimelineEditorEngine.getTrackColor(tKey);
+                        block.style.display = 'inline-flex';
+                        block.style.alignItems = 'center';
+                        block.style.justifyContent = 'space-between';
+                        block.style.gap = '6px';
+                        block.style.padding = '0 6px';
+
+                        const titleSpan = document.createElement('span');
+                        titleSpan.textContent = `${clip.name} (${clip.durationSec.toFixed(1)}s)`;
+                        block.appendChild(titleSpan);
+
+                        if (tKey === 'video') {
+                            const btnGroup = document.createElement('div');
+                            btnGroup.style.display = 'flex';
+                            btnGroup.style.gap = '3px';
+
+                            // Omni +10s Extension Button
+                            const btnExtend = document.createElement('button');
+                            btnExtend.innerHTML = '⏳+10s';
+                            btnExtend.title = 'Gemini Omni 1.1 Flash: シーン延長 (+10秒)';
+                            btnExtend.style.cssText = 'background:rgba(245,158,11,0.25); border:1px solid #f59e0b; color:#fbbf24; font-size:0.48rem; padding:1px 4px; border-radius:2px; cursor:pointer; font-weight:800;';
+                            btnExtend.onclick = (e) => {
+                                e.stopPropagation();
+                                const res = window.TimelineEditorEngine.extendVideoClip(clip.id);
+                                if (res && res.success) {
+                                    renderTimelineTracks();
+                                    alert(`⏳ [Gemini Omni 1.1 Flash] シーンを+10秒延長しました！\n新カット尺: ${res.clip.durationSec.toFixed(1)}秒 (直前10秒のコンテキストを維持)`);
+                                }
+                            };
+                            btnGroup.appendChild(btnExtend);
+
+                            // Agentic Auto-Cut Button
+                            const btnCut = document.createElement('button');
+                            btnCut.innerHTML = '✂️Cut';
+                            btnCut.title = 'Agentic Video: サブセカンド自動カット割り';
+                            btnCut.style.cssText = 'background:rgba(0,242,254,0.25); border:1px solid #00f2fe; color:#00f2fe; font-size:0.48rem; padding:1px 4px; border-radius:2px; cursor:pointer; font-weight:800;';
+                            btnCut.onclick = (e) => {
+                                e.stopPropagation();
+                                const res = window.TimelineEditorEngine.smartCutVideoClip(clip.id);
+                                if (res && res.success) {
+                                    renderTimelineTracks();
+                                    alert(`✂️ [Agentic Video] 1秒未満のカット境界を検出し、タイムラインを自動分割しました！\nトークン削減率: 88% (分析コスト66%削減)`);
+                                }
+                            };
+                            btnGroup.appendChild(btnCut);
+
+                            block.appendChild(btnGroup);
+                        }
+
+                        lane.appendChild(block);
+                    });
+                }
+            });
+
+            const status = window.TimelineEditorEngine.getTimelineStatus();
+            document.getElementById('timeline-total-dur').textContent = `(総尺: ${status.totalDurationSec.toFixed(1)}秒)`;
+            document.getElementById('timeline-tc-display').textContent = status.timecode;
+        }
+
+        function playCinemaVideoOnStage(src, title) {
+            const wrapper = document.getElementById('stage-cinema-wrapper');
+            const video = document.getElementById('stage-cinema-video');
+            const badge = document.getElementById('stage-cinema-badge');
+            const unmuteBtn = document.getElementById('stage-unmute-btn');
+            if (wrapper && video) {
+                wrapper.style.display = 'flex';
+                video.src = src || 'assets/generated_harajuku_test.mp4';
+                video.load();
+                video.muted = false;
+                video.currentTime = 0;
+
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        if (unmuteBtn) unmuteBtn.style.display = 'none';
+                    }).catch(e => {
+                        console.log("Autoplay unmuted blocked, playing muted:", e);
+                        video.muted = true;
+                        video.play();
+                        if (unmuteBtn) unmuteBtn.style.display = 'block';
+                    });
+                }
+                if (badge) badge.innerHTML = `🎬 <b>4K 2.39:1 Cinemascope</b>: ${title || "映画本編マスター"}`;
+            }
+        }
+
+        function unmuteStageVideo() {
+            const video = document.getElementById('stage-cinema-video');
+            const unmuteBtn = document.getElementById('stage-unmute-btn');
+            if (video) {
+                video.muted = false;
+                video.play();
+                if (unmuteBtn) unmuteBtn.style.display = 'none';
+            }
+        }
+
+        function closeStageCinemaPlayer() {
+            const wrapper = document.getElementById('stage-cinema-wrapper');
+            const video = document.getElementById('stage-cinema-video');
+            if (video) video.pause();
+            if (wrapper) wrapper.style.display = 'none';
+        }
+
+        function loadHackathonMasterSequence() {
+            try {
+                let title = "『サイバー東京ノワール：雷鳴の決闘 ＆ 雨の追跡』";
+                let dur = 32.0;
+                if (window.TimelineEditorEngine) {
+                    const seq = window.TimelineEditorEngine.broadcastMasterToTheater();
+                    if (seq) {
+                        title = seq.title || title;
+                        dur = seq.totalDurationSec || dur;
+                    }
+                    renderTimelineTracks();
+                }
+                
+                // 1. Play directly on Director Center Stage Viewport
+                playCinemaVideoOnStage("assets/generated_harajuku_test.mp4", title);
+
+                // 2. Open / Focus Theater Screen (Monitor 2) with auto-play query param
+                try {
+                    window.open('video_player.html?play=master', 'GENESIS_THEATER_WING', 'width=1100,height=720,left=100,top=50');
+                } catch (winErr) {
+                    console.warn("Popup blocked or window.open error:", winErr);
+                }
+
+                const hud = document.getElementById('hud-location-title');
+                if (hud) {
+                    hud.textContent = `🎬 [3分公式映画マスター上映中]: ${title} (${dur.toFixed(1)}s)`;
+                    hud.style.color = '#00f2fe';
+                    setTimeout(() => { hud.style.color = ''; }, 4000);
+                }
+            } catch (err) {
+                console.error("Error in loadHackathonMasterSequence:", err);
+                playCinemaVideoOnStage("assets/generated_harajuku_test.mp4", "『サイバー東京ノワール』マスター再生");
+            }
+        }
+
+        function updateStreetViewIframe(customCoords = null) {
+            const coords = customCoords || currentCoords;
+            const svIframe = document.getElementById('google-streetview-iframe');
+            if (svIframe) {
+                svIframe.src = `https://maps.google.com/maps?layer=c&cbll=${coords.lat.toFixed(7)},${coords.lng.toFixed(7)}&cbp=11,${Math.floor(currentHeading)},0,0,0&output=svembed`;
+            }
+        }
+
+        function initInteractiveMap() {
+            if (leafletMap) return;
+            
+            leafletMap = L.map('stage-map-view', { zoomControl: true }).setView([currentCoords.lat, currentCoords.lng], 16);
+
+            baseMapTileLayer = L.tileLayer(GOOGLE_STREETVIEW_BLUE_ROADS_URL, {
+                subdomains: ['0', '1', '2', '3'],
+                maxZoom: 20,
+                attribution: '© Google Maps | GENESIS Global Cinema Studio'
+            }).addTo(leafletMap);
+
+            const pegmanIcon = L.divIcon({
+                className: 'pegman-icon',
+                html: `<div style="background:#f59e0b; border:2px solid #fff; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px #f59e0b; font-size:24px; cursor:grab;" title="人形（ペグマン）：青い道路にドロップ！">🚶</div>`,
+                iconSize: [38, 38],
+                iconAnchor: [19, 19]
+            });
+
+            pegmanMarker = L.marker([currentCoords.lat, currentCoords.lng], {
+                draggable: true,
+                icon: pegmanIcon
+            });
+
+            pegmanMarker.on('dragend', (e) => {
+                const pos = e.target.getLatLng();
+                onLocationSelected(pos.lat, pos.lng);
+            });
+
+            leafletMap.on('click', (e) => {
+                pegmanMarker.setLatLng(e.latlng);
+                onLocationSelected(e.latlng.lat, e.latlng.lng);
+            });
+
+            leafletMap.on('zoomend', checkZoomLevelAndToggleCoverage);
+            checkZoomLevelAndToggleCoverage();
+        }
+
+        function checkZoomLevelAndToggleCoverage() {
+            if (!leafletMap || !baseMapTileLayer) return;
+            const currentZoom = leafletMap.getZoom();
+            const zoomBanner = document.getElementById('map-zoom-banner');
+            const zoomText = document.getElementById('map-zoom-text');
+
+            if (currentZoom >= 14) {
+                baseMapTileLayer.setUrl(GOOGLE_STREETVIEW_BLUE_ROADS_URL);
+                if (!leafletMap.hasLayer(pegmanMarker)) {
+                    pegmanMarker.addTo(leafletMap);
+                }
+                pegmanMarker.setLatLng(leafletMap.getCenter());
+
+                zoomBanner.style.display = 'block';
+                zoomBanner.style.borderColor = 'var(--accent-cyan)';
+                zoomText.innerHTML = '🚶 <b>最大拡大中</b>: Google公式の青いストリートビュー道路をクリックするか、人形（ペグマン）をドロップして突入！';
+            } else {
+                baseMapTileLayer.setUrl(GOOGLE_BASE_MAP_URL);
+                if (leafletMap.hasLayer(pegmanMarker)) {
+                    leafletMap.removeLayer(pegmanMarker);
+                }
+
+                zoomBanner.style.display = 'block';
+                zoomBanner.style.borderColor = 'var(--text-muted)';
+                zoomText.innerHTML = '🔍 <b>地図を拡大（ズームイン）</b>すると、Google公式の青いストリートビュー線と人形（ペグマン）が現れます';
+            }
+        }
+
+        function onLocationSelected(lat, lng) {
+            currentCoords.lat = lat;
+            currentCoords.lng = lng;
+            currentLocTitle = `選択ロケ地 (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+            currentMapsUrl = `https://www.google.com/maps/@${lat.toFixed(7)},${lng.toFixed(7)},3a,75y,${Math.floor(currentHeading)}h,90t`;
+
+            rebuildDollySequence();
+            updateHud();
+            updateStreetViewIframe();
+            updatePrompts();
+            switchStageMode('streetview');
+            alert(`✅ 青いストリートビュー道路を捕捉しました！\n座標: ${lat.toFixed(5)}, ${lng.toFixed(5)}\n360°撮影空間へ突入します。`);
+        }
+
+        function switchStageMode(mode) {
+            currentStageMode = mode;
+            document.getElementById('tab-btn-streetview').classList.toggle('active', mode === 'streetview');
+            document.getElementById('tab-btn-map').classList.toggle('active', mode === 'map');
+
+            const svIframe = document.getElementById('google-streetview-iframe');
+            const btnReturnMap = document.getElementById('btn-floating-return-map');
+            const mapView = document.getElementById('stage-map-view');
+            const zoomBanner = document.getElementById('map-zoom-banner');
+
+            if (mode === 'streetview') {
+                svIframe.style.display = 'block';
+                btnReturnMap.style.display = 'flex';
+                mapView.style.display = 'none';
+                zoomBanner.style.display = 'none';
+                updateStreetViewIframe();
+            } else {
+                svIframe.style.display = 'none';
+                btnReturnMap.style.display = 'none';
+                mapView.style.display = 'block';
+                zoomBanner.style.display = 'block';
+                if (!leafletMap) initInteractiveMap();
+                if (leafletMap) {
+                    setTimeout(() => {
+                        leafletMap.invalidateSize();
+                        leafletMap.setView([currentCoords.lat, currentCoords.lng], 16);
+                        checkZoomLevelAndToggleCoverage();
+                    }, 100);
+                }
+            }
+        }
+
+        function jumpToLocation(lat, lng, heading, title) {
+            currentCoords.lat = lat;
+            currentCoords.lng = lng;
+            currentHeading = heading;
+            currentLocTitle = title;
+            currentMapsUrl = `https://www.google.com/maps/@${lat.toFixed(7)},${lng.toFixed(7)},3a,75y,${heading}h,90t`;
+
+            rebuildDollySequence();
+            updateHud();
+            updateStreetViewIframe();
+            updatePrompts();
+            updateActiveAspectCard();
+            if (leafletMap) {
+                leafletMap.setView([lat, lng], 16);
+                checkZoomLevelAndToggleCoverage();
+            }
+        }
+
+        async function executeLocationSearch() {
+            const query = document.getElementById('input-scout-query').value;
+            try {
+                const res = await fetch(`/api/scout?query=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                if (data && data.success) {
+                    currentCoords = { lat: data.lat, lng: data.lng };
+                    currentHeading = data.heading || 0.0;
+                    currentLocTitle = data.locationName;
+                    currentMapsUrl = `https://www.google.com/maps/@${currentCoords.lat.toFixed(7)},${currentCoords.lng.toFixed(7)},3a,75y,${Math.floor(currentHeading)}h,90t`;
+
+                    rebuildDollySequence();
+                    updateHud();
+                    updateStreetViewIframe();
+                    updatePrompts();
+                    updateActiveAspectCard();
+                    if (leafletMap) {
+                        leafletMap.setView([currentCoords.lat, currentCoords.lng], 16);
+                        checkZoomLevelAndToggleCoverage();
+                    }
+                    alert(`✅ 世界ロケ地を特定・ワープしました！\n場所: ${data.locationName}`);
+                }
+            } catch (e) {
+                console.warn("Scout error:", e);
+                updateStreetViewIframe();
+            }
+        }
+
+        function setHeadingAngle(angle) {
+            currentHeading = parseFloat(angle);
+            rebuildDollySequence();
+            updateHud();
+            updateStreetViewIframe();
+            updatePrompts();
+            updateActiveAspectCard();
+        }
+
+        /**
+         * 👥 Character Cast Controls
+         */
+        function selectActor(actorId) {
+            selectedActorId = actorId;
+            ['ren', 'kagerou', 'yuki', 'asuka'].forEach(id => {
+                const btn = document.getElementById(`btn-cast-${id}`);
+                if (btn) btn.classList.toggle('active', id === actorId);
+            });
+
+            if (window.CharacterMasterEngine) {
+                if (actorId === 'asuka' && !window.CharacterMasterEngine.characters.asuka) {
+                    window.CharacterMasterEngine.createCustomActor({
+                        id: 'asuka',
+                        nameJa: '橘 飛鳥',
+                        nameEn: 'Asuka Tachibana',
+                        age: 24,
+                        gender: 'female',
+                        heightM: 1.72,
+                        costumeNameJa: 'サイバーパンク・ライダース',
+                        costumeNameEn: 'cyberpunk tailored coat with luminescent cyan seams',
+                        costumeColor: '#0284c7'
+                    });
+                }
+
+                window.CharacterMasterEngine.selectCharacter(actorId);
+                const prof = window.CharacterMasterEngine.getCharacterProfile();
+                const selCostume = document.getElementById('select-actor-costume');
+                selCostume.innerHTML = '';
+                const charData = window.CharacterMasterEngine.characters[actorId];
+                if (charData && charData.costumes) {
+                    Object.keys(charData.costumes).forEach(cKey => {
+                        const opt = document.createElement('option');
+                        opt.value = cKey;
+                        opt.textContent = charData.costumes[cKey].tag + ' ' + charData.costumes[cKey].nameJa;
+                        selCostume.appendChild(opt);
+                    });
+                }
+            }
+
+            renderAllTurnaroundCanvases();
+            updateHud();
+            updatePrompts();
+        }
+
+        function onCostumeChange() {
+            selectedCostumeKey = document.getElementById('select-actor-costume').value;
+            if (window.CharacterMasterEngine) {
+                window.CharacterMasterEngine.setCostume(selectedCostumeKey);
+            }
+            renderAllTurnaroundCanvases();
+            updateHud();
+            updatePrompts();
+        }
+
+        function onActingToneChange() {
+            selectedActingTone = document.getElementById('select-acting-tone').value;
+            if (window.CharacterMasterEngine) {
+                window.CharacterMasterEngine.setActingTone(selectedActingTone, 85);
+            }
+            updateHud();
+            updatePrompts();
+        }
+
+        function getAspectFromHeading(heading) {
+            const norm = (parseFloat(heading) % 360 + 360) % 360;
+            if (norm >= 135 && norm < 225) return 'front';
+            if (norm >= 45 && norm < 135) return 'right';
+            if (norm >= 225 && norm < 315) return 'left';
+            return 'back';
+        }
+
+        function updateActiveAspectCard() {
+            const aspect = getAspectFromHeading(currentHeading);
+            const aspectMap = {
+                front: '正面 (Front)',
+                back: '背面 (Back)',
+                left: '左側面 (Left)',
+                right: '右側面 (Right)'
+            };
+            document.getElementById('badge-char-aspect').textContent = aspectMap[aspect];
+
+            ['front', 'right', 'back', 'left'].forEach(asp => {
+                const card = document.getElementById(`card-aspect-${asp}`);
+                if (card) card.classList.toggle('active-aspect', asp === aspect);
+            });
+        }
+
+        function renderAllTurnaroundCanvases() {
+            if (!window.CharacterTurnaroundEngine) return;
+            const views = ['front', 'right', 'back', 'left'];
+            views.forEach(v => {
+                const canvas = document.getElementById(`canvas-aspect-${v}`);
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    window.CharacterTurnaroundEngine.renderCleanProceduralActor(ctx, canvas.width, canvas.height, v);
+                }
+            });
+            updateActiveAspectCard();
+        }
+
+        /**
+         * ⛅ Time of Day & Weather Controls
+         */
+        function selectTimeOfDay(todKey) {
+            selectedTimeOfDay = todKey;
+            ['sunrise', 'morning', 'noon', 'late_afternoon', 'sunset', 'night', 'twilight'].forEach(k => {
+                const btn = document.getElementById(`btn-tod-${k}`);
+                if (btn) btn.classList.toggle('active', k === todKey);
+            });
+            if (window.PromptDirectorEngine) {
+                window.PromptDirectorEngine.setTimeOfDay(todKey);
+            }
+            updateHud();
+            updatePrompts();
+        }
+
+        function selectWeather(weathKey) {
+            selectedWeather = weathKey;
+            ['clear', 'overcast', 'heavy_rain', 'wind_storm', 'thunderstorm', 'dense_fog'].forEach(k => {
+                const btn = document.getElementById(`btn-weath-${k}`);
+                if (btn) btn.classList.toggle('active', k === weathKey);
+            });
+            if (window.PromptDirectorEngine) {
+                window.PromptDirectorEngine.setWeather(weathKey);
+            }
+            updateHud();
+            updatePrompts();
+        }
+
+        /**
+         * 🎬 Dolly Sequence Controls
+         */
+        function setDollyDistance(distM) {
+            dollyDistanceM = parseInt(distM);
+            [20, 30, 40, 50].forEach(d => {
+                const btn = document.getElementById(`btn-dolly-${d}`);
+                if (btn) btn.classList.toggle('active', d === dollyDistanceM);
+            });
+            rebuildDollySequence();
+            updatePrompts();
+        }
+
+        function rebuildDollySequence() {
+            if (window.StreetViewLiveScout) {
+                window.StreetViewLiveScout.currentCoords = currentCoords;
+                window.StreetViewLiveScout.currentHeading = currentHeading;
+                activeDollyNodes = window.StreetViewLiveScout.generateDollyPath(dollyDistanceM, 10);
+            }
+            document.getElementById('badge-dolly-status').textContent = `${activeDollyNodes.length}ノード (${dollyDistanceM}m)`;
+        }
+
+        function toggleDollyContinuousPlay() {
+            isDollyPlaying = !isDollyPlaying;
+            const btn = document.getElementById('btn-timeline-play');
+
+            if (isDollyPlaying) {
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i> 停止';
+                btn.style.background = '#ef4444';
+                currentDollyIndex = 0;
+
+                dollyPlayTimer = setInterval(() => {
+                    if (activeDollyNodes.length === 0) return;
+                    currentDollyIndex = (currentDollyIndex + 1) % activeDollyNodes.length;
+                    const node = activeDollyNodes[currentDollyIndex];
+                    updateStreetViewIframe(node);
+                    const sec = currentDollyIndex * 2.0;
+                    if (window.TimelineEditorEngine) {
+                        window.TimelineEditorEngine.currentTimeSec = sec;
+                        document.getElementById('timeline-tc-display').textContent = window.TimelineEditorEngine.formatTimecode(sec);
+                    }
+                }, 1800);
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> 連続試写再生';
+                btn.style.background = 'var(--accent-gold)';
+                if (dollyPlayTimer) clearInterval(dollyPlayTimer);
+                updateStreetViewIframe();
+                updateHud();
+            }
+        }
+
+        function triggerTimelinePlay() {
+            try {
+                if (window.TimelineEditorEngine) {
+                    if (window.TimelineEditorEngine.tracks.video.length === 0) {
+                        window.TimelineEditorEngine.buildCyberTokyoNoirMasterSequence();
+                        renderTimelineTracks();
+                    }
+                    const firstClip = window.TimelineEditorEngine.tracks.video[0];
+                    playCinemaVideoOnStage(firstClip.src || 'assets/generated_harajuku_test.mp4', firstClip.name);
+                } else {
+                    playCinemaVideoOnStage('assets/generated_harajuku_test.mp4', '『サイバー東京ノワール』マスター再生');
+                }
+            } catch (err) {
+                console.error("Error in triggerTimelinePlay:", err);
+                playCinemaVideoOnStage('assets/generated_harajuku_test.mp4', '『サイバー東京ノワール』マスター再生');
+            }
+        }
+
+        function lockCurrentLocation() {
+            alert(`📍 現在のロケ地・キャスト・天候・カメラアングルを決定しました！\n\n場所: ${currentLocTitle}\n方位: ${Math.floor(currentHeading)}°\n主役: ${document.getElementById('hud-actor-val').textContent}\n天候: ${selectedTimeOfDay} ✕ ${selectedWeather}\n\nVeo 3.1プロンプトにすべて自動反映されました。`);
+            updatePrompts();
+        }
+
+        function updateHud() {
+            document.getElementById('hud-location-title').textContent = currentLocTitle;
+            document.getElementById('hud-yaw-val').textContent = `${Math.floor(currentHeading)}°`;
+            
+            const aspect = getAspectFromHeading(currentHeading);
+            const aspectJa = (aspect === 'front') ? '正面' : (aspect === 'back' ? '背面' : (aspect === 'left' ? '左側面' : '右側面'));
+            
+            let charName = "如月 蓮 (1.80m)";
+            if (window.CharacterMasterEngine) {
+                const prof = window.CharacterMasterEngine.getCharacterProfile();
+                charName = `${prof.nameJa} (${prof.heightM}m)`;
+            }
+            document.getElementById('hud-actor-val').textContent = `${charName} [${aspectJa}]`;
+
+            let todName = "夕焼け (3000K)";
+            if (selectedTimeOfDay === 'sunrise') todName = "朝焼け (3800K)";
+            else if (selectedTimeOfDay === 'morning') todName = "朝 (5200K)";
+            else if (selectedTimeOfDay === 'noon') todName = "昼 (6000K)";
+            else if (selectedTimeOfDay === 'late_afternoon') todName = "夕方 (4500K)";
+            else if (selectedTimeOfDay === 'night') todName = "夜景 (3200K)";
+            else if (selectedTimeOfDay === 'twilight') todName = "薄明 (7500K)";
+
+            let weathName = "快晴";
+            if (selectedWeather === 'overcast') weathName = "曇天";
+            else if (selectedWeather === 'heavy_rain') weathName = "大雨";
+            else if (selectedWeather === 'wind_storm') weathName = "強風";
+            else if (selectedWeather === 'thunderstorm') weathName = "雷雨";
+            else if (selectedWeather === 'dense_fog') weathName = "濃霧";
+
+            document.getElementById('hud-lighting-val').textContent = `${todName} ✕ ${weathName}`;
+        }
+
+        function updatePrompts() {
+            if (window.PromptDirectorEngine) {
+                const res = window.PromptDirectorEngine.generatePrompt({
+                    locationName: currentLocTitle,
+                    coords: `${currentCoords.lat.toFixed(6)}, ${currentCoords.lng.toFixed(6)}`,
+                    mapsUrl: currentMapsUrl,
+                    yaw: currentHeading,
+                    dollyNodes: activeDollyNodes,
+                    totalDistanceM: dollyDistanceM
+                });
+
+                if (document.getElementById('ai-prompt-en')) document.getElementById('ai-prompt-en').value = res.promptEn;
+                if (document.getElementById('ai-prompt-ja')) document.getElementById('ai-prompt-ja').value = res.promptJa;
+            }
+        }
+
+        async function triggerDirectVeoCinemaGeneration() {
+            const btn = document.getElementById('btn-veo-generate');
+            const progressCont = document.getElementById('veo-progress-container');
+            const progressBar = document.getElementById('veo-progress-bar');
+            const statusText = document.getElementById('veo-status-text');
+            const pctText = document.getElementById('veo-pct-text');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Google Veo 3.1 レンダリング中...';
+            progressCont.style.display = 'flex';
+
+            const promptEn = document.getElementById('ai-prompt-en').value;
+            const promptJa = document.getElementById('ai-prompt-ja').value;
+
+            if (window.GoogleVeoDirectGenerator) {
+                const res = await window.GoogleVeoDirectGenerator.generateCinemaScene({
+                    locationName: currentLocTitle,
+                    alignedYaw: currentHeading,
+                    promptEn: promptEn,
+                    promptJa: promptJa,
+                    bgImageUrl: `/api/streetview?lat=${currentCoords.lat}&lng=${currentCoords.lng}&heading=${currentHeading}&pitch=${currentPitch}&fov=75`
+                });
+
+                progressBar.style.width = '100%';
+                pctText.textContent = '100%';
+                statusText.textContent = '生成完了！本ステージ ＆ 試写室で自動上映中';
+
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i> 🚀 Google Veo 3.1 映画動画を生成 ➔ 4K試写室上映';
+                    progressCont.style.display = 'none';
+                    
+                    // Play directly on Center Stage
+                    playCinemaVideoOnStage(res.videoUrl, `【4K上映】${currentLocTitle} - Google Veo 3.1 生成シーン`);
+                    
+                    // Launch multi-displays
+                    launchTripleDisplays();
+                }, 800);
+            }
+        }
+
+        function copyPromptEn() {
+            navigator.clipboard.writeText(document.getElementById('ai-prompt-en').value);
+            alert("📋 英語マスタープロンプトをコピーしました！");
+        }
+
+        function copyPromptJa() {
+            navigator.clipboard.writeText(document.getElementById('ai-prompt-ja').value);
+            alert("📋 日本語 映画監督指示書をコピーしました！");
+        }
+
+        async function openLocationVaultModal() {
+            const modal = document.getElementById('vault-modal');
+            const container = document.getElementById('vault-cards-container');
+            modal.style.display = 'flex';
+            container.innerHTML = '<div style="color:var(--accent-cyan); font-size:0.7rem;">ロケ地台帳を読み込み中...</div>';
+
+            try {
+                const res = await fetch('/api/locations');
+                const vaultList = await res.json();
+                container.innerHTML = '';
+
+                vaultList.forEach(loc => {
+                    const card = document.createElement('div');
+                    card.className = 'vault-card';
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.7rem; font-weight:800; color:var(--accent-cyan);">${loc.name}</span>
+                            <span style="font-size:0.52rem; background:rgba(245,158,11,0.2); color:var(--accent-gold); padding:2px 6px; border-radius:3px;">${loc.category}</span>
+                        </div>
+                        <div style="font-size:0.58rem; color:#f8fafc; font-family:'Fira Code';">
+                            📍 座標: ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)} | 方位: ${Math.floor(loc.heading)}°
+                        </div>
+                        <button class="btn-opt" style="background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); margin-top:4px; padding:4px;" onclick="loadLocationFromVault(${loc.lat}, ${loc.lng}, ${loc.heading}, '${loc.name.replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i> このロケ地へワープ
+                        </button>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                container.innerHTML = '<div style="color:#ef4444;">ロケ地台帳の取得に失敗しました。</div>';
+            }
+        }
+
+        function closeLocationVaultModal() {
+            document.getElementById('vault-modal').style.display = 'none';
+        }
+
+        function loadLocationFromVault(lat, lng, heading, name) {
+            currentCoords.lat = lat;
+            currentCoords.lng = lng;
+            currentHeading = heading;
+            currentLocTitle = name;
+            currentMapsUrl = `https://www.google.com/maps/@${lat.toFixed(7)},${lng.toFixed(7)},3a,75y,${heading}h,90t`;
+
+            rebuildDollySequence();
+            updateHud();
+            updateStreetViewIframe();
+            updatePrompts();
+            updateActiveAspectCard();
+            closeLocationVaultModal();
+            alert(`🎬 ロケ地「${name}」をロードしました！`);
+        }
+
+        // 🖥️ Quad Display Broadcast Synchronization Listeners
+        window.onMultiDisplayScriptUpdate = (payload) => {
+            console.log("📜 [MultiDisplay] SCRIPT_SYNC received from Storyboard Studio:", payload);
+            if (payload.location && payload.location.name) {
+                currentLocTitle = payload.location.name;
+                if (payload.location.coords) {
+                    currentCoords.lat = payload.location.coords.lat;
+                    currentCoords.lng = payload.location.coords.lng;
+                }
+                if (payload.location.heading !== undefined) currentHeading = payload.location.heading;
+                if (payload.location.pitch !== undefined) currentPitch = payload.location.pitch;
+                if (payload.location.timeOfDay) selectedTimeOfDay = payload.location.timeOfDay;
+                if (payload.location.weather) selectedWeather = payload.location.weather;
+            }
+
+            if (payload.characterId) {
+                selectActor(payload.characterId);
+            }
+
+            rebuildDollySequence();
+            updateHud();
+            updateStreetViewIframe();
+            updatePrompts();
+            updateActiveAspectCard();
+            
+            const hudLoc = document.getElementById('hud-location-title');
+            if (hudLoc) {
+                hudLoc.style.color = '#00f2fe';
+                setTimeout(() => { hudLoc.style.color = ''; }, 1500);
+            }
+        };
+
+        window.onMultiDisplayDialogueAdd = (clipPayload) => {
+            console.log("🎙️ [MultiDisplay] TIMELINE_DLG_ADD received:", clipPayload);
+            if (window.TimelineEditorEngine) {
+                window.TimelineEditorEngine.addClipToTrack('dialogue', clipPayload);
+                renderTimelineTracks();
+            }
+        };
+
+        window.onMultiDisplayTimelineVideoAdd = (videoPayload) => {
+            console.log("🎬 [MultiDisplay] TIMELINE_VIDEO_ADD received:", videoPayload);
+            if (window.TimelineEditorEngine) {
+                const clip = {
+                    id: videoPayload.id || `video_clip_${Date.now()}`,
+                    name: videoPayload.title || "🎬 Veo 3.1 4K Footage",
+                    durationSec: videoPayload.durationSec || 5.0,
+                    startTimeSec: videoPayload.startTimeSec || 0.0,
+                    type: "video",
+                    color: "linear-gradient(90deg, #00f2fe, #3b82f6)",
+                    prompt: videoPayload.prompt,
+                    src: videoPayload.videoSrc
+                };
+                window.TimelineEditorEngine.addClipToTrack('video', clip);
+                renderTimelineTracks();
+            }
+            // Add to Shot Bin footage library
+            if (typeof addFootageToShotBin === 'function') {
+                addFootageToShotBin({
+                    name: videoPayload.title || "Veo 3.1 Footage",
+                    src: videoPayload.videoSrc,
+                    duration: `${videoPayload.durationSec || 5}s`
+                });
+            }
+        };
+
+        window.onMultiDisplayVideoRendered = (renderPayload) => {
+            console.log("🚀 [MultiDisplay] VIDEO_RENDER_COMPLETE received:", renderPayload);
+            const hud = document.getElementById('hud-location-title');
+            if (hud) {
+                hud.textContent = `🎬 [Veo 3.1 4K 生成完了]: ${renderPayload.title || "Cinema Master"}`;
+                hud.style.color = '#00f2fe';
+                setTimeout(() => { hud.style.color = ''; }, 3000);
+            }
+        };
+
+        window.onMultiDisplayActorUpdate = (actorPayload) => {
+            console.log("👤 [MultiDisplay] ACTOR_SYNC received from Asset Studio:", actorPayload);
+            if (actorPayload && actorPayload.characterId) {
+                selectActor(actorPayload.characterId);
+                renderAllTurnaroundCanvases();
+                updateHud();
+                updatePrompts();
+            }
+        };
+
+                window.onMultiDisplayVehicleUpdate = (vehPayload) => {
+            console.log("🚌 [MultiDisplay] VEHICLE_SYNC received:", vehPayload);
+            if (window.VehicleTrafficEngine && vehPayload.key) {
+                window.VehicleTrafficEngine.setVehicleType(vehPayload.key);
+            }
+            updatePrompts();
+        };
+
+        window.onMultiDisplayPropUpdate = (propPayload) => {
+            console.log("🏛️ [MultiDisplay] PROP_SYNC received from Asset Studio:", propPayload);
+            updatePrompts();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectActor('ren');
+            selectTimeOfDay('sunset');
+            selectWeather('clear');
+            rebuildDollySequence();
+            renderAllTurnaroundCanvases();
+            renderTimelineTracks();
+            updateHud();
+            updateStreetViewIframe();
+            updatePrompts();
+        });
+    </script>
+</body>
+</html>

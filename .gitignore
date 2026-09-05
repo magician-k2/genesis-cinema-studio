@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+
+# OS / Temporary
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+scratch/
+.system_generated/
+*.log
+
+# Credentials & Secrets (Never commit to public repos)
+GENESIS_CINEMA_STUDIO/credentials/*.json
+secret/
+*.pem
+*.key
+service-account*.json
+push_to_github.bat
+
+# Large audio/video cache except demo assets
+outputs/cinema_video_assets/audio/
+outputs/cinema_video_assets/clips/
+outputs/*.mp4
+!outputs/mocap_preview/mocap_acting_transfer_demo.gif

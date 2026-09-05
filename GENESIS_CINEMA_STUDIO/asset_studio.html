@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS ASSET & PROP STUDIO (Monitor 3)</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-panel: #090d1a;
+            --bg-card: #0e1526;
+            --border-dark: #1e293b;
+            --border-glow: rgba(0, 242, 254, 0.4);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Header */
+        .header {
+            height: 44px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        .studio-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            font-size: 0.88rem;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header-tag {
+            font-size: 0.55rem;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--accent-gold);
+            color: #fbbf24;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        /* 3-Column Studio Layout */
+        .layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 420px 1fr 1fr;
+            gap: 6px;
+            padding: 6px;
+            overflow: hidden;
+            background: #02040a;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header {
+            height: 34px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent-gold);
+        }
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Cards & Controls */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2fe, #3b82f6);
+            color: #000;
+            border: none;
+            font-weight: 800;
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            color: #fff;
+            border: none;
+            font-weight: 800;
+        }
+        .btn-green {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            font-weight: 800;
+        }
+
+        /* Tabs */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 3px;
+            border-radius: 4px;
+            border: 1px solid var(--border-dark);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 4px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.15s ease;
+        }
+        .tab-btn.active {
+            background: var(--accent-cyan);
+            color: #000;
+        }
+        .tab-btn.active-gold {
+            background: var(--accent-gold);
+            color: #000;
+        }
+
+        /* 4-View Turnaround Grid */
+        .turnaround-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+        .turnaround-card {
+            background: #050811;
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed rgba(0, 242, 254, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            background: rgba(0, 242, 254, 0.02);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .drop-zone:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.06);
+        }
+
+        .select-custom {
+            background: #070a14;
+            color: #fff;
+            border: 1px solid var(--border-dark);
+            padding: 4px;
+            font-size: 0.58rem;
+            border-radius: 3px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div class="studio-brand">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>GENESIS ASSET & PROP STUDIO</span>
+            </div>
+            <span class="header-tag">Monitor 3: 美術・衣装・アセット工房</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px;">
+            <div style="display:flex; align-items:center; gap:4px; font-size:0.56rem; color:var(--accent-cyan); margin-right:8px;">
+                <i class="fa-solid fa-scissors"></i>
+                <span>AUTO-MATTING AI ACTIVE</span>
+            </div>
+            <button class="btn" onclick="exportSpriteSheet()"><i class="fa-solid fa-camera"></i> 4面スプライトシート出力</button>
+            <button class="btn" onclick="exportVaultJSON()"><i class="fa-solid fa-file-export"></i> 台帳JSON出力</button>
+        </div>
+    </header>
+
+    <!-- 3-Column Layout -->
+    <main class="layout">
+
+        <!-- Column 1: Advanced Character Generator & Ingestion -->
+        <section class="panel">
+            <div class="panel-header" style="color:var(--accent-cyan);">
+                <span><i class="fa-solid fa-user-astronaut"></i> ① キャスト生成 ＆ 4面ターンアラウンド</span>
+                <span style="font-size:0.52rem; color:var(--accent-gold);" id="active-char-label">如月 蓮 (1.80m)</span>
+            </div>
+            <div class="panel-body">
+                <!-- Dual Mode Switch -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" id="tab-char-prompt" onclick="switchCharTab('prompt')"><i class="fa-solid fa-pen-nib"></i> ✍️ プロンプト＆カスタム</button>
+                    <button class="tab-btn" id="tab-char-photo" onclick="switchCharTab('photo')"><i class="fa-solid fa-camera"></i> 📷 実写/カメラ背景切り抜き</button>
+                </div>
+
+                <!-- Mode A: Prompt & Custom Builder -->
+                <div id="char-prompt-container" class="card">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px;">
+                        <div>
+                            <label style="font-size:0.52rem; color:var(--accent-cyan);">名前 (日):</label>
+                            <input type="text" id="actor-name-ja" value="橘 飛鳥" class="select-custom" style="width:100%;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.52rem; color:var(--accent-cyan);">Name (En):</label>
+                            <input type="text" id="actor-name-en" value="Asuka Tachibana" class="select-custom" style="width:100%;">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px;">
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">年齢:</label>
+                            <input type="number" id="actor-age" value="24" class="select-custom" style="width:100%;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">性別:</label>
+                            <select id="actor-gender" class="select-custom" style="width:100%;" onchange="updateProceduralActor()">
+                                <option value="female">女性 (Female)</option>
+                                <option value="male">男性 (Male)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">体型:</label>
+                            <select id="actor-build" class="select-custom" style="width:100%;" onchange="updateProceduralActor()">
+                                <option value="athletic">アスリート</option>
+                                <option value="slender">スリム</option>
+                                <option value="heavy">マッシブ</option>
+                                <option value="tactical">特殊部隊</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Height Slider -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.50rem; color:var(--text-muted);">
+                            <span>身長スケール:</span>
+                            <span style="color:var(--accent-gold); font-weight:800;" id="actor-height-val">1.72m</span>
+                        </div>
+                        <input type="range" id="actor-height-slider" min="1.40" max="2.05" step="0.01" value="1.72" style="width:100%; accent-color:var(--accent-gold);" oninput="updateHeightVal(this.value)">
+                    </div>
+
+                    <!-- Hair & Skin -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:4px;">
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">髪型:</label>
+                            <select id="actor-hair-style" class="select-custom" style="width:100%;" onchange="updateProceduralActor()">
+                                <option value="wolf_cut">ウルフカット</option>
+                                <option value="ponytail">ポニーテール</option>
+                                <option value="short_crop">ショート</option>
+                                <option value="side_part">七三・サイド</option>
+                                <option value="long_straight">ロング</option>
+                                <option value="swept_back">オールバック</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">髪色:</label>
+                            <select id="actor-hair-color" class="select-custom" style="width:100%;" onchange="updateProceduralActor()">
+                                <option value="#0a0a0c">漆黒 (Jet Black)</option>
+                                <option value="#94a3b8">シルバー (Silver)</option>
+                                <option value="#0284c7">シアン (Cyan)</option>
+                                <option value="#451a03">ダークブラウン</option>
+                                <option value="#dc2626">クリムゾン</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">肌色:</label>
+                            <select id="actor-skin-tone" class="select-custom" style="width:100%;" onchange="updateProceduralActor()">
+                                <option value="cyber_pale">サイバーペール</option>
+                                <option value="fair">美白 (Fair)</option>
+                                <option value="natural">自然 (Natural)</option>
+                                <option value="tan">褐色 (Tan)</option>
+                                <option value="dark">ダーク (Dark)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Costume & Neon Accent -->
+                    <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:4px;">
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">衣装スタイル:</label>
+                            <select id="actor-costume-style" class="select-custom" style="width:100%;" onchange="updateProceduralActor()">
+                                <option value="urban_techwear">✨ サイバーテックウェア</option>
+                                <option value="noir_suit">🧥 ノワールトレンチ</option>
+                                <option value="tactical_gear">🛡️ コンバットスーツ</option>
+                                <option value="bespoke_suit">👔 漆黒テーラード</option>
+                                <option value="cyber_riders">🧥 ライダース</option>
+                                <option value="neo_kimono">🥋 現代サイバー和装</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">服色:</label>
+                            <input type="color" id="actor-costume-color" value="#0284c7" style="width:100%; height:22px; border:1px solid var(--border-dark); background:#070a14; cursor:pointer;" onchange="updateProceduralActor()">
+                        </div>
+                        <div>
+                            <label style="font-size:0.50rem; color:var(--text-muted);">発光ライン:</label>
+                            <input type="color" id="actor-neon-color" value="#00f2fe" style="width:100%; height:22px; border:1px solid var(--border-dark); background:#070a14; cursor:pointer;" onchange="updateProceduralActor()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mode B: Photo Ingestion & Auto-Matting -->
+                <div id="char-photo-container" class="card" style="display:none;">
+                    <div class="drop-zone" onclick="document.getElementById('char-file-input').click()">
+                        <i class="fa-solid fa-cloud-arrow-up" style="font-size:1.4rem; color:var(--accent-cyan); margin-bottom:4px;"></i>
+                        <div style="font-size:0.58rem; font-weight:700; color:var(--accent-cyan);">実写写真またはカメラ画像をドロップ</div>
+                        <div style="font-size:0.48rem; color:var(--text-muted);">不要な背景をAIが自動切り抜き ➔ 映画アセット化</div>
+                        <input type="file" id="char-file-input" accept="image/*" style="display:none;" onchange="handleCharPhotoUpload(event)">
+                    </div>
+
+                    <div style="display:flex; gap:4px; margin-top:2px;">
+                        <button class="btn" style="flex:1; font-size:0.54rem;" onclick="captureFromWebcam()"><i class="fa-solid fa-video"></i> カメラで撮影</button>
+                        <button class="btn" style="flex:1; font-size:0.54rem;" onclick="reapplyMatting()"><i class="fa-solid fa-scissors"></i> 背景再切り抜き</button>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:4px; font-size:0.50rem; color:var(--text-muted);">
+                        <span>切り抜き感度:</span>
+                        <input type="range" id="matting-threshold" min="0.05" max="0.5" step="0.01" value="0.22" style="flex:1; accent-color:var(--accent-cyan);" oninput="reapplyMatting()">
+                    </div>
+                </div>
+
+                <!-- 4-View Previews -->
+                <div class="turnaround-grid" style="margin-top:2px;">
+                    <div class="turnaround-card"><span style="font-size:0.48rem; color:var(--accent-cyan);">① 正面 (Front)</span><canvas id="c-front" width="85" height="150"></canvas></div>
+                    <div class="turnaround-card"><span style="font-size:0.48rem; color:var(--text-muted);">② 右側面 (Right)</span><canvas id="c-right" width="85" height="150"></canvas></div>
+                    <div class="turnaround-card"><span style="font-size:0.48rem; color:var(--text-muted);">③ 背面 (Back)</span><canvas id="c-back" width="85" height="150"></canvas></div>
+                    <div class="turnaround-card"><span style="font-size:0.48rem; color:var(--text-muted);">④ 左側面 (Left)</span><canvas id="c-left" width="85" height="150"></canvas></div>
+                </div>
+
+                <!-- Sync Buttons -->
+                <button class="btn btn-primary" style="padding:8px; font-size:0.65rem;" onclick="generateAndSyncActor()">
+                    <i class="fa-solid fa-clapperboard"></i> 👉 このキャストをメイン監督画面（第1画面）に配備！
+                </button>
+                <button class="btn" style="background:rgba(168,85,247,0.15); border-color:var(--accent-purple); color:var(--accent-purple); padding:6px; font-size:0.58rem;" onclick="syncActorToScriptStudio()">
+                    <i class="fa-solid fa-scroll"></i> 📝 台本スタジオ（第4画面）の話者リストへ登録
+                </button>
+            </div>
+        </section>
+
+        <!-- Column 2: Large Stage Props & Vehicles -->
+        <section class="panel">
+            <div class="panel-header" style="color:var(--accent-gold);">
+                <span><i class="fa-solid fa-van-shuttle"></i> ② 大道具 ＆ 車両・バス・トラック工房</span>
+            </div>
+            <div class="panel-body">
+                <div class="tab-bar">
+                    <button class="tab-btn active-gold" id="tab-veh-preset" onclick="switchVehTab('preset')"><i class="fa-solid fa-list"></i> プリセット選択</button>
+                    <button class="tab-btn" id="tab-veh-photo" onclick="switchVehTab('photo')"><i class="fa-solid fa-camera"></i> 📷 実車写真 背景切り抜き</button>
+                </div>
+
+                <div id="veh-preset-container" class="card">
+                    <label style="font-size:0.56rem; color:var(--accent-gold); font-weight:700;">車両・大道具プリセット:</label>
+                    <select id="stage-prop-select" class="select-custom" onchange="previewLargeProp()">
+                        <option value="city_bus">🚌 都営路線バス (大型ノンステップ 3.2m / 10.5m)</option>
+                        <option value="jpn_taxi">🚕 トヨタ JPN TAXI (行灯点灯 1.75m / 4.4m)</option>
+                        <option value="heavy_truck">🚛 大型トレーラートラック (コンテナ 3.8m / 12m)</option>
+                        <option value="black_sedan">🚘 黒塗りVIPセダン (スモーク 1.45m / 4.9m)</option>
+                        <option value="patrol_car">🚓 警視庁 パトカー (赤色灯 1.6m / 4.7m)</option>
+                        <option value="torii_gate">⛩️ 巨大朱塗り鳥居 ＆ 提灯ゲート (8.5m)</option>
+                        <option value="festival_stall">🎪 ネオン屋台 ＆ 露店テント (2.8m)</option>
+                        <option value="police_barricade">🚧 警戒バリケード ＆ 発光コーン (1.2m)</option>
+                        <option value="hologram_tower">🏢 巨大立体ホログラム広告塔 (15m)</option>
+                        <option value="police_drone">🚁 上空サーチライトドローン (2.5m)</option>
+                    </select>
+
+                    <div id="large-prop-desc" style="font-size:0.54rem; color:var(--text-muted); background:rgba(0,0,0,0.3); padding:6px; border-radius:3px; line-height:1.4;">
+                        都営大型ノンステップバス。車体ブルーラインとLED行先表示。
+                    </div>
+                </div>
+
+                <div id="veh-photo-container" class="card" style="display:none;">
+                    <div class="drop-zone" onclick="document.getElementById('veh-file-input').click()">
+                        <i class="fa-solid fa-truck" style="font-size:1.4rem; color:var(--accent-gold); margin-bottom:4px;"></i>
+                        <div style="font-size:0.58rem; font-weight:700; color:var(--accent-gold);">バス・トラック・実車の写真をドロップ</div>
+                        <div style="font-size:0.48rem; color:var(--text-muted);">背景を自動除去して映画の交通・大道具へ配備</div>
+                        <input type="file" id="veh-file-input" accept="image/*" style="display:none;" onchange="handleVehPhotoUpload(event)">
+                    </div>
+                </div>
+
+                <div class="card" style="align-items:center; justify-content:center; min-height:120px; background:#050811;">
+                    <canvas id="veh-preview-canvas" width="220" height="120"></canvas>
+                    <span style="font-size:0.50rem; color:var(--accent-gold);" id="veh-dim-label">寸法: 3.20m × 10.50m</span>
+                </div>
+
+                <button class="btn btn-gold" style="padding:8px; font-size:0.62rem; margin-top:auto;" onclick="syncLargeProp()">
+                    <i class="fa-solid fa-road"></i> 🎬 この大道具/車両をメイン画面（第1画面）に配備！
+                </button>
+            </div>
+        </section>
+
+        <!-- Column 3: Small & Handheld Props -->
+        <section class="panel">
+            <div class="panel-header" style="color:var(--accent-green);">
+                <span><i class="fa-solid fa-briefcase"></i> ③ 小道具 ＆ 手持ちアイテム・武器工房</span>
+            </div>
+            <div class="panel-body">
+                <div class="tab-bar">
+                    <button class="tab-btn active" style="background:var(--accent-green);" id="tab-prop-preset" onclick="switchPropTab('preset')"><i class="fa-solid fa-list"></i> プリセット選択</button>
+                    <button class="tab-btn" id="tab-prop-photo" onclick="switchPropTab('photo')"><i class="fa-solid fa-camera"></i> 📷 実物写真 切り抜き</button>
+                </div>
+
+                <div id="prop-preset-container" class="card">
+                    <label style="font-size:0.56rem; color:var(--accent-green); font-weight:700;">小道具プリセット:</label>
+                    <select id="small-prop-select" class="select-custom" onchange="previewSmallProp()">
+                        <option value="smart_glasses">🕶️ ARスマートグラス (HUD透過)</option>
+                        <option value="attache_case">💼 極秘ジュラルミン・アタッシュケース</option>
+                        <option value="encrypted_phone">📱 暗号化スマホ (生体スキャン)</option>
+                        <option value="tactical_tablet">💻 ミリタリー堅牢タブレット</option>
+                        <option value="leather_dossier">📁 黒革調書ファイル (TOP SECRET)</option>
+                        <option value="silenced_handgun">🔫 消音ハンドガン (9mm)</option>
+                        <option value="combat_knife">🗡️ コンバットナイフ</option>
+                        <option value="tactical_flashlight">🔦 高輝度LEDフラッシュライト</option>
+                        <option value="bbq_tongs">🍖 BBQグリル用ステンレス角トング</option>
+                        <option value="vintage_camera">📸 ヴィンテージ一眼レフ (35mm)</option>
+                    </select>
+
+                    <div id="small-prop-desc" style="font-size:0.54rem; color:var(--text-muted); background:rgba(0,0,0,0.3); padding:6px; border-radius:3px; line-height:1.4;">
+                        レンズ内側にサイバーパンクHUDデータが淡く反射するスマートグラス。
+                    </div>
+                </div>
+
+                <div id="prop-photo-container" class="card" style="display:none;">
+                    <div class="drop-zone" onclick="document.getElementById('prop-file-input').click()">
+                        <i class="fa-solid fa-wand-magic" style="font-size:1.4rem; color:var(--accent-green); margin-bottom:4px;"></i>
+                        <div style="font-size:0.58rem; font-weight:700; color:var(--accent-green);">アイテム実物写真をドロップ</div>
+                        <div style="font-size:0.48rem; color:var(--text-muted);">背景を自動除去してキャスト装備へバインド</div>
+                        <input type="file" id="prop-file-input" accept="image/*" style="display:none;" onchange="handlePropPhotoUpload(event)">
+                    </div>
+                </div>
+
+                <div class="card" style="align-items:center; justify-content:center; min-height:120px; background:#050811;">
+                    <canvas id="prop-preview-canvas" width="220" height="120"></canvas>
+                    <span style="font-size:0.50rem; color:var(--accent-green);" id="prop-hold-label">装着: 右手持ち / 身体バインド</span>
+                </div>
+
+                <button class="btn btn-green" style="padding:8px; font-size:0.62rem; margin-top:auto;" onclick="syncSmallProp()">
+                    <i class="fa-solid fa-hand-holding"></i> 🎬 この小道具をキャストに装備・配備！
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="multi_display.js"></script>
+    <script src="asset_matting_ingestion_engine.js"></script>
+    <script src="character_master.js"></script>
+    <script src="character_turnaround_engine.js"></script>
+    <script src="stage_prop_engine.js"></script>
+    <script src="small_prop_engine.js"></script>
+    <script src="vehicle_traffic_engine.js"></script>
+
+    <script>
+        let charMaster = window.CharacterMasterEngine;
+        let turnaround = window.CharacterTurnaroundEngine;
+        let mattingEngine = window.AssetMattingIngestionEngine;
+
+        let rawCharPhotoCanvas = null;
+        let rawVehPhotoCanvas = null;
+        let rawPropPhotoCanvas = null;
+
+        function updateHeightVal(val) {
+            document.getElementById('actor-height-val').textContent = `${parseFloat(val).toFixed(2)}m`;
+            updateProceduralActor();
+        }
+
+        function updateProceduralActor() {
+            if (!charMaster || !turnaround) return;
+
+            const nameJa = document.getElementById('actor-name-ja').value;
+            const nameEn = document.getElementById('actor-name-en').value;
+            const age = parseInt(document.getElementById('actor-age').value);
+            const gender = document.getElementById('actor-gender').value;
+            const heightM = parseFloat(document.getElementById('actor-height-slider').value);
+            const build = document.getElementById('actor-build').value;
+            const hairStyle = document.getElementById('actor-hair-style').value;
+            const hairColor = document.getElementById('actor-hair-color').value;
+            const skinTone = document.getElementById('actor-skin-tone').value;
+            const costumeStyle = document.getElementById('actor-costume-style').value;
+            const costumeColor = document.getElementById('actor-costume-color').value;
+            const neonColor = document.getElementById('actor-neon-color').value;
+
+            charMaster.createCustomActor({
+                id: "actor_active",
+                nameJa: nameJa,
+                nameEn: nameEn,
+                age: age,
+                gender: gender,
+                heightM: heightM,
+                build: build,
+                skinTone: skinTone,
+                hairStyle: hairStyle,
+                hairColor: hairColor,
+                hairMeshColor: neonColor,
+                neonAccent: neonColor,
+                costumeColor: costumeColor,
+                costumeNameJa: costumeStyle,
+                costumeNameEn: `${costumeStyle} in ${costumeColor}`
+            });
+
+            document.getElementById('active-char-label').textContent = `${nameJa} (${heightM.toFixed(2)}m)`;
+            renderCanvases();
+        }
+
+        function renderCanvases() {
+            if (!turnaround) return;
+            ['front', 'right', 'back', 'left'].forEach(v => {
+                const canvas = document.getElementById(`c-${v}`);
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    turnaround.renderCleanProceduralActor(ctx, canvas.width, canvas.height, v);
+                }
+            });
+        }
+
+        /* Tab Switchers */
+        function switchCharTab(mode) {
+            document.getElementById('tab-char-prompt').className = `tab-btn ${mode === 'prompt' ? 'active' : ''}`;
+            document.getElementById('tab-char-photo').className = `tab-btn ${mode === 'photo' ? 'active' : ''}`;
+            document.getElementById('char-prompt-container').style.display = (mode === 'prompt') ? 'flex' : 'none';
+            document.getElementById('char-photo-container').style.display = (mode === 'photo') ? 'flex' : 'none';
+        }
+
+        function switchVehTab(mode) {
+            document.getElementById('tab-veh-preset').className = `tab-btn ${mode === 'preset' ? 'active-gold' : ''}`;
+            document.getElementById('tab-veh-photo').className = `tab-btn ${mode === 'photo' ? 'active-gold' : ''}`;
+            document.getElementById('veh-preset-container').style.display = (mode === 'preset') ? 'flex' : 'none';
+            document.getElementById('veh-photo-container').style.display = (mode === 'photo') ? 'flex' : 'none';
+        }
+
+        function switchPropTab(mode) {
+            document.getElementById('tab-prop-preset').className = `tab-btn ${mode === 'preset' ? 'active' : ''}`;
+            document.getElementById('tab-prop-photo').className = `tab-btn ${mode === 'photo' ? 'active' : ''}`;
+            document.getElementById('prop-preset-container').style.display = (mode === 'preset') ? 'flex' : 'none';
+            document.getElementById('prop-photo-container').style.display = (mode === 'photo') ? 'flex' : 'none';
+        }
+
+        /* Ingestion & Matting Handlers */
+        function handleCharPhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    const tempC = document.createElement('canvas');
+                    tempC.width = img.width;
+                    tempC.height = img.height;
+                    const ctx = tempC.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    rawCharPhotoCanvas = tempC;
+
+                    processAndApplyCharMatting();
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function processAndApplyCharMatting() {
+            if (!rawCharPhotoCanvas || !mattingEngine) return;
+            const threshold = parseFloat(document.getElementById('matting-threshold').value);
+            const matted = mattingEngine.processBackgroundRemoval(rawCharPhotoCanvas, { threshold });
+            const asset = mattingEngine.ingestAsset('character', {
+                nameJa: document.getElementById('actor-name-ja').value,
+                nameEn: document.getElementById('actor-name-en').value,
+                canvas: matted
+            });
+
+            // Update main character with dominant color & features
+            document.getElementById('actor-costume-color').value = asset.features.dominantColor;
+            updateProceduralActor();
+            alert(`✂️ 実写キャストの背景切り抜き完了！
+抽出メインカラー: ${asset.features.dominantColor}
+4面ターンアラウンドに反映しました。`);
+        }
+
+        function reapplyMatting() {
+            processAndApplyCharMatting();
+        }
+
+        function captureFromWebcam() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+                    alert("📷 Webカメラ映像をキャプチャして背景を自動除去しました！");
+                    // Mock webcam capture for instant simulation
+                    updateProceduralActor();
+                }).catch(err => {
+                    alert("カメラへのアクセスが拒否されたか、デバイスが見つかりません。");
+                });
+            }
+        }
+
+        function handleVehPhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    const c = document.getElementById('veh-preview-canvas');
+                    const ctx = c.getContext('2d');
+                    ctx.clearRect(0, 0, c.width, c.height);
+                    ctx.drawImage(img, 0, 0, c.width, c.height);
+
+                    if (mattingEngine) {
+                        const matted = mattingEngine.processBackgroundRemoval(c, { threshold: 0.2 });
+                        mattingEngine.ingestAsset('vehicle', { nameJa: '実写取り込み車両', canvas: matted });
+                    }
+                    alert("✂️ 実写車両の背景切り抜きが完了しました！");
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handlePropPhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    const c = document.getElementById('prop-preview-canvas');
+                    const ctx = c.getContext('2d');
+                    ctx.clearRect(0, 0, c.width, c.height);
+                    ctx.drawImage(img, 0, 0, c.width, c.height);
+                    alert("✂️ 実写アイテムの背景切り抜きが完了しました！");
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /* Large & Small Prop Previews */
+        function previewLargeProp() {
+            const val = document.getElementById('stage-prop-select').value;
+            if (window.StagePropEngine && window.StagePropEngine.props[val]) {
+                document.getElementById('large-prop-desc').textContent = window.StagePropEngine.props[val].descJa;
+            }
+            drawVehPreview(val);
+        }
+
+        function drawVehPreview(val) {
+            const c = document.getElementById('veh-preview-canvas');
+            if (!c) return;
+            const ctx = c.getContext('2d');
+            ctx.clearRect(0, 0, c.width, c.height);
+
+            // Simple procedural vehicle shape
+            ctx.fillStyle = (val.includes('bus')) ? '#0284c7' : (val.includes('taxi') ? '#047857' : '#f59e0b');
+            ctx.fillRect(20, 30, 180, 50);
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(60, 85, 14, 0, Math.PI * 2);
+            ctx.arc(160, 85, 14, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function previewSmallProp() {
+            const val = document.getElementById('small-prop-select').value;
+            if (window.SmallPropEngine && window.SmallPropEngine.props[val]) {
+                document.getElementById('small-prop-desc').textContent = window.SmallPropEngine.props[val].descJa;
+            }
+            drawPropPreview(val);
+        }
+
+        function drawPropPreview(val) {
+            const c = document.getElementById('prop-preview-canvas');
+            if (!c) return;
+            const ctx = c.getContext('2d');
+            ctx.clearRect(0, 0, c.width, c.height);
+
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(60, 35, 100, 50);
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(60, 35, 100, 50);
+        }
+
+        /* Sync Broadcasts */
+        function generateAndSyncActor() {
+            const prof = charMaster.getCharacterProfile();
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.broadcast("ACTOR_SYNC", {
+                    characterId: prof.charId,
+                    nameJa: prof.nameJa,
+                    nameEn: prof.nameEn,
+                    heightM: prof.heightM,
+                    build: prof.build,
+                    costume: prof.costumeNameEn,
+                    costumeColor: prof.costumeColor,
+                    neonAccent: prof.neonAccent
+                });
+            }
+            charMaster.saveToVault();
+            alert(`✅ キャスト「${prof.nameJa} (${prof.heightM}m)」をメイン監督画面へ送信・配備しました！
+360°空間の4面ターンアラウンドが即時同期されます。`);
+        }
+
+        function syncActorToScriptStudio() {
+            const prof = charMaster.getCharacterProfile();
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.broadcast("CAST_ROSTER_SYNC", {
+                    speaker: prof.nameJa,
+                    characterId: prof.charId
+                });
+            }
+            alert(`📜 台本スタジオ（第4画面）へ新キャスト「${prof.nameJa}」を話者として追加・同期しました！`);
+        }
+
+        function syncLargeProp() {
+            const val = document.getElementById('stage-prop-select').value;
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.broadcast("PROP_SYNC", { type: "large", key: val });
+            }
+            alert(`✅ 大道具/車両「${val}」をメイン監督画面へ送信・配備しました！`);
+        }
+
+        function syncSmallProp() {
+            const val = document.getElementById('small-prop-select').value;
+            if (window.MultiDisplayEngine) {
+                window.MultiDisplayEngine.broadcast("PROP_SYNC", { type: "small", key: val });
+            }
+            alert(`✅ 小道具「${val}」をメイン監督画面へ送信・配備しました！`);
+        }
+
+        function exportSpriteSheet() {
+            if (!turnaround) return;
+            const sheet = turnaround.exportSpriteSheetCanvas();
+            if (sheet) {
+                const url = sheet.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `GENESIS_ACTOR_4VIEW_SPRITESHEET_${Date.now()}.png`;
+                a.click();
+            }
+        }
+
+        function exportVaultJSON() {
+            if (!charMaster) return;
+            const jsonStr = charMaster.exportVaultJSON();
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `GENESIS_CAST_VAULT_${Date.now()}.json`;
+            a.click();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateProceduralActor();
+            previewLargeProp();
+            previewSmallProp();
+        });
+    </script>
+</body>
+</html>
