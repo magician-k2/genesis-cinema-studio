@@ -891,13 +891,14 @@
 
                 <!-- 🛸 Stage Google Earth 3D Flight Navigator View -->
                 <div id="stage-earth-view" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:30; background:#020617; flex-direction:column;">
-                    <!-- Earth 3D Embed Iframe -->
+                    <!-- Official Google Satellite 3D Embed (100% Embed-Permitted, Zero 403 Error) -->
                     <iframe id="google-earth-iframe" 
-                            src="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r"
+                            src="https://maps.google.com/maps?q=34.6940,135.5078&t=k&z=17&output=embed"
                             style="width:100%; height:100%; border:none;"
-                            allowfullscreen></iframe>
+                            allowfullscreen
+                            loading="eager"></iframe>
 
-                    <!-- Top HUD Banner for Waypoints Path -->
+                    <!-- Top HUD Banner for Waypoints Path & Earth Web Quick Launcher -->
                     <div style="position:absolute; top:12px; left:16px; background:rgba(3,7,18,0.92); border:1px solid #38bdf8; border-radius:6px; padding:6px 12px; display:flex; align-items:center; gap:10px; z-index:40; box-shadow:0 0 20px rgba(56,189,248,0.3);">
                         <span style="font-size:0.62rem; font-weight:800; color:#38bdf8;"><i class="fa-solid fa-route"></i> フライトパス:</span>
                         <div id="earth-waypoints-pill-list" style="display:flex; gap:4px; align-items:center;">
@@ -908,6 +909,14 @@
                             <span class="badge" style="background:#f59e0b; color:#000; font-size:0.52rem; padding:2px 6px; border-radius:3px; font-weight:800;">WP3: 48m (着地)</span>
                         </div>
                     </div>
+
+                    <!-- Right Top: Open Google Earth Web in New Window to Copy Exact Camera 3D Coordinates -->
+                    <a id="btn-launch-earth-web" 
+                       href="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r" 
+                       target="_blank" 
+                       style="position:absolute; top:12px; right:16px; background:rgba(2,132,199,0.25); border:1px solid #38bdf8; border-radius:4px; padding:6px 12px; font-size:0.55rem; color:#38bdf8; font-weight:800; text-decoration:none; display:flex; align-items:center; gap:6px; z-index:40; box-shadow:0 0 15px rgba(0,0,0,0.8);">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> 🌐 Google Earth Web (3D) を別窓で開く
+                    </a>
 
                     <!-- Bottom Floating Flight Control & Landing Gimmick Bar -->
                     <div style="position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:rgba(3,7,18,0.95); border:1px solid #38bdf8; border-radius:6px; padding:8px 16px; display:flex; align-items:center; gap:8px; z-index:40; box-shadow:0 0 25px rgba(0,0,0,0.8); white-space:nowrap;">
@@ -2406,6 +2415,20 @@
                 if (btnS) btnS.classList.add('active');
                 if (btnO) btnO.classList.remove('active');
             }
+
+            // Sync satellite iframe and Earth Web launch link
+            const earthIframe = document.getElementById('google-earth-iframe');
+            if (earthIframe && activeAerialWaypoints.length > 0) {
+                const targetWp = activeAerialWaypoints[0];
+                earthIframe.src = `https://maps.google.com/maps?q=${targetWp.lat},${targetWp.lng}&t=k&z=17&output=embed`;
+            }
+            const btnEarthWeb = document.getElementById('btn-launch-earth-web');
+            if (btnEarthWeb && activeAerialWaypoints.length > 0) {
+                const targetWp = activeAerialWaypoints[0];
+                btnEarthWeb.href = `https://earth.google.com/web/@${targetWp.lat},${targetWp.lng},14a,887d,35y,${targetWp.heading}h,${targetWp.tilt}t,360r`;
+            }
+
+            updateEarthWaypointsPillList();
             alert(`🛩️ 空撮プリセット [${presetName === 'osaka_dive' ? '大阪中之島ダイブ' : '新宿副都心滑空'}] を展開しました！\n高度: ${activeAerialWaypoints[0].altitude_m}m ➔ ${activeAerialWaypoints[activeAerialWaypoints.length-1].altitude_m}m (ウェイポイント ${activeAerialWaypoints.length}点)`);
         }
 
