@@ -25,8 +25,10 @@ if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 from core.character_matting_engine import CharacterMattingEngine
 from core.mocap_pose_transfer_engine import MocapPoseTransferEngine
+from core.aerial_flight_swarm_engine import AerialFlightSwarmEngine
 matting_engine = CharacterMattingEngine(vault_dir=os.path.join(DIRECTORY, 'characters'))
 mocap_engine = MocapPoseTransferEngine(root_dir=ROOT_DIR)
+aerial_engine = AerialFlightSwarmEngine()
 
 class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -672,6 +674,69 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": True, "item": item}, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🛩️ Parse Google Earth Web URL Endpoint
+        elif parsed.path == '/api/aerial/parse_earth_url':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                url = payload.get('url', '')
+                waypoint = aerial_engine.parse_earth_url(url)
+                if waypoint:
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": True, "waypoint": waypoint}, ensure_ascii=False).encode('utf-8'))
+                    return
+                else:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"success": False, "error": "Invalid Google Earth URL"}, ensure_ascii=False).encode('utf-8'))
+                    return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🚀 Synthesize Aerial Dive-in Flight Scene via Gemma 4 Swarm Endpoint
+        elif parsed.path == '/api/aerial/generate_flight':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                waypoints = payload.get('waypoints', [])
+                traffic_level = payload.get('traffic_level', 'medium')
+                crowd_level = payload.get('crowd_level', 'medium')
+                location_name = payload.get('location_name', '大阪 中之島・市役所周辺')
+
+                flight_path = aerial_engine.compute_flight_path(waypoints)
+                swarm_result = aerial_engine.execute_swarm_synthesis(
+                    flight_info=flight_path,
+                    traffic_level=traffic_level,
+                    crowd_level=crowd_level,
+                    location_name=location_name
+                )
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(swarm_result, ensure_ascii=False).encode('utf-8'))
                 return
             except Exception as e:
                 self.send_response(500)
