@@ -62,6 +62,9 @@ class MultiDisplayEngine {
             case "TIMELINE_VIDEO_ADD":
                 if (window.onMultiDisplayTimelineVideoAdd) window.onMultiDisplayTimelineVideoAdd(data.payload);
                 break;
+            case "AERIAL_FLIGHT_ADD":
+                if (window.onMultiDisplayAerialFlightAdd) window.onMultiDisplayAerialFlightAdd(data.payload);
+                break;
         }
     }
 

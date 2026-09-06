@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛸 Google Earth 3D 空撮ダイブインスタジオ | GENESIS GLOBAL CINEMA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-panel: rgba(15, 23, 42, 0.85);
+            --border-dark: rgba(148, 163, 184, 0.2);
+            --accent-cyan: #38bdf8;
+            --accent-blue: #0284c7;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-green: #4ade80;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background: radial-gradient(ellipse at 50% 20%, #0c1838 0%, #030712 100%);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(3, 7, 18, 0.95);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 10px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .header-title {
+            font-size: 0.95rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 0.60rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-opt {
+            background: rgba(15, 23, 42, 0.8);
+            color: #cbd5e1;
+            border: 1px solid var(--border-dark);
+            border-radius: 5px;
+            padding: 6px 12px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-opt:hover {
+            border-color: var(--accent-cyan);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-opt.active {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* Main Workspace Grid */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 16px;
+            padding: 16px 20px;
+            overflow: hidden;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-header {
+            padding: 10px 14px;
+            background: rgba(3, 7, 18, 0.7);
+            border-bottom: 1px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.70rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+        }
+
+        .panel-body {
+            padding: 14px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .badge {
+            font-size: 0.52rem;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Form Inputs */
+        input[type="text"], select, textarea {
+            background: #070a14;
+            color: #fff;
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 0.62rem;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .card-box {
+            background: rgba(7, 10, 20, 0.6);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header -->
+    <header>
+        <div class="header-brand">
+            <div class="header-icon">
+                <i class="fa-solid fa-plane-departure"></i>
+            </div>
+            <div>
+                <div class="header-title">
+                    <span>GOOGLE EARTH 3D 空撮ダイブイン・スタジオ</span>
+                    <span class="badge" style="background:#0284c7; color:#fff;">Standalone Pro Edition</span>
+                    <span id="badge-cockpit-sync" class="badge" style="background:rgba(74,222,128,0.2); color:#4ade80; border:1px solid #4ade80;">
+                        🟢 メインコックピット同期中
+                    </span>
+                </div>
+                <div class="header-subtitle">
+                    Google Earthを別ウィンドウで起動し、URLキーフレームまたはフライトシミュレータ動画からVeo 3.1空撮プロンプトを自動合成
+                </div>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <span style="font-size:0.55rem; color:#cbd5e1; background:rgba(30,41,59,0.7); border:1px solid rgba(148,163,184,0.2); padding:4px 10px; border-radius:4px;">
+                💡 <kbd style="background:#0f172a; padding:1px 5px; border-radius:2px; color:#38bdf8;">Ctrl</kbd>+<kbd style="background:#0f172a; padding:1px 5px; border-radius:2px; color:#38bdf8;">Alt</kbd>+<kbd style="background:#0f172a; padding:1px 5px; border-radius:2px; color:#38bdf8;">A</kbd> でフライトシミュレータ起動
+            </span>
+            <a id="btn-launch-earth-web" 
+               href="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r" 
+               target="_blank" 
+               class="btn-opt" 
+               style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; font-weight:900; border:none; padding:6px 14px; box-shadow:0 0 15px rgba(56,189,248,0.4);">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> 🌐 Google Earth (3D) を別窓で開く
+            </a>
+            <a href="index.html" class="btn-opt" style="border-color:var(--accent-gold); color:var(--accent-gold);">
+                <i class="fa-solid fa-clapperboard"></i> 🎬 監督メインコックピット
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Studio Workspace -->
+    <main>
+
+        <!-- Column 1: Flight Trajectory Plotter & Dual Import Engine -->
+        <section class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-route"></i> ① 空撮フライトパス設定 ＆ デュアル・インポート</span>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-opt active" id="btn-preset-osaka" style="padding:2px 8px; font-size:0.52rem;" onclick="loadAerialPreset('osaka_dive')">
+                        📍 大阪中之島 (355m➔48m)
+                    </button>
+                    <button class="btn-opt" id="btn-preset-shinjuku" style="padding:2px 8px; font-size:0.52rem;" onclick="loadAerialPreset('shinjuku_dive')">
+                        📍 新宿副都心 (420m➔50m)
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-body">
+                <!-- Dual Import Method Tabs -->
+                <div style="display:flex; gap:8px;">
+                    <button id="btn-earth-tab-url" class="btn-opt active" style="flex:1; padding:8px 12px; font-size:0.65rem; font-weight:800; justify-content:center; border:1px solid #38bdf8;" onclick="switchEarthImportTab('url')">
+                        <i class="fa-solid fa-route"></i> 📍 方式A: URLキーフレーム入力 (始発点 ➔ 途中点 ➔ 終了点)
+                    </button>
+                    <button id="btn-earth-tab-video" class="btn-opt" style="flex:1; padding:8px 12px; font-size:0.65rem; font-weight:800; justify-content:center;" onclick="switchEarthImportTab('video')">
+                        <i class="fa-solid fa-film"></i> ✈️ 方式B: フライト録画動画ドロップ (Ctrl+Alt+A 録画MP4)
+                    </button>
+                </div>
+
+                <!-- === MODE A: URL KEYFRAMES === -->
+                <div id="earth-container-mode-url" style="display:flex; flex-direction:column; gap:10px;">
+                    
+                    <!-- Start Point -->
+                    <div class="card-box" style="border-color:rgba(56,189,248,0.35);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-size:0.65rem; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+                                <span style="background:#0284c7; color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.52rem;">1</span>
+                                <span>🛫 始発点 (Start Keyframe - 超高空・俯瞰)</span>
+                            </div>
+                            <span id="badge-earth-start-stats" class="badge" style="background:rgba(2,132,199,0.25); color:#38bdf8; border:1px solid #0284c7;">
+                                高度: 355m | 距離: 887m | チルト: 67.4° | 方位: 177.7°
+                            </span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="input-earth-start-url" 
+                                   value="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r"
+                                   placeholder="Google Earthで超高空(300m~1000m)のURLを貼り付け..." 
+                                   style="flex:1;" onchange="handleEarthUrlInputChange('start')">
+                            <button class="btn-opt" style="padding:4px 10px;" onclick="parseSingleEarthKeyframe('start')">即時解析</button>
+                        </div>
+                    </div>
+
+                    <!-- Intermediate Waypoints -->
+                    <div class="card-box" style="border-color:rgba(148,163,184,0.25);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-size:0.65rem; font-weight:800; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
+                                <span style="background:#475569; color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.52rem;">2</span>
+                                <span>🛬 途中点 (Waypoints - スプライン中継点・スキップ可)</span>
+                            </div>
+                            <button class="btn-opt" style="background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; font-size:0.55rem; padding:3px 10px;" onclick="addIntermediateWaypointRow()">
+                                <i class="fa-solid fa-plus"></i> ＋途中点を追加
+                            </button>
+                        </div>
+                        <div id="earth-intermediate-waypoints-list" style="display:flex; flex-direction:column; gap:6px;">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+
+                    <!-- Landing Keyframe -->
+                    <div class="card-box" style="border-color:rgba(245,158,11,0.35);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-size:0.65rem; font-weight:800; color:var(--accent-gold); display:flex; align-items:center; gap:6px;">
+                                <span style="background:#f59e0b; color:#000; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.52rem; font-weight:900;">3</span>
+                                <span>🎯 終了点 (Landing Keyframe - 地上主人公位置・着地地点)</span>
+                            </div>
+                            <span id="badge-earth-end-stats" class="badge" style="background:rgba(245,158,11,0.2); color:#f59e0b; border:1px solid #f59e0b;">
+                                高度: 48m | 距離: 114m | チルト: 67.4° | 方位: 177.7°
+                            </span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="input-earth-end-url" 
+                                   value="https://earth.google.com/web/@34.69463142,135.50123707,3.64617279a,114.21693824d,35y,177.74031514h,67.38356771t,-0r"
+                                   placeholder="Google Earthで地上近く(10m~50m)の主人公着地視点URLを貼り付け..." 
+                                   style="flex:1;" onchange="handleEarthUrlInputChange('end')">
+                            <button class="btn-opt" style="padding:4px 10px;" onclick="parseSingleEarthKeyframe('end')">即時解析</button>
+                        </div>
+                    </div>
+
+                    <!-- 3D Flight Telemetry Preview -->
+                    <div style="background:#070a14; border:1px dashed #38bdf8; border-radius:6px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:0.60rem; color:#38bdf8; font-weight:800;"><i class="fa-solid fa-chart-line"></i> 軌道プレビュー:</span>
+                            <div id="earth-flight-trajectory-pill-chain" style="display:flex; align-items:center; gap:6px;"></div>
+                        </div>
+                        <span id="earth-telemetry-descent-rate" style="font-size:0.60rem; color:#facc15; font-weight:800;">
+                            降下速度: ~55.8 m/s (超高層ビル街ダイブ)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- === MODE B: FLIGHT SIMULATOR VIDEO DROP === -->
+                <div id="earth-container-mode-video" style="display:none; flex-direction:column; gap:10px;">
+                    <div id="earth-video-drop-zone" 
+                         style="background:rgba(15,23,42,0.6); border:2px dashed #38bdf8; border-radius:8px; padding:30px 20px; text-align:center; cursor:pointer; transition:all 0.2s;"
+                         onclick="document.getElementById('input-earth-video-file').click()"
+                         ondragover="handleVideoDragOver(event)"
+                         ondragleave="handleVideoDragLeave(event)"
+                         ondrop="handleVideoDrop(event)">
+                        
+                        <input type="file" id="input-earth-video-file" accept="video/mp4,video/webm" style="display:none;" onchange="handleVideoFileSelect(event)">
+                        
+                        <div style="font-size:2.8rem; color:#38bdf8; margin-bottom:8px;">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <div style="font-size:0.85rem; font-weight:800; color:#fff; margin-bottom:4px;">
+                            ✈️ Google Earth フライトシミュレータ録画動画をここにドロップ
+                        </div>
+                        <div style="font-size:0.60rem; color:#94a3b8; max-width:550px; margin:0 auto 14px; line-height:1.5;">
+                            Google Earth上で <kbd style="background:#1e293b; padding:2px 6px; border-radius:3px; color:#38bdf8;">Ctrl+Alt+A</kbd> でフライトシミュレータを起動し、録画したMP4/WebM動画をドロップしてください。Gemma 4が高度変化・滑空角・カメラワークを自動検出します。
+                        </div>
+                        <div style="display:flex; justify-content:center; gap:8px;">
+                            <button class="btn-opt" style="background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#38bdf8; font-size:0.62rem; padding:6px 16px;" onclick="event.stopPropagation(); document.getElementById('input-earth-video-file').click();">
+                                📁 動画ファイルを選択
+                            </button>
+                            <button class="btn-opt" style="background:rgba(245,158,11,0.2); border-color:var(--accent-gold); color:var(--accent-gold); font-size:0.62rem; padding:6px 16px;" onclick="event.stopPropagation(); loadSampleFlightVideo();">
+                                🎬 サンプル飛行動画 (4Kドローン滑空) をロード
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video Preview Player -->
+                    <div id="earth-video-preview-wrapper" style="display:none; background:rgba(15,23,42,0.8); border:1px solid rgba(56,189,248,0.3); border-radius:8px; padding:12px; gap:14px; align-items:center;">
+                        <div style="width:280px; height:158px; background:#000; border-radius:6px; overflow:hidden; position:relative;">
+                            <video id="earth-flight-video-elem" style="width:100%; height:100%; object-fit:cover;" autoplay loop muted playsinline></video>
+                            <div style="position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.8); color:#38bdf8; font-size:0.48rem; padding:2px 6px; border-radius:3px; font-weight:800;">
+                                📹 FLIGHT PLAYBACK
+                            </div>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:0.72rem; font-weight:800; color:#38bdf8; margin-bottom:6px;" id="earth-video-name-label">
+                                cyberpunk_tokyo_drone_4k_sample.mp4
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.55rem; color:#cbd5e1; margin-bottom:8px;">
+                                <div style="background:#070a14; padding:5px 8px; border-radius:3px;">
+                                    ⏱️ 飛行時間: <span id="earth-video-duration-val" style="color:#fff; font-weight:800;">6.0 秒</span>
+                                </div>
+                                <div style="background:#070a14; padding:5px 8px; border-radius:3px;">
+                                    📉 推定降下高度: <span id="earth-video-alt-val" style="color:#facc15; font-weight:800;">650m ➔ 48m</span>
+                                </div>
+                                <div style="background:#070a14; padding:5px 8px; border-radius:3px;">
+                                    ⚡ 降下レート: <span id="earth-video-rate-val" style="color:#38bdf8; font-weight:800;">100.3 m/s</span>
+                                </div>
+                                <div style="background:#070a14; padding:5px 8px; border-radius:3px;">
+                                    🎮 操縦モデル: <span style="color:#4ade80; font-weight:800;">Google Earth Flight Sim</span>
+                                </div>
+                            </div>
+                            <div style="font-size:0.55rem; color:#94a3b8;" id="earth-video-status-msg">
+                                ✅ カメラモーション抽出完了。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Column 2: Hollywood Cinematic Controls & Swarm Synthesis -->
+        <section class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-wand-magic-sparkles"></i> ② シネマ演出 ＆ Gemma 4 スウォーム自動合成</span>
+                <span style="font-size:0.55rem; color:var(--accent-gold);"><i class="fa-solid fa-bolt"></i> 4並列エージェント</span>
+            </div>
+
+            <div class="panel-body">
+                
+                <!-- Director Parameters -->
+                <div class="card-box" style="border-color:rgba(245,158,11,0.3);">
+                    <div style="font-size:0.65rem; font-weight:800; color:var(--accent-gold); margin-bottom:4px;">
+                        <i class="fa-solid fa-bullseye"></i> 🎬 終了地点の着地ギミック (Hero Landing):
+                    </div>
+                    <select id="select-landing-gimmick" style="width:100%; padding:6px 10px;">
+                        <option value="hero_face_close_up">🎯 主人公の正面へ急制動・アップ (Hero Push-in)</option>
+                        <option value="over_the_shoulder">🕵️ 主人公の背後から肩越しへ回り込み (Over-the-Shoulder)</option>
+                        <option value="orbit_360">🔄 360度旋回ランディング (360° Dynamic Orbit)</option>
+                        <option value="low_angle_tilt_up">📐 地面スレスレ滑空から足元見上げ (Low-Angle Tilt-up)</option>
+                    </select>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+                        <div>
+                            <label style="font-size:0.55rem; color:#38bdf8; font-weight:700;"><i class="fa-solid fa-car"></i> 🚗 交通トラフィック:</label>
+                            <select id="select-studio-traffic" style="width:100%; margin-top:2px;">
+                                <option value="rush_hour">🔴 ラッシュアワー (車列・高密度)</option>
+                                <option value="medium" selected>🟡 標準交通流 (タクシー・バス)</option>
+                                <option value="light">🟢 閑散・深夜早朝</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.55rem; color:#a855f7; font-weight:700;"><i class="fa-solid fa-users"></i> 👥 群衆エキストラ:</label>
+                            <select id="select-studio-crowd" style="width:100%; margin-top:2px;">
+                                <option value="dense">🏢 繁華街・ビジネス街 (過密)</option>
+                                <option value="medium" selected>🚶 通常人通り (歩行者)</option>
+                                <option value="none">🧱 無人群衆 (建築重視)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:6px;">
+                        <label style="font-size:0.55rem; color:#cbd5e1; font-weight:700;"><i class="fa-solid fa-user-ninja"></i> 👤 着地点に立つ主人公キャスト:</label>
+                        <select id="select-hero-actor" style="width:100%; margin-top:2px;">
+                            <option value="如月 蓮" selected>如月 蓮 (サイバー探偵)</option>
+                            <option value="橘 飛鳥">橘 飛鳥 (サイバーパンク・アイドル)</option>
+                            <option value="緋村 影狼">緋村 影狼 (闇のフィクサー)</option>
+                            <option value="霧島 結衣">霧島 結衣 (エリート捜査官)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button id="btn-studio-generate-aerial" 
+                        class="btn-opt" 
+                        style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; font-size:0.75rem; font-weight:900; padding:10px; border:none; border-radius:6px; cursor:pointer; justify-content:center; box-shadow:0 0 20px rgba(56,189,248,0.5);"
+                        onclick="executeAerialFlightGeneration()">
+                    <i class="fa-solid fa-plane-arrival"></i> 🚀 3D空撮ダイブイン生成 ➔ メインコックピットへ自動送信！
+                </button>
+
+                <!-- Output Veo 3.1 Prompt -->
+                <div class="card-box" style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.60rem; font-weight:800; color:#38bdf8;"><i class="fa-solid fa-video"></i> Veo 3.1 映画プロンプト (Master Prompt):</span>
+                        <button class="btn-opt" style="padding:2px 6px; font-size:0.50rem;" onclick="copyOutputPrompt('prompt-en')">コピー</button>
+                    </div>
+                    <textarea id="output-prompt-en" style="flex:1; min-height:80px; resize:none; font-family:monospace; line-height:1.4;" readonly placeholder="生成ボタンを押すと、Gemma 4スウォームが合議した英語マスタープロンプトが出力されます..."></textarea>
+                </div>
+
+                <!-- Output Japanese Director Sheet -->
+                <div class="card-box" style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.60rem; font-weight:800; color:var(--accent-gold);"><i class="fa-solid fa-file-lines"></i> 映画監督指示書 ＆ 美術・モブ設定 (日本語):</span>
+                        <button class="btn-opt" style="padding:2px 6px; font-size:0.50rem;" onclick="copyOutputPrompt('prompt-ja')">コピー</button>
+                    </div>
+                    <textarea id="output-prompt-ja" style="flex:1; min-height:80px; resize:none; line-height:1.4;" readonly placeholder="撮影指示書がここに出力されます..."></textarea>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Multi-Display Synchronizer & Studio Engine Scripts -->
+    <script src="multi_display.js"></script>
+    <script>
+        const multiDisplay = new MultiDisplayEngine();
+
+        let currentEarthImportMode = 'url'; // 'url' | 'video'
+
+        let earthStartKeyframe = {
+            url: "https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r",
+            altitude_m: 355.0,
+            distance_m: 887.0,
+            tilt: 67.4,
+            heading: 177.7,
+            lat: 34.6940,
+            lng: 135.5078
+        };
+
+        let earthIntermediateWaypoints = [
+            {
+                id: 'wp_mid_1',
+                url: "https://earth.google.com/web/@34.69412248,135.50146473,16.81219652a,369.34867423d,35y,177.74037796h,67.38568569t,-0r",
+                altitude_m: 159.0,
+                distance_m: 369.0,
+                tilt: 67.4,
+                heading: 177.7,
+                lat: 34.6941,
+                lng: 135.5014
+            }
+        ];
+
+        let earthEndKeyframe = {
+            url: "https://earth.google.com/web/@34.69463142,135.50123707,3.64617279a,114.21693824d,35y,177.74031514h,67.38356771t,-0r",
+            altitude_m: 48.0,
+            distance_m: 114.0,
+            tilt: 67.4,
+            heading: 177.7,
+            lat: 34.6946,
+            lng: 135.5012
+        };
+
+        let currentFlightVideoData = null;
+        let activeAerialWaypoints = [];
+
+        function initStudio() {
+            renderIntermediateWaypoints();
+            updateEarthFlightTrajectorySummary();
+        }
+
+        function switchEarthImportTab(tab) {
+            currentEarthImportMode = tab;
+            const btnUrl = document.getElementById('btn-earth-tab-url');
+            const btnVid = document.getElementById('btn-earth-tab-video');
+            const contUrl = document.getElementById('earth-container-mode-url');
+            const contVid = document.getElementById('earth-container-mode-video');
+
+            if (tab === 'url') {
+                if (btnUrl) { btnUrl.classList.add('active'); btnUrl.style.borderColor = '#38bdf8'; }
+                if (btnVid) { btnVid.classList.remove('active'); btnVid.style.borderColor = 'var(--border-dark)'; }
+                if (contUrl) contUrl.style.display = 'flex';
+                if (contVid) contVid.style.display = 'none';
+            } else {
+                if (btnUrl) { btnUrl.classList.remove('active'); btnUrl.style.borderColor = 'var(--border-dark)'; }
+                if (btnVid) { btnVid.classList.add('active'); btnVid.style.borderColor = '#38bdf8'; }
+                if (contUrl) contUrl.style.display = 'none';
+                if (contVid) contVid.style.display = 'flex';
+            }
+        }
+
+        function renderIntermediateWaypoints() {
+            const listElem = document.getElementById('earth-intermediate-waypoints-list');
+            if (!listElem) return;
+            listElem.innerHTML = '';
+
+            if (earthIntermediateWaypoints.length === 0) {
+                listElem.innerHTML = `
+                    <div style="font-size:0.55rem; color:#64748b; font-style:italic; padding:4px 0;">
+                        途中点はありません（始発点から終了点へ直行ダイブ）。必要に応じて［＋途中点を追加］を押してください。
+                    </div>
+                `;
+                return;
+            }
+
+            earthIntermediateWaypoints.forEach((wp, idx) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'background:#070a14; border:1px solid rgba(148,163,184,0.15); border-radius:4px; padding:6px 10px; display:flex; flex-direction:column; gap:4px;';
+                row.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.55rem; color:#94a3b8; font-weight:700;"><i class="fa-solid fa-map-pin"></i> 途中点 WP${idx + 2}:</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span id="badge-earth-wp-${idx}" class="badge" style="background:rgba(56,189,248,0.15); color:#38bdf8; font-size:0.50rem; padding:1px 6px;">
+                                高度: ${wp.altitude_m}m | 距離: ${Math.round(wp.distance_m || 300)}m | チルト: ${wp.tilt.toFixed(1)}°
+                            </span>
+                            <button class="btn-opt" style="padding:1px 6px; font-size:0.48rem; color:#f87171; border-color:#ef4444;" onclick="removeIntermediateWaypointRow(${idx})">
+                                ✕ 削除
+                            </button>
+                        </div>
+                    </div>
+                    <input type="text" value="${wp.url || ''}" 
+                           placeholder="Google Earth 途中点URL (@lat,lng,...)" 
+                           style="width:100%; background:#0d1117; color:#fff; border:1px solid var(--border-dark); border-radius:3px; font-size:0.55rem; padding:4px 8px;"
+                           onchange="handleIntermediateUrlChange(${idx}, this.value)">
+                `;
+                listElem.appendChild(row);
+            });
+        }
+
+        function addIntermediateWaypointRow(url = '') {
+            const prevAlt = earthIntermediateWaypoints.length > 0 
+                ? earthIntermediateWaypoints[earthIntermediateWaypoints.length - 1].altitude_m 
+                : earthStartKeyframe.altitude_m;
+            const endAlt = earthEndKeyframe.altitude_m;
+            const newAlt = Math.round((prevAlt + endAlt) / 2);
+
+            const newWp = {
+                id: `wp_mid_${Date.now()}`,
+                url: url || `https://earth.google.com/web/@34.6941,135.5014,10a,${newAlt * 2}d,35y,177.7h,67.4t,0r`,
+                altitude_m: newAlt,
+                distance_m: newAlt * 2,
+                tilt: 67.4,
+                heading: 177.7,
+                lat: 34.6941,
+                lng: 135.5014
+            };
+            earthIntermediateWaypoints.push(newWp);
+            renderIntermediateWaypoints();
+            updateEarthFlightTrajectorySummary();
+        }
+
+        function removeIntermediateWaypointRow(idx) {
+            earthIntermediateWaypoints.splice(idx, 1);
+            renderIntermediateWaypoints();
+            updateEarthFlightTrajectorySummary();
+        }
+
+        async function handleEarthUrlInputChange(pointType) {
+            await parseSingleEarthKeyframe(pointType);
+        }
+
+        async function parseSingleEarthKeyframe(pointType) {
+            let inputId = (pointType === 'start') ? 'input-earth-start-url' : 'input-earth-end-url';
+            let badgeId = (pointType === 'start') ? 'badge-earth-start-stats' : 'badge-earth-end-stats';
+            const input = document.getElementById(inputId);
+            const badge = document.getElementById(badgeId);
+            const url = input ? input.value.trim() : '';
+            if (!url) return;
+
+            try {
+                const res = await fetch('/api/aerial/parse_earth_url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                const data = await res.json();
+                if (data && data.success && data.waypoint) {
+                    const wp = data.waypoint;
+                    if (pointType === 'start') {
+                        earthStartKeyframe = wp;
+                    } else {
+                        earthEndKeyframe = wp;
+                    }
+                    if (badge) {
+                        badge.textContent = `高度: ${wp.altitude_m}m | 距離: ${Math.round(wp.distance_m)}m | チルト: ${wp.tilt.toFixed(1)}° | 方位: ${wp.heading.toFixed(1)}°`;
+                    }
+                    updateEarthFlightTrajectorySummary();
+                }
+            } catch (e) {
+                console.warn("Parse single keyframe err:", e);
+            }
+        }
+
+        async function handleIntermediateUrlChange(idx, val) {
+            if (!val) return;
+            try {
+                const res = await fetch('/api/aerial/parse_earth_url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: val })
+                });
+                const data = await res.json();
+                if (data && data.success && data.waypoint) {
+                    earthIntermediateWaypoints[idx] = Object.assign(earthIntermediateWaypoints[idx], data.waypoint);
+                    renderIntermediateWaypoints();
+                    updateEarthFlightTrajectorySummary();
+                }
+            } catch (e) {
+                console.warn("Parse intermediate err:", e);
+            }
+        }
+
+        function updateEarthFlightTrajectorySummary() {
+            activeAerialWaypoints = [
+                earthStartKeyframe,
+                ...earthIntermediateWaypoints,
+                earthEndKeyframe
+            ];
+
+            const chainContainer = document.getElementById('earth-flight-trajectory-pill-chain');
+            if (chainContainer) {
+                chainContainer.innerHTML = '';
+                activeAerialWaypoints.forEach((wp, idx) => {
+                    const isFirst = (idx === 0);
+                    const isLast = (idx === activeAerialWaypoints.length - 1);
+                    const pill = document.createElement('span');
+                    pill.className = 'badge';
+                    const color = isFirst ? '#0284c7' : (isLast ? '#f59e0b' : '#38bdf8');
+                    const label = isFirst ? ' (出発)' : (isLast ? ' (着地)' : ' (中継)');
+                    pill.style.cssText = `background:${color}; color:${isLast ? '#000' : '#fff'}; font-size:0.52rem; padding:2px 6px; border-radius:3px; font-weight:800;`;
+                    pill.textContent = `WP${idx + 1}: ${wp.altitude_m}m${label}`;
+                    chainContainer.appendChild(pill);
+
+                    if (idx < activeAerialWaypoints.length - 1) {
+                        const arrow = document.createElement('span');
+                        arrow.style.cssText = 'color:#94a3b8; font-size:0.48rem;';
+                        arrow.textContent = '➔';
+                        chainContainer.appendChild(arrow);
+                    }
+                });
+            }
+
+            const altRateElem = document.getElementById('earth-telemetry-descent-rate');
+            if (altRateElem && activeAerialWaypoints.length >= 2) {
+                const startAlt = activeAerialWaypoints[0].altitude_m;
+                const endAlt = activeAerialWaypoints[activeAerialWaypoints.length - 1].altitude_m;
+                const delta = Math.abs(startAlt - endAlt);
+                const rate = (delta / 5.5).toFixed(1);
+                altRateElem.textContent = `降下速度: ~${rate} m/s (${delta > 200 ? '超高層ビル街ダイブ' : '滑空アプローチ'})`;
+            }
+
+            const btnEarthWeb = document.getElementById('btn-launch-earth-web');
+            if (btnEarthWeb && earthStartKeyframe) {
+                btnEarthWeb.href = earthStartKeyframe.url || `https://earth.google.com/web/@${earthStartKeyframe.lat},${earthStartKeyframe.lng},14a,887d,35y,${earthStartKeyframe.heading}h,${earthStartKeyframe.tilt}t,360r`;
+            }
+        }
+
+        function loadAerialPreset(presetName) {
+            if (presetName === 'osaka_dive') {
+                earthStartKeyframe = {
+                    url: "https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r",
+                    altitude_m: 355.0,
+                    distance_m: 887.0,
+                    tilt: 67.4,
+                    heading: 177.7,
+                    lat: 34.6940,
+                    lng: 135.5078
+                };
+                earthIntermediateWaypoints = [
+                    {
+                        id: 'wp_mid_1',
+                        url: "https://earth.google.com/web/@34.69412248,135.50146473,16.81219652a,369.34867423d,35y,177.74037796h,67.38568569t,-0r",
+                        altitude_m: 159.0,
+                        distance_m: 369.0,
+                        tilt: 67.4,
+                        heading: 177.7,
+                        lat: 34.6941,
+                        lng: 135.5014
+                    }
+                ];
+                earthEndKeyframe = {
+                    url: "https://earth.google.com/web/@34.69463142,135.50123707,3.64617279a,114.21693824d,35y,177.74031514h,67.38356771t,-0r",
+                    altitude_m: 48.0,
+                    distance_m: 114.0,
+                    tilt: 67.4,
+                    heading: 177.7,
+                    lat: 34.6946,
+                    lng: 135.5012
+                };
+
+                const inStart = document.getElementById('input-earth-start-url');
+                const inEnd = document.getElementById('input-earth-end-url');
+                if (inStart) inStart.value = earthStartKeyframe.url;
+                if (inEnd) inEnd.value = earthEndKeyframe.url;
+
+                const btnO = document.getElementById('btn-preset-osaka');
+                const btnS = document.getElementById('btn-preset-shinjuku');
+                if (btnO) btnO.classList.add('active');
+                if (btnS) btnS.classList.remove('active');
+            } else if (presetName === 'shinjuku_dive') {
+                earthStartKeyframe = {
+                    url: "https://earth.google.com/web/@35.6895,139.6917,42.0a,950d,35y,95.0h,70.0t,0r",
+                    altitude_m: 420.0,
+                    distance_m: 950.0,
+                    tilt: 70.0,
+                    heading: 95.0,
+                    lat: 35.6895,
+                    lng: 139.6917
+                };
+                earthIntermediateWaypoints = [
+                    {
+                        id: 'wp_mid_1',
+                        url: "https://earth.google.com/web/@35.6900,139.6930,30.0a,400d,35y,95.0h,70.0t,0r",
+                        altitude_m: 180.0,
+                        distance_m: 400.0,
+                        tilt: 70.0,
+                        heading: 95.0,
+                        lat: 35.6900,
+                        lng: 139.6930
+                    }
+                ];
+                earthEndKeyframe = {
+                    url: "https://earth.google.com/web/@35.6910,139.6950,15.0a,120d,35y,95.0h,70.0t,0r",
+                    altitude_m: 50.0,
+                    distance_m: 120.0,
+                    tilt: 70.0,
+                    heading: 95.0,
+                    lat: 35.6910,
+                    lng: 139.6950
+                };
+
+                const inStart = document.getElementById('input-earth-start-url');
+                const inEnd = document.getElementById('input-earth-end-url');
+                if (inStart) inStart.value = earthStartKeyframe.url;
+                if (inEnd) inEnd.value = earthEndKeyframe.url;
+
+                const btnO = document.getElementById('btn-preset-osaka');
+                const btnS = document.getElementById('btn-preset-shinjuku');
+                if (btnS) btnS.classList.add('active');
+                if (btnO) btnO.classList.remove('active');
+            }
+
+            renderIntermediateWaypoints();
+            updateEarthFlightTrajectorySummary();
+        }
+
+        /* Mode B Handlers */
+        function handleVideoDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropZone = document.getElementById('earth-video-drop-zone');
+            if (dropZone) dropZone.style.borderColor = '#f59e0b';
+        }
+
+        function handleVideoDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropZone = document.getElementById('earth-video-drop-zone');
+            if (dropZone) dropZone.style.borderColor = '#38bdf8';
+        }
+
+        function handleVideoDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropZone = document.getElementById('earth-video-drop-zone');
+            if (dropZone) dropZone.style.borderColor = '#38bdf8';
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) processFlightVideoFile(files[0]);
+        }
+
+        function handleVideoFileSelect(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) processFlightVideoFile(files[0]);
+        }
+
+        async function processFlightVideoFile(file) {
+            const previewWrapper = document.getElementById('earth-video-preview-wrapper');
+            const videoElem = document.getElementById('earth-flight-video-elem');
+            const nameLabel = document.getElementById('earth-video-name-label');
+            const durVal = document.getElementById('earth-video-duration-val');
+            const altVal = document.getElementById('earth-video-alt-val');
+            const rateVal = document.getElementById('earth-video-rate-val');
+            const statusMsg = document.getElementById('earth-video-status-msg');
+
+            if (previewWrapper) previewWrapper.style.display = 'flex';
+            if (nameLabel) nameLabel.textContent = `✈️ ${file.name}`;
+            if (videoElem) {
+                videoElem.src = URL.createObjectURL(file);
+                videoElem.play().catch(e => console.warn(e));
+            }
+
+            if (statusMsg) statusMsg.textContent = '⏳ Gemma 4 スウォームがカメラワーク・高度軌道を抽出中...';
+
+            try {
+                const res = await fetch('/api/aerial/analyze_flight_video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_name: file.name,
+                        duration_s: 6.0,
+                        start_altitude_m: 720.0,
+                        end_altitude_m: 48.0
+                    })
+                });
+                const data = await res.json();
+                if (data && data.success) {
+                    currentFlightVideoData = data;
+                    if (durVal) durVal.textContent = `${data.flight_metrics.flight_duration_s} 秒`;
+                    if (altVal) altVal.textContent = `${data.flight_metrics.start_altitude_m}m ➔ ${data.flight_metrics.end_altitude_m}m`;
+                    if (rateVal) rateVal.textContent = `${data.flight_metrics.descent_rate_mps} m/s`;
+                    if (statusMsg) statusMsg.textContent = `✅ ${data.message}`;
+                    alert(`✈️ 飛行録画動画の解析に成功しました！\n\nファイル: ${file.name}\n高度降下: ${data.flight_metrics.start_altitude_m}m ➔ ${data.flight_metrics.end_altitude_m}m\n降下レート: ${data.flight_metrics.descent_rate_mps} m/s\n\n［🚀 3D空撮ダイブイン生成］を押すとメインコックピットへ送信されます。`);
+                }
+            } catch (err) {
+                console.error("Video analyze error:", err);
+                if (statusMsg) statusMsg.textContent = '⚠️ 解析通信エラー。';
+            }
+        }
+
+        async function loadSampleFlightVideo() {
+            const previewWrapper = document.getElementById('earth-video-preview-wrapper');
+            const videoElem = document.getElementById('earth-flight-video-elem');
+            const nameLabel = document.getElementById('earth-video-name-label');
+            const durVal = document.getElementById('earth-video-duration-val');
+            const altVal = document.getElementById('earth-video-alt-val');
+            const rateVal = document.getElementById('earth-video-rate-val');
+            const statusMsg = document.getElementById('earth-video-status-msg');
+
+            if (previewWrapper) previewWrapper.style.display = 'flex';
+            if (nameLabel) nameLabel.textContent = '✈️ cyberpunk_tokyo_drone_4k_sample.mp4 (4Kダイブイン空撮)';
+            if (videoElem) {
+                videoElem.src = 'assets/cyberpunk_tokyo_drone_4k_sample.mp4';
+                videoElem.play().catch(e => console.warn(e));
+            }
+
+            try {
+                const res = await fetch('/api/aerial/analyze_flight_video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_name: 'cyberpunk_tokyo_drone_4k_sample.mp4',
+                        duration_s: 6.0,
+                        start_altitude_m: 650.0,
+                        end_altitude_m: 48.0
+                    })
+                });
+                const data = await res.json();
+                if (data && data.success) {
+                    currentFlightVideoData = data;
+                    if (durVal) durVal.textContent = `${data.flight_metrics.flight_duration_s} 秒`;
+                    if (altVal) altVal.textContent = `${data.flight_metrics.start_altitude_m}m ➔ ${data.flight_metrics.end_altitude_m}m`;
+                    if (rateVal) rateVal.textContent = `${data.flight_metrics.descent_rate_mps} m/s`;
+                    if (statusMsg) statusMsg.textContent = `✅ ${data.message}`;
+                }
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+
+        async function executeAerialFlightGeneration() {
+            const traffic = document.getElementById('select-studio-traffic')?.value || 'medium';
+            const crowd = document.getElementById('select-studio-crowd')?.value || 'medium';
+            const landingGimmick = document.getElementById('select-landing-gimmick')?.value || 'hero_face_close_up';
+            const heroName = document.getElementById('select-hero-actor')?.value || '如月 蓮';
+
+            const btn = document.getElementById('btn-studio-generate-aerial');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 🛩️ Gemma 4 スウォーム並列演算中...';
+                btn.disabled = true;
+            }
+
+            let targetWaypoints = activeAerialWaypoints;
+            let locName = activeAerialWaypoints[0]?.lat > 35 ? '新宿副都心・高層ビル街' : '大阪 中之島・大阪市役所周辺';
+
+            if (currentEarthImportMode === 'video' && currentFlightVideoData && currentFlightVideoData.waypoints) {
+                targetWaypoints = currentFlightVideoData.waypoints;
+                locName = 'フライトシミュレータ録画空撮 (東京・中之島エリア)';
+            }
+
+            const payload = {
+                waypoints: targetWaypoints,
+                traffic_level: traffic,
+                crowd_level: crowd,
+                landing_gimmick: landingGimmick,
+                hero_name: heroName,
+                location_name: locName
+            };
+
+            try {
+                const res = await fetch('/api/aerial/generate_flight', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data && data.success) {
+                    // Update Textareas
+                    document.getElementById('output-prompt-en').value = data.master_veo_prompt;
+                    document.getElementById('output-prompt-ja').value = data.director_instruction_ja;
+
+                    // Broadcast to Main Director Cockpit via multi_display.js
+                    multiDisplay.broadcast("AERIAL_FLIGHT_ADD", data);
+
+                    alert(`🛩️ [Gemma 4 並列スウォーム処理完了 - 応答時間: ${data.swarm_latency_ms}ms]\n\n【空撮シーン】: ${data.location_name}\n【高度軌道】: 上空 ${data.flight_metrics.start_altitude_m}m ➔ ${data.flight_metrics.end_altitude_m}m 急降下\n【着地ギミック】: ${data.landing_gimmick.toUpperCase()}\n【交通演出】: ${data.traffic_level.toUpperCase()}\n【群衆エキストラ】: ${data.crowd_level.toUpperCase()}\n\n📡 監督メインコックピット（index.html）のタイムライン先頭（Shot 0）へ空撮クリップを自動同期配備しました！`);
+                } else {
+                    alert('空撮生成に失敗しました: ' + (data.error || '不明なエラー'));
+                }
+            } catch (err) {
+                console.error("Aerial gen error:", err);
+                alert('空撮通信エラーが発生しました。');
+            } finally {
+                if (btn) {
+                    btn.innerHTML = orig;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function copyOutputPrompt(type) {
+            const id = (type === 'prompt-en') ? 'output-prompt-en' : 'output-prompt-ja';
+            const elem = document.getElementById(id);
+            if (elem && elem.value) {
+                navigator.clipboard.writeText(elem.value);
+                alert('クリップボードにコピーしました！');
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initStudio);
+    </script>
+</body>
+</html>

@@ -569,6 +569,9 @@
             <button class="btn-opt" style="background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(168,85,247,0.25)); border-color:var(--accent-cyan); color:#fff; font-weight:800;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.openModal()">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> 🎭 キャスト＆クローゼット制作
             </button>
+            <a href="aerial_studio.html" target="_blank" class="btn-opt" style="background:linear-gradient(135deg, rgba(2,132,199,0.3), rgba(56,189,248,0.25)); border-color:#38bdf8; color:#fff; font-weight:800;">
+                <i class="fa-solid fa-plane-departure"></i> 🛸 3D空撮スタジオ (別タブ)
+            </a>
             <button class="btn-opt" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border:none; padding:6px 12px; font-weight:800;" onclick="triggerDirectVeoCinemaGeneration()">
                 <i class="fa-solid fa-play"></i> 4K試写室シアターで上映
             </button>
@@ -815,8 +818,8 @@
                 <button class="stage-tab-btn" id="tab-btn-map" onclick="switchStageMode('map')">
                     <i class="fa-solid fa-map-marked-alt"></i> 🗺️ ② 全体マップ探索 (Google公式青線 ✕ ペグマン)
                 </button>
-                <button class="stage-tab-btn" id="tab-btn-earth" onclick="switchStageMode('earth')">
-                    <i class="fa-solid fa-earth-asia"></i> 🛸 ③ Google Earth 3D空撮ナビ (Flight Path)
+                <button class="stage-tab-btn" id="tab-btn-earth" onclick="openAerialStudioTab()" title="Google Earth空撮ダイブインスタジオを独立した別タブで開きます">
+                    <i class="fa-solid fa-plane-departure"></i> 🛸 ③ 3D空撮スタジオ (別タブで独立) <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.50rem; margin-left:3px; opacity:0.8;"></i>
                 </button>
                 <div style="margin-left:auto; display:flex; gap:4px;">
                     <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.25); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800;" onclick="executeAlleywaySearch()" title="大通りから離れ、この街の細道・石畳小路・路地裏へ突入">
@@ -889,225 +892,70 @@
 
                 <div id="stage-map-view"></div>
 
-                <!-- 🛸 Stage Google Earth 3D Flight Navigator & Dual-Import Studio -->
-                <div id="stage-earth-view" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:30; background:radial-gradient(ellipse at 50% 30%, #0c1838 0%, #030712 100%); flex-direction:column; overflow-y:auto; padding:16px 20px; box-sizing:border-box;">
-                    
-                    <!-- Studio Header Bar -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.3); border-radius:8px; padding:10px 16px; margin-bottom:12px; backdrop-filter:blur(8px); box-shadow:0 4px 20px rgba(0,0,0,0.5);">
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <div style="width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg, #0284c7, #38bdf8); display:flex; align-items:center; justify-content:center; color:#000; font-size:1.1rem; box-shadow:0 0 15px rgba(56,189,248,0.4);">
-                                <i class="fa-solid fa-plane-departure"></i>
-                            </div>
-                            <div>
-                                <div style="font-size:0.82rem; font-weight:900; color:#fff; letter-spacing:0.5px; display:flex; align-items:center; gap:8px;">
-                                    <span>GOOGLE EARTH 3D 空撮ダイブイン・スタジオ</span>
-                                    <span class="badge" style="background:#0284c7; color:#fff; font-size:0.52rem; padding:2px 6px; border-radius:3px;">Dual Import Engine</span>
-                                </div>
-                                <div style="font-size:0.55rem; color:#94a3b8; margin-top:2px;">
-                                    Google Earthを別ウィンドウで起動し、URLキーフレームまたはフライト録画動画から高空ダイブイン軌道をVeo 3.1プロンプトへ完全自動変換
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:0.52rem; color:#cbd5e1; background:rgba(30,41,59,0.7); border:1px solid rgba(148,163,184,0.2); padding:4px 8px; border-radius:4px;">
-                                💡 <kbd style="background:#0f172a; padding:1px 4px; border-radius:2px; color:#38bdf8;">Ctrl</kbd>+<kbd style="background:#0f172a; padding:1px 4px; border-radius:2px; color:#38bdf8;">Alt</kbd>+<kbd style="background:#0f172a; padding:1px 4px; border-radius:2px; color:#38bdf8;">A</kbd> でフライトシミュレータ起動
-                            </span>
-                            <a id="btn-launch-earth-web" 
-                               href="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r" 
-                               target="_blank" 
-                               style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; border-radius:4px; padding:6px 14px; font-size:0.60rem; font-weight:900; text-decoration:none; display:flex; align-items:center; gap:6px; box-shadow:0 0 15px rgba(56,189,248,0.4); cursor:pointer;">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i> 🌐 Google Earth (3D) を別窓で開く
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Dual Import Method Switcher Tabs -->
-                    <div style="display:flex; gap:8px; margin-bottom:12px;">
-                        <button id="btn-earth-tab-url" class="btn-opt active" style="flex:1; padding:8px 12px; font-size:0.65rem; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:6px; border:1px solid #38bdf8;" onclick="switchEarthImportTab('url')">
-                            <i class="fa-solid fa-route"></i> 📍 方式A: URLキーフレーム入力 (始発点 ➔ 途中点 ➔ 終了点)
-                        </button>
-                        <button id="btn-earth-tab-video" class="btn-opt" style="flex:1; padding:8px 12px; font-size:0.65rem; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:6px; border:1px solid var(--border-dark);" onclick="switchEarthImportTab('video')">
-                            <i class="fa-solid fa-film"></i> ✈️ 方式B: フライト録画動画ドロップ (Ctrl+Alt+A 録画MP4)
-                        </button>
-                    </div>
-
-                    <!-- === MODE A: URL KEYFRAME SECTION === -->
-                    <div id="earth-container-mode-url" style="display:flex; flex-direction:column; gap:10px; flex:1;">
+                <!-- 🛸 Stage Google Earth 3D Aerial Studio Portal Card -->
+                <div id="stage-earth-view" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:30; background:radial-gradient(ellipse at 50% 30%, #0c1a3a 0%, #030712 100%); flex-direction:column; align-items:center; justify-content:center; padding:24px; box-sizing:border-box;">
+                    <div style="max-width:680px; width:100%; background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.4); border-radius:12px; padding:28px 32px; backdrop-filter:blur(12px); box-shadow:0 10px 40px rgba(0,0,0,0.7), 0 0 30px rgba(56,189,248,0.15); text-align:center;">
                         
-                        <!-- Start Point (Origin) Card -->
-                        <div style="background:rgba(15,23,42,0.7); border:1px solid rgba(56,189,248,0.3); border-radius:6px; padding:10px 14px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                <div style="font-size:0.62rem; font-weight:800; color:#38bdf8; display:flex; align-items:center; gap:6px;">
-                                    <span style="background:#0284c7; color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.52rem;">1</span>
-                                    <span>🛫 始発点 (Start Keyframe - 超高空・俯瞰)</span>
-                                </div>
-                                <span id="badge-earth-start-stats" class="badge" style="background:rgba(2,132,199,0.25); color:#38bdf8; border:1px solid #0284c7; font-size:0.52rem; padding:2px 8px; font-weight:800;">高度: 355m | 距離: 887m | チルト: 67.4° | 方位: 177.7°</span>
-                            </div>
-                            <div style="display:flex; gap:6px;">
-                                <input type="text" id="input-earth-start-url" 
-                                       value="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r"
-                                       placeholder="Google Earthで超高空(300m~1000m)のURLをコピーして貼り付け..." 
-                                       style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:4px; font-size:0.55rem; padding:6px 10px;"
-                                       onchange="handleEarthUrlInputChange('start')">
-                                <button class="btn-opt" style="padding:4px 10px; font-size:0.55rem;" onclick="parseSingleEarthKeyframe('start')">即時解析</button>
-                            </div>
+                        <!-- Icon & Title -->
+                        <div style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:16px; background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; font-size:1.8rem; box-shadow:0 0 25px rgba(56,189,248,0.5); margin-bottom:16px;">
+                            <i class="fa-solid fa-plane-departure"></i>
                         </div>
+                        
+                        <h2 style="font-size:1.15rem; font-weight:900; color:#fff; letter-spacing:1px; margin:0 0 8px 0;">
+                            🛸 GOOGLE EARTH 3D 空撮ダイブイン・スタジオ
+                        </h2>
+                        
+                        <p style="font-size:0.68rem; color:#94a3b8; line-height:1.6; margin:0 0 20px 0;">
+                            空撮スタジオは大画面・マルチディスプレイでの快適な撮影設計のため、<br>
+                            <span style="color:#38bdf8; font-weight:800;">「独立した専用別タブ（Wing Studio）」</span>として起動・運用されます。<br>
+                            生成された超高空ダイブインショット（Shot 0）は、メインコックピットのタイムライン先頭へ即座に自動同期配備されます。
+                        </p>
 
-                        <!-- Intermediate Waypoints (Middle Flight Paths) -->
-                        <div style="background:rgba(15,23,42,0.7); border:1px solid rgba(148,163,184,0.25); border-radius:6px; padding:10px 14px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <div style="font-size:0.62rem; font-weight:800; color:#e2e8f0; display:flex; align-items:center; gap:6px;">
-                                    <span style="background:#475569; color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.52rem;">2</span>
-                                    <span>🛬 途中点 (Waypoints - スプライン中継・スキップ可)</span>
-                                </div>
-                                <button class="btn-opt" style="background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8; font-size:0.55rem; font-weight:800; padding:3px 10px;" onclick="addIntermediateWaypointRow()">
-                                    <i class="fa-solid fa-plus"></i> ＋途中点を追加
-                                </button>
-                            </div>
-                            
-                            <!-- Dynamic Waypoint Items List -->
-                            <div id="earth-intermediate-waypoints-list" style="display:flex; flex-direction:column; gap:6px;">
-                                <!-- Dynamically populated -->
-                            </div>
-                        </div>
-
-                        <!-- Landing Keyframe (Ground Hero Point) -->
-                        <div style="background:rgba(15,23,42,0.7); border:1px solid rgba(245,158,11,0.3); border-radius:6px; padding:10px 14px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                <div style="font-size:0.62rem; font-weight:800; color:var(--accent-gold); display:flex; align-items:center; gap:6px;">
-                                    <span style="background:#f59e0b; color:#000; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:0.52rem; font-weight:900;">3</span>
-                                    <span>🎯 終了点 (Landing Keyframe - 地上主人公位置・着地地点)</span>
-                                </div>
-                                <span id="badge-earth-end-stats" class="badge" style="background:rgba(245,158,11,0.2); color:#f59e0b; border:1px solid #f59e0b; font-size:0.52rem; padding:2px 8px; font-weight:800;">高度: 48m | 距離: 114m | チルト: 67.4° | 方位: 177.7°</span>
-                            </div>
-                            <div style="display:flex; gap:6px;">
-                                <input type="text" id="input-earth-end-url" 
-                                       value="https://earth.google.com/web/@34.69463142,135.50123707,3.64617279a,114.21693824d,35y,177.74031514h,67.38356771t,-0r"
-                                       placeholder="Google Earthで地上近く(10m~50m)の主人公着地視点URLを貼り付け..." 
-                                       style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:4px; font-size:0.55rem; padding:6px 10px;"
-                                       onchange="handleEarthUrlInputChange('end')">
-                                <button class="btn-opt" style="padding:4px 10px; font-size:0.55rem;" onclick="parseSingleEarthKeyframe('end')">即時解析</button>
-                            </div>
-                        </div>
-
-                        <!-- 3D Flight Path Telemetry Banner -->
-                        <div style="background:#070a14; border:1px dashed #38bdf8; border-radius:6px; padding:8px 14px; display:flex; align-items:center; justify-content:space-between;">
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span style="font-size:0.55rem; color:#38bdf8; font-weight:800;"><i class="fa-solid fa-chart-line"></i> 軌道プレビュー:</span>
-                                <div id="earth-flight-trajectory-pill-chain" style="display:flex; align-items:center; gap:6px;">
-                                    <!-- Dynamic pills -->
-                                </div>
-                            </div>
-                            <span id="earth-telemetry-descent-rate" style="font-size:0.55rem; color:#facc15; font-weight:800;">
-                                降下速度: ~55.8 m/s (超高層ビル街ダイブ)
+                        <!-- Features Badges -->
+                        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:24px; flex-wrap:wrap;">
+                            <span style="background:rgba(2,132,199,0.2); border:1px solid #0284c7; color:#38bdf8; font-size:0.58rem; padding:4px 10px; border-radius:6px; font-weight:700;">
+                                📍 方式A: URLキーフレーム入力 (始発・途中・着地)
+                            </span>
+                            <span style="background:rgba(168,85,247,0.2); border:1px solid #a855f7; color:#c084fc; font-size:0.58rem; padding:4px 10px; border-radius:6px; font-weight:700;">
+                                ✈️ 方式B: フライト録画動画ドロップ (Ctrl+Alt+A)
+                            </span>
+                            <span style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fbbf24; font-size:0.58rem; padding:4px 10px; border-radius:6px; font-weight:700;">
+                                ⚡ Gemma 4 スウォーム 4並列高速演算
                             </span>
                         </div>
-                    </div>
 
-                    <!-- === MODE B: FLIGHT SIMULATOR VIDEO DROP SECTION === -->
-                    <div id="earth-container-mode-video" style="display:none; flex-direction:column; gap:10px; flex:1;">
-                        <div id="earth-video-drop-zone" 
-                             style="background:rgba(15,23,42,0.6); border:2px dashed #38bdf8; border-radius:8px; padding:24px 20px; text-align:center; cursor:pointer; transition:all 0.2s;"
-                             onclick="document.getElementById('input-earth-video-file').click()"
-                             ondragover="handleVideoDragOver(event)"
-                             ondragleave="handleVideoDragLeave(event)"
-                             ondrop="handleVideoDrop(event)">
+                        <!-- Main Action Buttons -->
+                        <div style="display:flex; flex-direction:column; gap:12px; align-items:center; margin-bottom:20px;">
+                            <button onclick="openAerialStudioTab()" 
+                                    style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; font-size:0.82rem; font-weight:900; padding:12px 28px; border:none; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:10px; box-shadow:0 0 25px rgba(56,189,248,0.6); transition:transform 0.2s;"
+                                    onmouseover="this.style.transform='scale(1.03)'" 
+                                    onmouseout="this.style.transform='scale(1)'">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i> 🚀 3D空撮スタジオを別タブで開く (別画面で起動)
+                            </button>
                             
-                            <input type="file" id="input-earth-video-file" accept="video/mp4,video/webm" style="display:none;" onchange="handleVideoFileSelect(event)">
-                            
-                            <div style="font-size:2.2rem; color:#38bdf8; margin-bottom:8px;">
-                                <i class="fa-solid fa-cloud-arrow-up"></i>
-                            </div>
-                            <div style="font-size:0.75rem; font-weight:800; color:#fff; margin-bottom:4px;">
-                                ✈️ Google Earth フライトシミュレータ録画動画をここにドロップ
-                            </div>
-                            <div style="font-size:0.55rem; color:#94a3b8; max-width:550px; margin:0 auto 12px; line-height:1.4;">
-                                Google Earth上で <kbd style="background:#1e293b; padding:1px 5px; border-radius:2px; color:#38bdf8;">Ctrl+Alt+A</kbd> でフライトシミュレータを起動し、Windows+Alt+R等で録画した動画（MP4/WebM）を投入してください。高度変化・滑空角・カメラワークを自動検出します。
-                            </div>
-                            <div style="display:flex; justify-content:center; gap:8px;">
-                                <button class="btn-opt" style="background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#38bdf8; font-size:0.58rem; font-weight:800; padding:6px 14px;" onclick="event.stopPropagation(); document.getElementById('input-earth-video-file').click();">
-                                    📁 動画ファイルを選択
+                            <div style="display:flex; gap:10px;">
+                                <a href="https://earth.google.com/web/@34.69402084,135.50779158,14.0631779a,887.4508103d,35y,177.74049046h,67.38998674t,360r" 
+                                   target="_blank" 
+                                   style="background:rgba(30,41,59,0.8); border:1px solid rgba(148,163,184,0.3); color:#cbd5e1; border-radius:6px; padding:8px 16px; font-size:0.62rem; font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                                    <i class="fa-solid fa-globe"></i> 🌐 Google Earth (Web 3D) を開く
+                                </a>
+                                <button onclick="switchStageMode('streetview')" 
+                                        style="background:rgba(30,41,59,0.8); border:1px solid rgba(148,163,184,0.3); color:#cbd5e1; border-radius:6px; padding:8px 16px; font-size:0.62rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-street-view"></i> 🌐 360°実写ストリートビューに戻る
                                 </button>
-                                <button class="btn-opt" style="background:rgba(245,158,11,0.2); border-color:var(--accent-gold); color:var(--accent-gold); font-size:0.58rem; font-weight:800; padding:6px 14px;" onclick="event.stopPropagation(); loadSampleFlightVideo();">
-                                    🎬 サンプル飛行動画 (ドローン4K空撮) をロード
+                                <button onclick="switchStageMode('map')" 
+                                        style="background:rgba(30,41,59,0.8); border:1px solid rgba(148,163,184,0.3); color:#cbd5e1; border-radius:6px; padding:8px 16px; font-size:0.62rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                                    <i class="fa-solid fa-map-marked-alt"></i> 🗺️ 全体マップに戻る
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Video Preview Player & Detected Telemetry Card -->
-                        <div id="earth-video-preview-wrapper" style="display:none; background:rgba(15,23,42,0.8); border:1px solid rgba(56,189,248,0.3); border-radius:8px; padding:12px; gap:12px; align-items:center;">
-                            <div style="width:260px; height:146px; background:#000; border-radius:6px; overflow:hidden; position:relative;">
-                                <video id="earth-flight-video-elem" style="width:100%; height:100%; object-fit:cover;" autoplay loop muted playsinline></video>
-                                <div style="position:absolute; top:6px; left:6px; background:rgba(0,0,0,0.8); color:#38bdf8; font-size:0.48rem; padding:2px 6px; border-radius:3px; font-weight:800;">
-                                    📹 FLIGHT PLAYBACK
-                                </div>
-                            </div>
-                            <div style="flex:1;">
-                                <div style="font-size:0.65rem; font-weight:800; color:#38bdf8; margin-bottom:4px;" id="earth-video-name-label">
-                                    cyberpunk_tokyo_drone_4k_sample.mp4
-                                </div>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.52rem; color:#cbd5e1; margin-bottom:8px;">
-                                    <div style="background:#070a14; padding:4px 8px; border-radius:3px;">
-                                        ⏱️ 飛行時間: <span id="earth-video-duration-val" style="color:#fff; font-weight:800;">6.0 秒</span>
-                                    </div>
-                                    <div style="background:#070a14; padding:4px 8px; border-radius:3px;">
-                                        📉 推定降下高度: <span id="earth-video-alt-val" style="color:#facc15; font-weight:800;">650m ➔ 48m</span>
-                                    </div>
-                                    <div style="background:#070a14; padding:4px 8px; border-radius:3px;">
-                                        ⚡ 降下レート: <span id="earth-video-rate-val" style="color:#38bdf8; font-weight:800;">100.3 m/s</span>
-                                    </div>
-                                    <div style="background:#070a14; padding:4px 8px; border-radius:3px;">
-                                        🎮 操縦モデル: <span style="color:#4ade80; font-weight:800;">Google Earth Flight Sim</span>
-                                    </div>
-                                </div>
-                                <div style="font-size:0.52rem; color:#94a3b8;" id="earth-video-status-msg">
-                                    ✅ カメラモーション抽出完了。この飛行軌道からVeo 3.1空撮プロンプトを合成できます。
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Bottom Studio Control & Action Dock (Fixed at Bottom) -->
-                    <div style="margin-top:auto; background:rgba(15,23,42,0.95); border:1px solid #38bdf8; border-radius:8px; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:10px; box-shadow:0 0 25px rgba(0,0,0,0.8);">
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <label style="font-size:0.55rem; color:var(--accent-gold); font-weight:800;"><i class="fa-solid fa-bullseye"></i> 🎬 着地ギミック:</label>
-                                <select id="select-landing-gimmick" style="background:#0d1117; color:#fff; border:1px solid var(--accent-gold); border-radius:4px; font-size:0.55rem; padding:4px 8px;">
-                                    <option value="hero_face_close_up">🎯 主人公の正面へ急制動・アップ (Hero Push-in)</option>
-                                    <option value="over_the_shoulder">🕵️ 主人公の背後から肩越しへ回り込み (Over-the-Shoulder)</option>
-                                    <option value="orbit_360">🔄 360度旋回ランディング (360° Dynamic Orbit)</option>
-                                    <option value="low_angle_tilt_up">📐 地面スレスレ滑空から足元見上げ (Low-Angle Tilt-up)</option>
-                                </select>
-                            </div>
-
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <label style="font-size:0.55rem; color:#38bdf8; font-weight:800;"><i class="fa-solid fa-car"></i> 🚗 交通:</label>
-                                <select id="select-studio-traffic" style="background:#0d1117; color:#fbbf24; border:1px solid var(--border-dark); border-radius:4px; font-size:0.55rem; padding:4px 6px;" onchange="syncStudioTrafficCrowd('traffic')">
-                                    <option value="rush_hour">🔴 ラッシュアワー</option>
-                                    <option value="medium" selected>🟡 標準交通流</option>
-                                    <option value="light">🟢 閑散・早朝</option>
-                                </select>
-                            </div>
-
-                            <div style="display:flex; align-items:center; gap:4px;">
-                                <label style="font-size:0.55rem; color:#a855f7; font-weight:800;"><i class="fa-solid fa-users"></i> 👥 群衆:</label>
-                                <select id="select-studio-crowd" style="background:#0d1117; color:#38bdf8; border:1px solid var(--border-dark); border-radius:4px; font-size:0.55rem; padding:4px 6px;" onchange="syncStudioTrafficCrowd('crowd')">
-                                    <option value="dense">🏢 繁華街・過密</option>
-                                    <option value="medium" selected>🚶 通常人通り</option>
-                                    <option value="none">🧱 無人群衆</option>
-                                </select>
-                            </div>
+                        <!-- Sync Status Indicator -->
+                        <div style="font-size:0.56rem; color:#10b981; display:flex; align-items:center; justify-content:center; gap:6px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); border-radius:4px; padding:6px 12px;">
+                            <i class="fa-solid fa-circle-nodes"></i> 📡 W3C BroadcastChannel 同期中: 別タブで生成された空撮ショット（Shot 0）は自動的にタイムライン最前列へ挿入されます
                         </div>
 
-                        <button id="btn-studio-generate-aerial" 
-                                class="btn-opt" 
-                                style="background:linear-gradient(135deg, #0284c7, #38bdf8); color:#000; font-size:0.65rem; font-weight:900; padding:8px 18px; border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 0 15px rgba(56,189,248,0.5);"
-                                onclick="executeAerialFlightGeneration()">
-                            <i class="fa-solid fa-plane-arrival"></i> 🚀 3D空撮ダイブイン生成 ➔ タイムライン先頭へ配備
-                        </button>
                     </div>
-
                 </div>
 
                 <div id="map-zoom-banner">
@@ -2865,6 +2713,54 @@
             console.log("🏛️ [MultiDisplay] PROP_SYNC received from Asset Studio:", propPayload);
             updatePrompts();
         };
+
+        // 🛸 Multi-Display Wing Studio: 3D Aerial Flight Sync Handler
+        window.onMultiDisplayAerialFlightAdd = (data) => {
+            console.log("🛸 [MultiDisplay] AERIAL_FLIGHT_ADD received from Wing Studio:", data);
+            if (!data) return;
+
+            // Update Right Panel Prompts
+            const txtEn = document.getElementById('ai-prompt-en');
+            const txtJa = document.getElementById('ai-prompt-ja');
+            if (txtEn && data.master_veo_prompt) txtEn.value = data.master_veo_prompt;
+            if (txtJa && data.director_instruction_ja) txtJa.value = data.director_instruction_ja;
+
+            // Insert into 5-Track Timeline Video Track as Shot 0 (Opening Establishing Shot)
+            if (window.TimelineEditorEngine) {
+                const duration = (data.flight_metrics && data.flight_metrics.flight_duration_s) || 5.5;
+                const clip = {
+                    id: `clip_aerial_${Date.now()}`,
+                    name: `🛸 Shot 0: ${data.location_name || '超高空ダイブイン'} (${(data.flight_metrics && data.flight_metrics.start_altitude_m) || 355}m➔${(data.flight_metrics && data.flight_metrics.end_altitude_m) || 48}m)`,
+                    durationSec: duration,
+                    type: 'video',
+                    color: 'linear-gradient(90deg, #0284c7, #38bdf8)'
+                };
+                window.TimelineEditorEngine.tracks.video.unshift(clip);
+                renderTimelineTracks();
+            }
+
+            const statusMsg = document.getElementById('stage-status-msg');
+            if (statusMsg) {
+                statusMsg.innerHTML = `🛸 <span style="color:#38bdf8; font-weight:800;">[別タブ連携] 3D空撮ダイブイン（Shot 0）を受信し、タイムライン先頭へ自動配備しました！</span>`;
+            }
+
+            const hud = document.getElementById('hud-location-title');
+            if (hud) {
+                const origHud = hud.textContent;
+                hud.textContent = `🛸 [Shot 0 空撮配備]: ${data.location_name || "ダイブイン"}`;
+                hud.style.color = '#38bdf8';
+                setTimeout(() => { hud.textContent = origHud; hud.style.color = ''; }, 4000);
+            }
+        };
+
+        function openAerialStudioTab() {
+            switchStageMode('earth');
+            const win = window.open('aerial_studio.html', 'GENESIS_AERIAL_STUDIO_WING', 'width=1400,height=880,left=80,top=40');
+            if (win) {
+                win.focus();
+            }
+        }
+
 
         /**
          * 🛩️ Google Earth 3D Aerial Flight & Gemma 4 Swarm Engine
