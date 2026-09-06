@@ -18,6 +18,10 @@ DIRECTORY = r'G:\マイドライブ\GENESIS_ROOT\GENESIS_CINEMA_STUDIO'
 VAULT_FILE = os.path.join(DIRECTORY, 'locations_vault.json')
 PROPS_VAULT_FILE = os.path.join(DIRECTORY, 'props_vault.json')
 SCENES_VAULT_FILE = os.path.join(DIRECTORY, 'scenes_vault.json')
+MEDIA_VAULT_FILE = os.path.join(DIRECTORY, 'media_vault.json')
+MEDIA_UPLOAD_DIR = os.path.join(DIRECTORY, 'media_vault_uploads')
+if not os.path.exists(MEDIA_UPLOAD_DIR):
+    os.makedirs(MEDIA_UPLOAD_DIR, exist_ok=True)
 
 # Initialize Character Matting & 4-View Engine
 ROOT_DIR = os.path.dirname(DIRECTORY)
@@ -238,6 +242,183 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # 3. 📂 Location Vault List Endpoint
+                # 🏛️ Digital Asset Management: Media Vault Master Aggregator
+        elif parsed.path == '/api/media_vault':
+            all_assets = []
+
+            # 1. Cast & Characters (from characters/characters_vault.json)
+            char_vault_path = os.path.join(DIRECTORY, 'characters', 'characters_vault.json')
+            if os.path.exists(char_vault_path):
+                try:
+                    with open(char_vault_path, 'r', encoding='utf-8') as f:
+                        chars = json.load(f)
+                    for c in chars:
+                        views = c.get('views', {})
+                        all_assets.append({
+                            'id': f"char_{c.get('id', '')}",
+                            'category': 'cast',
+                            'category_name': '👤 キャスト・人物',
+                            'title': c.get('name', '未登録キャスト'),
+                            'subtitle': f"{c.get('name_en', '')} ({c.get('age', 20)}歳 / {c.get('height_m', 1.7)}m)",
+                            'thumbnail': views.get('front', '/characters/test_ren_e2e/front.png'),
+                            'views': views,
+                            'tags': c.get('costume_tags', []) + [c.get('gender', '')],
+                            'created_at': c.get('created_at', ''),
+                            'source_studio': 'asset_studio.html',
+                            'metadata': {
+                                'voice': c.get('voice_profile', ''),
+                                'build': c.get('build', '')
+                            }
+                        })
+                except Exception as e:
+                    print("Error reading char vault:", e)
+
+            # 2. Costumes & Props & Vehicles (from props_vault.json)
+            if os.path.exists(PROPS_VAULT_FILE):
+                try:
+                    with open(PROPS_VAULT_FILE, 'r', encoding='utf-8') as f:
+                        pv = json.load(f)
+                    # Costumes
+                    for item in pv.get('costumes', []):
+                        all_assets.append({
+                            'id': f"costume_{item.get('id', '')}",
+                            'category': 'costume',
+                            'category_name': '👘 衣装・クローゼット',
+                            'title': item.get('name', '衣装'),
+                            'subtitle': item.get('category', 'コスチューム'),
+                            'thumbnail': item.get('texture_url', item.get('image_url', 'https://images.unsplash.com/photo-1544441893-675973e31985?w=500&q=80')),
+                            'tags': item.get('tags', []) + ['衣装', 'ECテクスチャ'],
+                            'created_at': item.get('created_at', '2026-09-06'),
+                            'source_studio': 'asset_studio.html',
+                            'metadata': item
+                        })
+                    # Props
+                    for item in pv.get('props', []):
+                        all_assets.append({
+                            'id': f"prop_{item.get('id', '')}",
+                            'category': 'prop',
+                            'category_name': '🗡️ 小道具 (Props)',
+                            'title': item.get('name', '小道具'),
+                            'subtitle': item.get('category', 'プロップアイテム'),
+                            'thumbnail': item.get('image_url', 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&q=80'),
+                            'tags': item.get('tags', []) + ['小道具', '透過PNG'],
+                            'created_at': item.get('created_at', '2026-09-06'),
+                            'source_studio': 'asset_studio.html',
+                            'metadata': item
+                        })
+                    # Vehicles
+                    for item in pv.get('vehicles', []):
+                        all_assets.append({
+                            'id': f"veh_{item.get('id', '')}",
+                            'category': 'vehicle',
+                            'category_name': '🚌 大道具・車両',
+                            'title': item.get('name', '車両'),
+                            'subtitle': item.get('pattern_type', '大道具'),
+                            'thumbnail': item.get('image_url', 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=500&q=80'),
+                            'tags': item.get('tags', []) + ['車両', 'ラッピング'],
+                            'created_at': item.get('created_at', '2026-09-06'),
+                            'source_studio': 'asset_studio.html',
+                            'metadata': item
+                        })
+                except Exception as e:
+                    print("Error reading props vault:", e)
+
+            # 3. Locations & Scouting Snaps (from locations_vault.json)
+            if os.path.exists(VAULT_FILE):
+                try:
+                    with open(VAULT_FILE, 'r', encoding='utf-8') as f:
+                        locs = json.load(f)
+                    for loc in locs:
+                        all_assets.append({
+                            'id': f"loc_{loc.get('id', '')}",
+                            'category': 'location',
+                            'category_name': '🌐 ロケハンスナップ',
+                            'title': loc.get('name', '登録ロケ地'),
+                            'subtitle': f"GPS: {loc.get('lat', 0):.4f}, {loc.get('lng', 0):.4f} (方位: {loc.get('heading', 0)}°)",
+                            'thumbnail': f"https://maps.googleapis.com/maps/api/streetview?size=600x400&location={loc.get('lat', 35.7111)},{loc.get('lng', 139.7963)}&heading={loc.get('heading', 180)}&pitch=0&fov=80&key={API_KEY}",
+                            'tags': loc.get('tags', []) + ['360°実写', 'ストリートビュー'],
+                            'created_at': loc.get('created_at', '2026-09-06'),
+                            'source_studio': 'index.html',
+                            'metadata': loc
+                        })
+                except Exception as e:
+                    print("Error reading locations vault:", e)
+
+            # 4. Aerial Dive-in Keyframes & Flight Snaps
+            aerial_presets = [
+                {
+                    'id': 'aerial_osaka_dive',
+                    'category': 'aerial',
+                    'category_name': '🛸 空撮キーフレーム',
+                    'title': '大阪中之島 355m➔48m 超高空ダイブイン',
+                    'subtitle': 'Google Earth 3D 空撮軌道 (急降下速度 55.8m/s / 200km/h)',
+                    'thumbnail': 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=600&q=80',
+                    'tags': ['GoogleEarth', 'ダイブイン', '大阪中之島', '355m高空'],
+                    'created_at': '2026-09-06',
+                    'source_studio': 'aerial_studio.html',
+                    'metadata': {'start_alt': 355, 'end_alt': 48, 'descent_rate': 55.8}
+                },
+                {
+                    'id': 'aerial_shinjuku_glide',
+                    'category': 'aerial',
+                    'category_name': '🛸 空撮キーフレーム',
+                    'title': '新宿副都心 420m➔50m 超高層滑空ショット',
+                    'subtitle': 'Google Earth 3D 空撮軌道 (都庁ビル群すり抜け)',
+                    'thumbnail': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80',
+                    'tags': ['GoogleEarth', '新宿副都心', '滑空', 'ビル群'],
+                    'created_at': '2026-09-06',
+                    'source_studio': 'aerial_studio.html',
+                    'metadata': {'start_alt': 420, 'end_alt': 50, 'descent_rate': 45.0}
+                }
+            ]
+            all_assets.extend(aerial_presets)
+
+            # 5. Video Footages (Shot Bin)
+            footage_presets = [
+                {
+                    'id': 'footage_shot1_omotesando',
+                    'category': 'footage',
+                    'category_name': '🎬 生成動画フッテージ',
+                    'title': 'Shot 1: 表参道並木道・正面シネマドリー',
+                    'subtitle': 'Veo 3.1 4K 60fps / 5.0秒 / 40m前進トラッキング',
+                    'thumbnail': 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=600&q=80',
+                    'tags': ['Veo3.1', '4K', 'ドリー', '表参道'],
+                    'created_at': '2026-09-06',
+                    'source_studio': 'cast_footage_studio.html',
+                    'metadata': {'duration': 5.0, 'fps': 60, 'resolution': '4K'}
+                },
+                {
+                    'id': 'footage_shot2_sensoji',
+                    'category': 'footage',
+                    'category_name': '🎬 生成動画フッテージ',
+                    'title': 'Shot 2: 浅草寺雷門・夕焼けクレーン降下',
+                    'subtitle': 'Veo 3.1 4K 60fps / 4.5秒 / 夕焼け3000Kライティング',
+                    'thumbnail': 'https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=600&q=80',
+                    'tags': ['Veo3.1', '4K', '浅草寺', '夕焼け'],
+                    'created_at': '2026-09-06',
+                    'source_studio': 'cast_footage_studio.html',
+                    'metadata': {'duration': 4.5, 'fps': 60, 'resolution': '4K'}
+                }
+            ]
+            all_assets.extend(footage_presets)
+
+            # 6. Custom Uploaded Assets in media_vault.json
+            if os.path.exists(MEDIA_VAULT_FILE):
+                try:
+                    with open(MEDIA_VAULT_FILE, 'r', encoding='utf-8') as f:
+                        custom_items = json.load(f)
+                    if isinstance(custom_items, list):
+                        all_assets.extend(custom_items)
+                except Exception as e:
+                    print("Error reading custom media vault:", e)
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True, 'count': len(all_assets), 'assets': all_assets}, ensure_ascii=False).encode('utf-8'))
+            return
+
         elif parsed.path == '/api/locations':
             if os.path.exists(VAULT_FILE):
                 with open(VAULT_FILE, 'r', encoding='utf-8') as f:

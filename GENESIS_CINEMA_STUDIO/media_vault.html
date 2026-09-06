@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS MEDIA VAULT - 総合メディア保管庫・デジタルアセットマネジメント (DAM)</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-panel: #090d1a;
+            --bg-card: #0e1526;
+            --border-dark: #1e293b;
+            --border-glow: rgba(0, 242, 254, 0.4);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Header */
+        .studio-header {
+            height: 48px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        .studio-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            font-size: 0.95rem;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Top Filter & Search Bar */
+        .filter-bar {
+            background: rgba(15, 23, 42, 0.85);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+        }
+        .cat-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-dark);
+            color: var(--text-muted);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .cat-btn:hover {
+            border-color: var(--accent-cyan);
+            color: #fff;
+            background: rgba(0, 242, 254, 0.08);
+        }
+        .cat-btn.active {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.18);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+        }
+
+        /* Asset Grid Area */
+        .vault-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 14px;
+            align-content: start;
+            background: radial-gradient(ellipse at 50% 10%, #0c1838 0%, #030712 100%);
+        }
+
+        /* Asset Card */
+        .asset-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .asset-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.2);
+        }
+
+        .asset-thumb-wrap {
+            width: 100%;
+            height: 160px;
+            background: repeating-conic-gradient(#111827 0% 25%, #0f172a 0% 50%) 50% / 16px 16px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .asset-thumb {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
+            transition: transform 0.3s ease;
+        }
+        .asset-card:hover .asset-thumb {
+            transform: scale(1.05);
+        }
+
+        .asset-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 0.52rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .asset-info {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+        .asset-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .asset-subtitle {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .asset-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .tag-pill {
+            font-size: 0.48rem;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .asset-actions {
+            padding: 8px 10px;
+            background: rgba(10, 15, 30, 0.9);
+            border-top: 1px solid var(--border-dark);
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-action {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .btn-action:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.12);
+        }
+
+        /* Modal Preview */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .modal-content {
+            background: #090d1a;
+            border: 1px solid rgba(0, 242, 254, 0.4);
+            border-radius: 10px;
+            width: 900px;
+            max-width: 95vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 242, 254, 0.25);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header -->
+    <header class="studio-header">
+        <div class="studio-brand">
+            <i class="fa-solid fa-vault" style="color:var(--accent-gold);"></i>
+            <span>GENESIS MEDIA VAULT</span>
+            <span style="font-size:0.52rem; background:rgba(245,158,11,0.15); color:var(--accent-gold); border:1px solid rgba(245,158,11,0.3); padding:2px 8px; border-radius:4px; font-weight:800;">
+                中央デジタルアセット管理 (DAM)
+            </span>
+        </div>
+
+        <!-- HUD Statistics -->
+        <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:0.58rem; color:#10b981; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:4px; font-weight:700;">
+                <i class="fa-solid fa-database"></i> 保管中アセット: <strong id="hud-total-assets" style="color:#fff;">--</strong> 件
+            </span>
+            <span style="font-size:0.58rem; color:#38bdf8; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); padding:3px 10px; border-radius:4px; font-weight:700;">
+                <i class="fa-solid fa-circle-nodes"></i> 全スタジオ即時自動同期
+            </span>
+        </div>
+
+        <!-- Wing Studio Links -->
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button class="cat-btn" style="border-color:var(--accent-cyan); color:var(--accent-cyan);" onclick="window.open('index.html', '_blank')">
+                <i class="fa-solid fa-clapperboard"></i> 🎬 監督メインコックピット
+            </button>
+            <button class="cat-btn" style="border-color:#38bdf8; color:#38bdf8;" onclick="window.open('cast_footage_studio.html', 'GENESIS_CAST_FOOTAGE_WING')">
+                <i class="fa-solid fa-users-viewfinder"></i> 👥 キャスト＆フッテージ
+            </button>
+            <button class="cat-btn" style="border-color:var(--accent-gold); color:var(--accent-gold);" onclick="window.open('aerial_studio.html', 'GENESIS_AERIAL_STUDIO_WING')">
+                <i class="fa-solid fa-plane-departure"></i> 🛸 3D空撮スタジオ
+            </button>
+            <button class="cat-btn" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border:none; padding:5px 14px;" onclick="window.open('video_player.html', 'GENESIS_THEATER_WING')">
+                <i class="fa-solid fa-play"></i> ▶ 4Kシアター
+            </button>
+        </div>
+    </header>
+
+    <!-- Filter & Search Controls Bar -->
+    <div class="filter-bar">
+        <div class="category-tabs">
+            <button class="cat-btn active" onclick="filterCategory('all', this)"><i class="fa-solid fa-border-all"></i> ⭐ すべて (<span id="count-all">0</span>)</button>
+            <button class="cat-btn" onclick="filterCategory('cast', this)"><i class="fa-solid fa-user-ninja"></i> 👤 キャスト・人物 (<span id="count-cast">0</span>)</button>
+            <button class="cat-btn" onclick="filterCategory('costume', this)"><i class="fa-solid fa-shirt"></i> 👘 衣装・クローゼット (<span id="count-costume">0</span>)</button>
+            <button class="cat-btn" onclick="filterCategory('prop', this)"><i class="fa-solid fa-hand-holding"></i> 🗡️ 小道具・Props (<span id="count-prop">0</span>)</button>
+            <button class="cat-btn" onclick="filterCategory('vehicle', this)"><i class="fa-solid fa-bus"></i> 🚌 大道具・車両 (<span id="count-vehicle">0</span>)</button>
+            <button class="cat-btn" onclick="filterCategory('location', this)"><i class="fa-solid fa-globe"></i> 🌐 ロケハンスナップ (<span id="count-location">0</span>)</button>
+            <button class="cat-btn" onclick="filterCategory('aerial', this)"><i class="fa-solid fa-helicopter"></i> 🛸 空撮キーフレーム (<span id="count-aerial">0</span>)</button>
+            <button class="cat-btn" onclick="filterCategory('footage', this)"><i class="fa-solid fa-film"></i> 🎬 生成フッテージ (<span id="count-footage">0</span>)</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="position:relative; width:220px;">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:0.55rem; color:#64748b;"></i>
+                <input type="text" id="input-search" placeholder="アセット名・タグ検索..." oninput="handleSearch(this.value)" style="width:100%; background:#050811; border:1px solid var(--border-dark); border-radius:20px; padding:4px 10px 4px 24px; font-size:0.58rem; color:#fff;">
+            </div>
+            <button class="cat-btn" style="background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="openUploadModal()">
+                <i class="fa-solid fa-cloud-arrow-up"></i> ＋ 新規アセット追加
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Vault Grid -->
+    <main class="vault-main" id="vault-asset-grid">
+        <!-- Asset Cards injected dynamically -->
+    </main>
+
+    <!-- Detail Preview Modal -->
+    <div class="modal-overlay" id="preview-modal" onclick="closePreviewModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="height:40px; background:#0e1526; border-bottom:1px solid var(--border-dark); padding:0 16px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-size:0.75rem; font-weight:800; color:var(--accent-cyan);" id="modal-title">アセット詳細</div>
+                <button onclick="closePreviewModal()" style="background:none; border:none; color:#94a3b8; font-size:0.9rem; cursor:pointer;">✕</button>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 340px; flex:1; overflow:hidden;">
+                <!-- Left: Preview Canvas / Image -->
+                <div style="background:repeating-conic-gradient(#111827 0% 25%, #0f172a 0% 50%) 50% / 20px 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; position:relative;">
+                    <img id="modal-img" src="" alt="Preview" style="max-height:360px; max-width:90%; object-fit:contain; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.8));">
+                    
+                    <!-- 4-Aspect Tab Selector (for Characters) -->
+                    <div id="modal-aspect-tabs" style="display:none; gap:6px; margin-top:12px;">
+                        <button class="cat-btn active" onclick="switchModalAspect('front', this)">正面 (Front)</button>
+                        <button class="cat-btn" onclick="switchModalAspect('right', this)">右側面 (Right)</button>
+                        <button class="cat-btn" onclick="switchModalAspect('back', this)">背面 (Back)</button>
+                        <button class="cat-btn" onclick="switchModalAspect('left', this)">左側面 (Left)</button>
+                    </div>
+                </div>
+
+                <!-- Right: Metadata & Actions -->
+                <div style="background:#090d1a; border-left:1px solid var(--border-dark); padding:16px; display:flex; flex-direction:column; gap:10px; overflow-y:auto;">
+                    <div>
+                        <span class="asset-badge" id="modal-category-badge" style="position:static; display:inline-block; margin-bottom:4px;">カテゴリ</span>
+                        <h3 style="font-size:0.9rem; color:#fff;" id="modal-asset-name">アセット名称</h3>
+                        <div style="font-size:0.60rem; color:var(--text-muted); margin-top:2px;" id="modal-asset-subtitle">サブタイトル</div>
+                    </div>
+
+                    <div style="background:#050811; border:1px solid var(--border-dark); border-radius:6px; padding:10px; font-size:0.58rem; color:#cbd5e1; display:flex; flex-direction:column; gap:4px;">
+                        <div><strong>作成日:</strong> <span id="modal-meta-created">--</span></div>
+                        <div><strong>提供元スタジオ:</strong> <span id="modal-meta-source" style="color:var(--accent-cyan);">--</span></div>
+                        <div><strong>ID:</strong> <span id="modal-meta-id" style="font-family:'Fira Code';">--</span></div>
+                    </div>
+
+                    <div>
+                        <div style="font-size:0.60rem; font-weight:700; color:var(--accent-gold); margin-bottom:4px;">タグ・プロファイル:</div>
+                        <div class="asset-tags" id="modal-tags"></div>
+                    </div>
+
+                    <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+                        <button class="cat-btn" style="background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:900; padding:10px; justify-content:center; border:none;" onclick="dispatchModalAssetToMain()">
+                            <i class="fa-solid fa-paper-plane"></i> 🎬 メインモニターの撮影セットへ配備
+                        </button>
+                        <button class="cat-btn" style="background:rgba(245,158,11,0.2); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800; padding:8px; justify-content:center;" onclick="downloadModalAsset()">
+                            <i class="fa-solid fa-download"></i> 高解像度ダウンロード
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi-Display Synchronizer Script -->
+    <script src="multi_display.js"></script>
+    <script>
+        const multiDisplay = window.MultiDisplayEngine || new MultiDisplayEngine();
+
+        let allAssets = [];
+        let filteredAssets = [];
+        let activeCategory = 'all';
+        let searchQuery = '';
+        let currentModalAsset = null;
+
+        const categoryBadges = {
+            'cast': { name: '👤 キャスト', color: '#00f2fe', bg: 'rgba(0, 242, 254, 0.2)' },
+            'costume': { name: '👘 衣装', color: '#a855f7', bg: 'rgba(168, 85, 247, 0.2)' },
+            'prop': { name: '🗡️ 小道具', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)' },
+            'vehicle': { name: '🚌 車両', color: '#ec4899', bg: 'rgba(236, 72, 153, 0.2)' },
+            'location': { name: '🌐 ロケ地', color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)' },
+            'aerial': { name: '🛸 空撮', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
+            'footage': { name: '🎬 フッテージ', color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.2)' }
+        };
+
+        async function loadVaultAssets() {
+            try {
+                const res = await fetch('/api/media_vault');
+                const data = await res.json();
+                if (data && data.success) {
+                    allAssets = data.assets || [];
+                    updateCategoryCounts();
+                    applyFilterAndSearch();
+                }
+            } catch (err) {
+                console.error("Vault load error:", err);
+            }
+        }
+
+        function updateCategoryCounts() {
+            document.getElementById('hud-total-assets').textContent = allAssets.length;
+            document.getElementById('count-all').textContent = allAssets.length;
+            ['cast', 'costume', 'prop', 'vehicle', 'location', 'aerial', 'footage'].forEach(cat => {
+                const count = allAssets.filter(a => a.category === cat).length;
+                const el = document.getElementById(`count-${cat}`);
+                if (el) el.textContent = count;
+            });
+        }
+
+        function filterCategory(cat, btn) {
+            activeCategory = cat;
+            document.querySelectorAll('.category-tabs .cat-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applyFilterAndSearch();
+        }
+
+        function handleSearch(q) {
+            searchQuery = q.toLowerCase().trim();
+            applyFilterAndSearch();
+        }
+
+        function applyFilterAndSearch() {
+            filteredAssets = allAssets.filter(a => {
+                const matchCat = (activeCategory === 'all' || a.category === activeCategory);
+                if (!matchCat) return false;
+                if (!searchQuery) return true;
+                const matchTitle = (a.title && a.title.toLowerCase().includes(searchQuery));
+                const matchSub = (a.subtitle && a.subtitle.toLowerCase().includes(searchQuery));
+                const matchTags = (a.tags && a.tags.some(t => t.toLowerCase().includes(searchQuery)));
+                return matchTitle || matchSub || matchTags;
+            });
+            renderAssetGrid();
+        }
+
+        function renderAssetGrid() {
+            const grid = document.getElementById('vault-asset-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (filteredAssets.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:#64748b;">
+                        <i class="fa-solid fa-box-open" style="font-size:3rem; margin-bottom:12px; color:#334155;"></i>
+                        <div style="font-size:0.85rem; font-weight:700; color:#fff;">該当するアセットが見つかりませんでした</div>
+                        <div style="font-size:0.60rem; margin-top:4px;">検索ワードやカテゴリフィルターを変更してください</div>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredAssets.forEach(asset => {
+                const badgeInfo = categoryBadges[asset.category] || { name: asset.category_name || 'アセット', color: '#38bdf8', bg: 'rgba(56,189,248,0.2)' };
+                const card = document.createElement('div');
+                card.className = 'asset-card';
+
+                const tagsHtml = (asset.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${t}</span>`).join('');
+
+                card.innerHTML = `
+                    <div class="asset-thumb-wrap" onclick="openPreviewModal('${asset.id}')">
+                        <img class="asset-thumb" src="${asset.thumbnail}" alt="${asset.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544441893-675973e31985?w=500&q=80'">
+                        <span class="asset-badge" style="color:${badgeInfo.color}; background:${badgeInfo.bg}; border:1px solid ${badgeInfo.color};">${badgeInfo.name}</span>
+                    </div>
+                    <div class="asset-info" onclick="openPreviewModal('${asset.id}')">
+                        <div class="asset-title" title="${asset.title}">${asset.title}</div>
+                        <div class="asset-subtitle" title="${asset.subtitle}">${asset.subtitle || ''}</div>
+                        <div class="asset-tags">${tagsHtml}</div>
+                    </div>
+                    <div class="asset-actions">
+                        <button class="btn-action" onclick="openPreviewModal('${asset.id}')" title="詳細・プレビュー">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> 詳細
+                        </button>
+                        <button class="btn-action" onclick="dispatchAssetToMain('${asset.id}')" style="color:var(--accent-cyan);" title="メイン画面へ送信">
+                            <i class="fa-solid fa-paper-plane"></i> 撮影配備
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openPreviewModal(assetId) {
+            const asset = allAssets.find(a => a.id === assetId);
+            if (!asset) return;
+            currentModalAsset = asset;
+
+            const badgeInfo = categoryBadges[asset.category] || { name: asset.category_name, color: '#38bdf8', bg: 'rgba(56,189,248,0.2)' };
+            
+            document.getElementById('modal-title').textContent = `${badgeInfo.name} 詳細プレビュー`;
+            document.getElementById('modal-asset-name').textContent = asset.title;
+            document.getElementById('modal-asset-subtitle').textContent = asset.subtitle || '';
+            document.getElementById('modal-img').src = asset.thumbnail;
+            
+            const catBadge = document.getElementById('modal-category-badge');
+            catBadge.textContent = badgeInfo.name;
+            catBadge.style.color = badgeInfo.color;
+            catBadge.style.background = badgeInfo.bg;
+            catBadge.style.border = `1px solid ${badgeInfo.color}`;
+
+            document.getElementById('modal-meta-created').textContent = asset.created_at || '2026-09-06';
+            document.getElementById('modal-meta-source').textContent = asset.source_studio || 'GENESIS Studio';
+            document.getElementById('modal-meta-id').textContent = asset.id;
+
+            const tagsContainer = document.getElementById('modal-tags');
+            tagsContainer.innerHTML = (asset.tags || []).map(t => `<span class="tag-pill" style="font-size:0.58rem; padding:2px 8px;"># ${t}</span>`).join('');
+
+            // Character views aspect tabs
+            const aspectTabs = document.getElementById('modal-aspect-tabs');
+            if (asset.category === 'cast' && asset.views) {
+                aspectTabs.style.display = 'flex';
+            } else {
+                aspectTabs.style.display = 'none';
+            }
+
+            document.getElementById('preview-modal').style.display = 'flex';
+        }
+
+        function switchModalAspect(aspect, btn) {
+            if (!currentModalAsset || !currentModalAsset.views) return;
+            document.querySelectorAll('#modal-aspect-tabs .cat-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            const newSrc = currentModalAsset.views[aspect];
+            if (newSrc) {
+                document.getElementById('modal-img').src = newSrc;
+            }
+        }
+
+        function closePreviewModal(e) {
+            if (e && e.target !== e.currentTarget && e.target.tagName !== 'BUTTON') return;
+            document.getElementById('preview-modal').style.display = 'none';
+        }
+
+        function dispatchAssetToMain(assetId) {
+            const asset = allAssets.find(a => a.id === assetId);
+            if (!asset) return;
+
+            if (asset.category === 'cast') {
+                const charId = asset.id.replace('char_', '');
+                multiDisplay.broadcast('ACTOR_SYNC', { characterId: charId });
+                alert(`👤 キャスト [${asset.title}] をメインモニターの撮影セットへ配備しました！`);
+            } else if (asset.category === 'costume' || asset.category === 'prop') {
+                multiDisplay.broadcast('PROP_SYNC', { [asset.category]: asset.title });
+                alert(`👘 [${asset.title}] をメインモニターのキャスト装備へ適用しました！`);
+            } else if (asset.category === 'vehicle') {
+                multiDisplay.broadcast('VEHICLE_SYNC', { key: asset.id });
+                alert(`🚌 車両 [${asset.title}] をメインモニターの街角へ配置しました！`);
+            } else if (asset.category === 'location') {
+                multiDisplay.broadcast('LOCATION_SYNC', { query: asset.title });
+                alert(`🌐 ロケ地 [${asset.title}] へメインモニターをワープさせます！`);
+            } else if (asset.category === 'footage') {
+                multiDisplay.broadcast('TIMELINE_VIDEO_ADD', { title: asset.title, durationSec: asset.metadata?.duration || 5.0 });
+                alert(`🎬 フッテージ [${asset.title}] をタイムラインへ即座配備しました！`);
+            } else {
+                alert(`アセット [${asset.title}] の配備信号を送信しました！`);
+            }
+        }
+
+        function dispatchModalAssetToMain() {
+            if (currentModalAsset) {
+                dispatchAssetToMain(currentModalAsset.id);
+            }
+        }
+
+        function downloadModalAsset() {
+            if (!currentModalAsset) return;
+            const a = document.createElement('a');
+            a.href = currentModalAsset.thumbnail;
+            a.download = `${currentModalAsset.title}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function openUploadModal() {
+            const title = prompt('アセットの名称を入力してください:');
+            if (!title) return;
+            const category = prompt('カテゴリを入力してください (cast / costume / prop / vehicle / location / aerial / footage):', 'costume');
+            const url = prompt('画像URLを入力してください (またはローカルパス):', 'https://images.unsplash.com/photo-1544441893-675973e31985?w=500&q=80');
+
+            if (title && url) {
+                const newItem = {
+                    title: title,
+                    category: category || 'costume',
+                    category_name: categoryBadges[category]?.name || 'アセット',
+                    thumbnail: url,
+                    tags: ['ユーザー登録', category],
+                    source_studio: 'media_vault.html'
+                };
+                fetch('/api/media_vault', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newItem)
+                }).then(res => res.json()).then(data => {
+                    alert('✅ アセットを保管庫に保存しました！');
+                    loadVaultAssets();
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadVaultAssets();
+        });
+    </script>
+</body>
+</html>
