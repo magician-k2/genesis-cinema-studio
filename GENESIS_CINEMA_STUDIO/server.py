@@ -750,6 +750,37 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
                 return
 
+        # ✈️ Analyze Flight Recording Video (Google Earth Ctrl+Alt+A Flight Sim)
+        elif parsed.path == '/api/aerial/analyze_flight_video':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                video_name = payload.get('video_name', 'flight_recording.mp4')
+                duration_s = float(payload.get('duration_s', 6.0))
+                start_alt = float(payload.get('start_altitude_m', 650.0))
+                end_alt = float(payload.get('end_altitude_m', 48.0))
+
+                analysis = aerial_engine.analyze_flight_video(
+                    video_name=video_name,
+                    duration_s=duration_s,
+                    estimated_start_alt=start_alt,
+                    estimated_end_alt=end_alt
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(analysis, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
         return super().do_POST()
 
 if __name__ == '__main__':

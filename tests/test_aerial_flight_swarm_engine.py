@@ -55,5 +55,19 @@ class TestAerialFlightSwarmEngine(unittest.TestCase):
             self.assertIn('FPV drone', result['master_veo_prompt'])
             self.assertGreater(result['swarm_latency_ms'], 0)
 
+    def test_04_analyze_flight_video(self):
+        video_res = self.engine.analyze_flight_video(
+            video_name='earth_flight_sim_osaka.mp4',
+            duration_s=6.0,
+            estimated_start_alt=700.0,
+            estimated_end_alt=48.0
+        )
+        self.assertTrue(video_res['success'])
+        self.assertEqual(len(video_res['waypoints']), 4)
+        self.assertEqual(video_res['flight_metrics']['flight_duration_s'], 6.0)
+        self.assertEqual(video_res['flight_metrics']['start_altitude_m'], 700.0)
+        self.assertEqual(video_res['flight_metrics']['end_altitude_m'], 48.0)
+        self.assertIn('earth_flight_sim_osaka.mp4', video_res['message'])
+
 if __name__ == '__main__':
     unittest.main()
