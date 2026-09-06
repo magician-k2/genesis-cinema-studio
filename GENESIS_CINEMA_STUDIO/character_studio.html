@@ -431,8 +431,9 @@
                     </div>
                     <!-- Inline Custom Input for Build -->
                     <div id="inline-box-build" style="display:none; background:#070b16; border:1px solid var(--accent-purple); border-radius:4px; padding:4px; margin-top:2px;">
+                        <div style="font-size:0.48rem; color:var(--accent-purple); font-weight:800; margin-bottom:2px;">体型プロンプト自由入力 ＆ プリセット保存:</div>
                         <div style="display:flex; gap:3px;">
-                            <input type="text" id="input-inline-build" class="input-custom" placeholder="自由な体型 (例: 華奢なサイボーグ、超筋肉質)..." style="font-size:0.54rem; padding:3px 6px;" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('build')">
+                            <input type="text" id="input-inline-build" class="input-custom" placeholder="自由な体型 (例: 華奢なサイボーグ、超筋肉質)..." style="font-size:0.54rem; padding:3px 6px;" oninput="updateGemmaPrompt()" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('build')">
                             <button type="button" class="btn-opt" style="background:var(--accent-purple); color:#fff; border:none; padding:2px 8px; font-weight:800; font-size:0.48rem; white-space:nowrap;" onclick="saveInlineCustomPreset('build')">💾 保存</button>
                             <button type="button" class="btn-opt" style="padding:2px 5px; font-size:0.48rem;" onclick="toggleInlineBox('build', false)">✕</button>
                         </div>
@@ -493,7 +494,7 @@
                     <div id="inline-box-hair" style="display:none; background:#070b16; border:1px solid var(--accent-purple); border-radius:4px; padding:4px; margin-top:2px;">
                         <div style="font-size:0.48rem; color:var(--accent-purple); font-weight:800; margin-bottom:2px;">髪型プロンプト自由入力 ＆ プリセット保存:</div>
                         <div style="display:flex; gap:3px;">
-                            <input type="text" id="input-inline-hair" class="input-custom" placeholder="例: 銀髪ツインテール、アシメウルフ、ドレッド..." style="font-size:0.54rem; padding:3px 6px;" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('hair')">
+                            <input type="text" id="input-inline-hair" class="input-custom" placeholder="例: 銀髪ツインテール、アシメウルフ、ドレッド..." style="font-size:0.54rem; padding:3px 6px;" oninput="updateGemmaPrompt()" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('hair')">
                             <button type="button" class="btn-opt" style="background:var(--accent-purple); color:#fff; border:none; padding:2px 8px; font-weight:800; font-size:0.48rem; white-space:nowrap;" onclick="saveInlineCustomPreset('hair')">💾 保存</button>
                             <button type="button" class="btn-opt" style="padding:2px 5px; font-size:0.48rem;" onclick="toggleInlineBox('hair', false)">✕</button>
                         </div>
@@ -501,7 +502,7 @@
                     <div id="inline-box-hair_color" style="display:none; background:#070b16; border:1px solid var(--accent-purple); border-radius:4px; padding:4px; margin-top:2px;">
                         <div style="font-size:0.48rem; color:var(--accent-purple); font-weight:800; margin-bottom:2px;">髪色プロンプト自由入力 ＆ プリセット保存:</div>
                         <div style="display:flex; gap:3px;">
-                            <input type="text" id="input-inline-hair_color" class="input-custom" placeholder="例: プラチナブロンド、ネオンピンクと黒のメッシュ..." style="font-size:0.54rem; padding:3px 6px;" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('hair_color')">
+                            <input type="text" id="input-inline-hair_color" class="input-custom" placeholder="例: プラチナブロンド、ネオンピンクと黒のメッシュ..." style="font-size:0.54rem; padding:3px 6px;" oninput="updateGemmaPrompt()" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('hair_color')">
                             <button type="button" class="btn-opt" style="background:var(--accent-purple); color:#fff; border:none; padding:2px 8px; font-weight:800; font-size:0.48rem; white-space:nowrap;" onclick="saveInlineCustomPreset('hair_color')">💾 保存</button>
                             <button type="button" class="btn-opt" style="padding:2px 5px; font-size:0.48rem;" onclick="toggleInlineBox('hair_color', false)">✕</button>
                         </div>
@@ -509,7 +510,7 @@
                     <div id="inline-box-skin" style="display:none; background:#070b16; border:1px solid var(--accent-purple); border-radius:4px; padding:4px; margin-top:2px;">
                         <div style="font-size:0.48rem; color:var(--accent-purple); font-weight:800; margin-bottom:2px;">肌色プロンプト自由入力 ＆ プリセット保存:</div>
                         <div style="display:flex; gap:3px;">
-                            <input type="text" id="input-inline-skin" class="input-custom" placeholder="例: 磁器のようなサイバーペール、ブロンズ小麦肌..." style="font-size:0.54rem; padding:3px 6px;" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('skin')">
+                            <input type="text" id="input-inline-skin" class="input-custom" placeholder="例: 磁器のようなサイバーペール、ブロンズ小麦肌..." style="font-size:0.54rem; padding:3px 6px;" oninput="updateGemmaPrompt()" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('skin')">
                             <button type="button" class="btn-opt" style="background:var(--accent-purple); color:#fff; border:none; padding:2px 8px; font-weight:800; font-size:0.48rem; white-space:nowrap;" onclick="saveInlineCustomPreset('skin')">💾 保存</button>
                             <button type="button" class="btn-opt" style="padding:2px 5px; font-size:0.48rem;" onclick="toggleInlineBox('skin', false)">✕</button>
                         </div>
@@ -533,7 +534,7 @@
                     <div id="inline-box-costume" style="display:none; background:#070b16; border:1px solid var(--accent-purple); border-radius:4px; padding:4px; margin-top:2px;">
                         <div style="font-size:0.48rem; color:var(--accent-purple); font-weight:800; margin-bottom:2px;">衣装プロンプト自由入力 ＆ プリセット保存:</div>
                         <div style="display:flex; gap:3px;">
-                            <input type="text" id="input-inline-costume" class="input-custom" placeholder="例: ホログラム龍が舞うサイバー和装、スチームパンクコート..." style="font-size:0.54rem; padding:3px 6px;" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('costume')">
+                            <input type="text" id="input-inline-costume" class="input-custom" placeholder="例: ホログラム龍が舞うサイバー和装、スチームパンクコート..." style="font-size:0.54rem; padding:3px 6px;" oninput="updateGemmaPrompt()" onkeydown="if(event.key==='Enter') saveInlineCustomPreset('costume')">
                             <button type="button" class="btn-opt" style="background:var(--accent-purple); color:#fff; border:none; padding:2px 8px; font-weight:800; font-size:0.48rem; white-space:nowrap;" onclick="saveInlineCustomPreset('costume')">💾 保存</button>
                             <button type="button" class="btn-opt" style="padding:2px 5px; font-size:0.48rem;" onclick="toggleInlineBox('costume', false)">✕</button>
                         </div>
@@ -741,8 +742,8 @@
     <script src="character_turnaround_engine.js"></script>
     <script>
         // Multi-Display Bus Connection
-        const multiDisplay = new CinemaMultiDisplay('character_studio');
-        const turnaroundEngine = new CharacterTurnaroundEngine();
+        const multiDisplay = (typeof CinemaMultiDisplay !== 'undefined') ? new CinemaMultiDisplay('character_studio') : (window.MultiDisplayEngine || null);
+        const turnaroundEngine = (typeof CharacterTurnaroundEngine !== 'undefined') ? new CharacterTurnaroundEngine() : null;
 
         // State
         let currentActorId = 'ren';
@@ -752,8 +753,9 @@
         let turntableTimer = null;
         let currentPreviewBg = 'checker';
 
-        // In-memory Character Cache
-        let characterVaultData = [];
+        // In-memory Character Cache (Global window fallback to prevent TDZ)
+        var characterVaultData = [];
+        window.characterVaultData = characterVaultData;
         let loadedActorImages = { front: null, right: null, back: null, left: null };
         let uploadedSheetDataUri = null;
 
@@ -1045,6 +1047,23 @@
         }
 
         function getSelectedCustomPrompt(selectId) {
+            // Check if inline box has text entered (prioritize live typed prompt)
+            const catMap = {
+                'select-char-build': 'build',
+                'select-char-hair': 'hair',
+                'select-char-hair-color': 'hair_color',
+                'select-char-skin': 'skin',
+                'select-char-costume': 'costume'
+            };
+            const cat = catMap[selectId];
+            if (cat) {
+                const inlineInput = document.getElementById(`input-inline-${cat}`);
+                const inlineBox = document.getElementById(`inline-box-${cat}`);
+                if (inlineBox && inlineBox.style.display !== 'none' && inlineInput && inlineInput.value.trim()) {
+                    return inlineInput.value.trim();
+                }
+            }
+
             const sel = document.getElementById(selectId);
             if (!sel || sel.selectedIndex < 0) return '';
             const opt = sel.options[sel.selectedIndex];
@@ -1053,6 +1072,28 @@
                 return opt.dataset.customPrompt;
             }
             return opt.textContent.replace(/^[🧥✨🛡️👔🥋⭐\s]+/, '').replace(/\s*\(.*?\)/, '').trim();
+        }
+
+        // Auto-commit any filled inline custom input before generation
+        function autoCommitInlinePresets() {
+            const categories = ['build', 'hair', 'hair_color', 'skin', 'costume'];
+            categories.forEach(cat => {
+                const box = document.getElementById(`inline-box-${cat}`);
+                const input = document.getElementById(`input-inline-${cat}`);
+                if (box && box.style.display !== 'none' && input && input.value.trim()) {
+                    const val = input.value.trim();
+                    const presets = getCustomPresets(cat);
+                    if (!presets.includes(val)) {
+                        presets.unshift(val);
+                        saveCustomPresets(cat, presets);
+                    }
+                    populateSelectWithPresets(cat);
+                    const sel = document.getElementById(selectElementIds[cat]);
+                    if (sel) {
+                        sel.value = `custom_${val}`;
+                    }
+                }
+            });
         }
 
         // 2. Gemma 4 Master Prompt Synthesis
@@ -1249,6 +1290,7 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
             try {
                 // Step 1: Synthesize prompt & parameters
                 progressTitle.textContent = '🧠 Step 1/4: Gemma 4 一貫性プロンプト合成中...';
+                autoCommitInlinePresets();
                 updateGemmaPrompt();
                 await new Promise(r => setTimeout(r, 200));
 
@@ -1256,7 +1298,8 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
                 const nameEn = (document.getElementById('input-char-name-en')?.value || 'New Actor').trim();
 
                 // 🔄 Pattern 1: Overwrite existing character if same name exists
-                const existingChar = characterVaultData.find(c => c.name && c.name.trim().toLowerCase() === nameJa.toLowerCase());
+                const vaultList = window.characterVaultData || characterVaultData || [];
+                const existingChar = vaultList.find(c => c.name && c.name.trim().toLowerCase() === nameJa.toLowerCase());
                 let charId;
                 let isOverwrite = false;
 
@@ -1270,13 +1313,13 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
                 const age = parseInt(document.getElementById('input-char-age')?.value || '26');
                 const gender = document.getElementById('select-char-gender')?.value || 'male';
                 const heightM = parseFloat(document.getElementById('range-char-height')?.value || '1.80');
-                const build = document.getElementById('select-char-build')?.value || 'athletic';
-                const costume = document.getElementById('select-char-costume')?.value || 'noir_trench';
+                const build = getSelectedCustomPrompt('select-char-build') || 'athletic';
+                const costume = getSelectedCustomPrompt('select-char-costume') || 'noir_trench';
                 const neonColor = document.getElementById('input-neon-color')?.value || '#00f2fe';
-                const hairColor = document.getElementById('select-char-hair-color')?.value || '#0a0a0c';
+                const hairColor = getSelectedCustomPrompt('select-char-hair-color') || '#0a0a0c';
                 const costumeColor = document.getElementById('input-costume-color')?.value || '#0f172a';
-                const skinTone = document.getElementById('select-char-skin')?.value || 'natural';
-                const hairStyle = document.getElementById('select-char-hair')?.value || 'wolf_cut';
+                const skinTone = getSelectedCustomPrompt('select-char-skin') || 'natural';
+                const hairStyle = getSelectedCustomPrompt('select-char-hair') || 'wolf_cut';
 
                 // Step 2: Render 1600x800 high-res turnaround sheet
                 progressTitle.textContent = '🎨 Step 2/4: 4面ターンアラウンド高解像度シート レンダリング中...';
@@ -1597,7 +1640,8 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
             const badge = document.getElementById('badge-overwrite-status');
             if (!badge) return;
 
-            const existing = characterVaultData.find(c => c.name && c.name.trim().toLowerCase() === name.toLowerCase());
+            const vaultList = window.characterVaultData || characterVaultData || [];
+            const existing = vaultList.find(c => c.name && c.name.trim().toLowerCase() === name.toLowerCase());
             if (existing) {
                 badge.style.background = 'rgba(0,242,254,0.12)';
                 badge.style.color = 'var(--accent-cyan)';
@@ -1613,7 +1657,8 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
 
         async function selectCharacterFromVault(id) {
             currentActorId = id;
-            const char = characterVaultData.find(c => c.id === id);
+            const vaultList = window.characterVaultData || characterVaultData || [];
+            const char = vaultList.find(c => c.id === id);
             if (!char) return;
 
             document.getElementById('input-char-name').value = char.name;
@@ -1635,8 +1680,9 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
             initAllCustomPresets();
             updateGemmaPrompt();
             await refreshCharacterList();
-            if (characterVaultData.length > 0) {
-                await selectCharacterFromVault(characterVaultData[0].id);
+            const vaultList = window.characterVaultData || characterVaultData || [];
+            if (vaultList.length > 0) {
+                await selectCharacterFromVault(vaultList[0].id);
             } else {
                 updateProceduralPreview();
             }

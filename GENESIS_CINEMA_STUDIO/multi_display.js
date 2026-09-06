@@ -111,10 +111,18 @@ class MultiDisplayEngine {
     }
 }
 
+class CinemaMultiDisplay extends MultiDisplayEngine {
+    constructor(channelName) {
+        super();
+        if (channelName) this.channelName = `genesis_cinema_studio_${channelName}`;
+    }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { MultiDisplayEngine };
+    module.exports = { MultiDisplayEngine, CinemaMultiDisplay };
 }
 if (typeof window !== 'undefined') {
     window.MultiDisplayEngine = new MultiDisplayEngine();
+    window.CinemaMultiDisplay = CinemaMultiDisplay;
 }
-console.log("🖥️ GENESIS Multi-Display Synchronizer v55 Loaded.");
+console.log("🖥️ GENESIS Multi-Display Synchronizer v55 Loaded (with CinemaMultiDisplay compatibility).");
