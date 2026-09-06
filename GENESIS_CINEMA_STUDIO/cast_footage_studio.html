@@ -192,6 +192,29 @@
             background: rgba(0, 242, 254, 0.08);
             box-shadow: 0 4px 15px rgba(0,242,254,0.2);
         }
+    
+        /* 📱 Split View (Vertical Portrait / 50% Width Mode) & WebGPU Optimized */
+        body.layout-split .studio-layout,
+        body.layout-split .studio-grid {
+            grid-template-columns: 1fr !important;
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        body.layout-split .stage-wrapper {
+            min-height: 420px !important;
+            height: 420px !important;
+            flex: none !important;
+        }
+        body.layout-split .panel {
+            min-height: 360px !important;
+            flex: none !important;
+        }
+        body.layout-split .vault-main {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+        }
+
     </style>
 </head>
 <body>
@@ -205,6 +228,9 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:10px;">
+            <button class="btn-opt btn-layout-toggle" style="background:rgba(255,255,255,0.08); border-color:var(--accent-cyan); color:#fff; font-weight:800;" onclick="window.WebGPUCinema && window.WebGPUCinema.toggleLayout()" title="全画面と縦長分割画面を切り替えます">
+                <i class="fa-solid fa-table-columns"></i> 📱 縦分割
+            </button>
             <span style="font-size:0.58rem; color:#10b981; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:4px; font-weight:700;">
                 <i class="fa-solid fa-circle-nodes"></i> 📡 監督メインモニターとリアルタイム同期中
             </span>
@@ -632,5 +658,6 @@ ${shotName} (${duration}秒) をメインモニターのタイムラインへ自
             renderTurnaroundCanvases();
         });
     </script>
+    <script src="webgpu_cinema_accel.js"></script>
 </body>
 </html>

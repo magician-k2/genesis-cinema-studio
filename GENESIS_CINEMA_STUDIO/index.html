@@ -547,6 +547,29 @@
             border-color: var(--accent-gold);
             box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
         }
+    
+        /* 📱 Split View (Vertical Portrait / 50% Width Mode) & WebGPU Optimized */
+        body.layout-split .studio-layout,
+        body.layout-split .studio-grid {
+            grid-template-columns: 1fr !important;
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        body.layout-split .stage-wrapper {
+            min-height: 420px !important;
+            height: 420px !important;
+            flex: none !important;
+        }
+        body.layout-split .panel {
+            min-height: 360px !important;
+            flex: none !important;
+        }
+        body.layout-split .vault-main {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+        }
+
     </style>
 </head>
 <body>
@@ -580,6 +603,9 @@
 
         <!-- Right: Studio Wings & Theaters & Vault Controls -->
         <div class="header-actions" style="display:flex; align-items:center; gap:6px;">
+            <button class="btn-opt btn-layout-toggle" style="background:rgba(255,255,255,0.08); border-color:var(--accent-cyan); color:#fff; font-weight:800;" onclick="window.WebGPUCinema && window.WebGPUCinema.toggleLayout()" title="全画面と縦長分割画面を切り替えます">
+                <i class="fa-solid fa-table-columns"></i> 📱 縦分割
+            </button>
             <button class="btn-opt" style="background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="openCastFootageStudioTab()" title="出演キャスト、衣装・小道具、動画フッテージBin、撮影制御を別タブ大画面で操作">
                 <i class="fa-solid fa-users-viewfinder"></i> 👥 出演キャスト＆フッテージ (別タブ) <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.46rem; opacity:0.8;"></i>
             </button>
@@ -3269,5 +3295,6 @@
             loadSceneAssetsAndVault();
         });
     </script>
+    <script src="webgpu_cinema_accel.js"></script>
 </body>
 </html>
