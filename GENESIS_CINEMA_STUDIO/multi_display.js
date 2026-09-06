@@ -65,6 +65,12 @@ class MultiDisplayEngine {
             case "AERIAL_FLIGHT_ADD":
                 if (window.onMultiDisplayAerialFlightAdd) window.onMultiDisplayAerialFlightAdd(data.payload);
                 break;
+            case "WEATHER_SYNC":
+                if (window.onMultiDisplayWeatherUpdate) window.onMultiDisplayWeatherUpdate(data.payload);
+                break;
+            case "LOCATION_SYNC":
+                if (window.onMultiDisplayLocationUpdate) window.onMultiDisplayLocationUpdate(data.payload);
+                break;
         }
     }
 

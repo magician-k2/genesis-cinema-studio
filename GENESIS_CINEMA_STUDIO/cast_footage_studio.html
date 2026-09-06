@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENESIS CAST & FOOTAGE STUDIO - 出演キャスト・フッテージ・撮影制御スタジオ</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #030712;
+            --bg-panel: #090d1a;
+            --bg-card: #0e1526;
+            --border-dark: #1e293b;
+            --border-glow: rgba(0, 242, 254, 0.4);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-purple: #a855f7;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Header */
+        .studio-header {
+            height: 44px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        .studio-brand {
+            font-family: 'Cinzel', serif;
+            font-weight: 800;
+            font-size: 0.88rem;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #00f2fe 0%, #38bdf8 50%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 3-Column Studio Grid */
+        .studio-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 380px 1fr 380px;
+            gap: 8px;
+            padding: 8px;
+            overflow: hidden;
+            background: #02040a;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-header {
+            height: 34px;
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid var(--border-dark);
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.70rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+        }
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .box-title { 
+            font-size: 0.68rem; 
+            font-weight: 800; 
+            color: var(--accent-gold); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .btn-opt {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-dark);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.60rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+        .btn-opt:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0, 242, 254, 0.08); }
+        .btn-opt.active { border-color: var(--accent-cyan); background: rgba(0, 242, 254, 0.2); color: var(--accent-cyan); }
+
+        .btn-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .btn-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .btn-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+
+        /* Turnaround 4-angle Grid */
+        .turnaround-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+        }
+        .turnaround-view-card {
+            background: rgba(10, 15, 30, 0.8);
+            border: 1px solid var(--border-dark);
+            border-radius: 4px;
+            padding: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .turnaround-view-card.active-aspect {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.15);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+        }
+        .turnaround-canvas-preview {
+            width: 100%;
+            height: 120px;
+            background: #050811;
+            border-radius: 3px;
+            display: block;
+        }
+        .aspect-title {
+            font-size: 0.50rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            font-weight: 700;
+        }
+
+        /* Footage Cards */
+        .footage-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-dark);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .footage-card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+            box-shadow: 0 4px 15px rgba(0,242,254,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="studio-header">
+        <div class="studio-brand">
+            <i class="fa-solid fa-users-viewfinder" style="color:var(--accent-cyan);"></i>
+            <span>GENESIS CAST & FOOTAGE STUDIO</span>
+            <span style="font-size:0.52rem; background:rgba(0,242,254,0.15); color:var(--accent-cyan); padding:2px 8px; border-radius:3px; font-weight:700;">Wing Studio (出演・撮影・フッテージ)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:0.58rem; color:#10b981; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:4px; font-weight:700;">
+                <i class="fa-solid fa-circle-nodes"></i> 📡 監督メインモニターとリアルタイム同期中
+            </span>
+            <button class="btn-opt" style="background:rgba(2,132,199,0.2); border-color:#0284c7; color:#38bdf8; font-weight:800;" onclick="window.open('aerial_studio.html', 'GENESIS_AERIAL_STUDIO_WING')">
+                <i class="fa-solid fa-plane-departure"></i> 🛸 3D空撮スタジオ
+            </button>
+            <button class="btn-opt" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border:none; padding:6px 14px; font-weight:800;" onclick="window.open('video_player.html', 'GENESIS_THEATER_WING')">
+                <i class="fa-solid fa-play"></i> ▶ 4K試写室シアター
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="studio-grid">
+
+        <!-- Column 1: Cast & Wardrobe & Turnaround -->
+        <section class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-clapperboard"></i> ① 出演キャスト ＆ 衣装・小道具・車両</span>
+                <span id="badge-char-aspect" style="background:var(--accent-cyan); color:#000; padding:1px 6px; border-radius:3px; font-size:0.52rem; font-weight:900;">正面 (Front)</span>
+            </div>
+            <div class="panel-body">
+                
+                <!-- Cast Selection -->
+                <div class="control-box" style="border-color:var(--accent-cyan);">
+                    <div class="box-title" style="color:var(--accent-cyan);">
+                        <span>👤 主役キャスト選択 (Hero Actor)</span>
+                        <span id="lbl-active-actor" style="color:#fff;">如月 蓮 (サイバー探偵)</span>
+                    </div>
+                    <div class="btn-grid-4" id="cast-buttons">
+                        <button class="btn-opt active" id="btn-cast-ren" onclick="selectActor('ren')">如月 蓮</button>
+                        <button class="btn-opt" id="btn-cast-kagerou" onclick="selectActor('kagerou')">緋村 影狼</button>
+                        <button class="btn-opt" id="btn-cast-yuki" onclick="selectActor('yuki')">霧島 結衣</button>
+                        <button class="btn-opt" id="btn-cast-asuka" onclick="selectActor('asuka')">橘 飛鳥</button>
+                    </div>
+                </div>
+
+                <!-- 4-View Turnaround Grid -->
+                <div class="control-box">
+                    <div class="box-title" style="color:var(--accent-cyan);">
+                        <span>🔄 4アングル・ターンアラウンド</span>
+                        <span style="font-size:0.50rem; color:var(--text-muted);">クリックで撮影アングル決定</span>
+                    </div>
+                    <div class="turnaround-grid">
+                        <div class="turnaround-view-card active-aspect" id="card-aspect-front" onclick="setAspect('front')">
+                            <span class="aspect-title">正面 (Front)</span>
+                            <canvas id="canvas-aspect-front" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                        <div class="turnaround-view-card" id="card-aspect-right" onclick="setAspect('right')">
+                            <span class="aspect-title">右側面 (Right)</span>
+                            <canvas id="canvas-aspect-right" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                        <div class="turnaround-view-card" id="card-aspect-back" onclick="setAspect('back')">
+                            <span class="aspect-title">背面 (Back)</span>
+                            <canvas id="canvas-aspect-back" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                        <div class="turnaround-view-card" id="card-aspect-left" onclick="setAspect('left')">
+                            <span class="aspect-title">左側面 (Left)</span>
+                            <canvas id="canvas-aspect-left" class="turnaround-canvas-preview" width="88" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Costume & Prop & Vehicle Slots -->
+                <div class="control-box" style="border-color:var(--accent-gold);">
+                    <div class="box-title" style="color:var(--accent-gold);">
+                        <span>👘 装備・小道具・車両アタッチメント</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <label style="font-size:0.55rem; color:var(--accent-cyan); font-weight:700;"><i class="fa-solid fa-shirt"></i> 衣装 (Costume):</label>
+                            <select id="select-director-costume" onchange="syncSlots()" style="width:68%; background:#0d1117; color:#fff; border:1px solid var(--border-dark); border-radius:4px; font-size:0.58rem; padding:4px;">
+                                <option value="">(標準衣装 / デフォルト)</option>
+                                <option value="cyber_trench">サイバー・ロングトレンチコート</option>
+                                <option value="tactical_suit">耐火タクティカル特殊スーツ</option>
+                                <option value="kimono_cyber">ネオン発光・近未来和装</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <label style="font-size:0.55rem; color:var(--accent-gold); font-weight:700;"><i class="fa-solid fa-hand-holding"></i> 小道具 (Prop):</label>
+                            <select id="select-director-prop" onchange="syncSlots()" style="width:68%; background:#0d1117; color:#fff; border:1px solid var(--border-dark); border-radius:4px; font-size:0.58rem; padding:4px;">
+                                <option value="">(小道具なし / 素手)</option>
+                                <option value="quantum_umbrella">量子ホログラム傘 (雨天発光)</option>
+                                <option value="plasma_blade">プラズマ高周波ブレード</option>
+                                <option value="cyber_deck">携帯式サイバーデック端末</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between;">
+                            <label style="font-size:0.55rem; color:var(--accent-purple); font-weight:700;"><i class="fa-solid fa-bus"></i> 大道具・車両:</label>
+                            <select id="select-director-vehicle" onchange="syncSlots()" style="width:68%; background:#0d1117; color:#fff; border:1px solid var(--border-dark); border-radius:4px; font-size:0.58rem; padding:4px;">
+                                <option value="">(車両なし / 人物のみ)</option>
+                                <option value="tokyo_bus">🚌 都営路線バス風 (低床)</option>
+                                <option value="japan_taxi">🚕 クラウンJPNタクシー (深藍)</option>
+                                <option value="cyber_truck">🚚 サイバー大型配送トラック</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage Deploy & Scene Action -->
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-opt" style="flex:1; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800; padding:8px;" onclick="toggleStageActor()">
+                        <i class="fa-solid fa-person-walking-arrow-right"></i> 📍 メイン画面セットに配置
+                    </button>
+                    <button class="btn-opt" style="flex:1; background:rgba(168,85,247,0.15); border-color:var(--accent-purple); color:#c084fc; font-weight:800; padding:8px;" onclick="openCharacterMaker()">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> 🎭 キャスト工房
+                    </button>
+                </div>
+
+                <button class="btn-opt" style="background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:900; font-size:0.75rem; padding:10px; border:none; border-radius:6px; box-shadow:0 0 20px rgba(0,242,254,0.4);" onclick="triggerSceneAction()">
+                    <i class="fa-solid fa-clapperboard"></i> 🎬 ACTION! 映画シーンをメイン画面で生成
+                </button>
+
+            </div>
+        </section>
+
+        <!-- Column 2: Footage Shot Bin (Center Stage) -->
+        <section class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-film"></i> ② 生成動画フッテージ・ライブラリ (Shot Bin)</span>
+                <span style="font-size:0.52rem; color:var(--text-muted);">クリックでタイムライン先頭へ即座配備</span>
+            </div>
+            <div class="panel-body">
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" id="footage-bin-list">
+                    <div class="footage-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.65rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 1: 表参道ドリー</span>
+                            <span class="badge" style="background:#0284c7; color:#fff; font-size:0.50rem; padding:2px 6px; border-radius:3px;">5.0s</span>
+                        </div>
+                        <div style="font-size:0.55rem; color:#94a3b8;">4K 60fps / 40m前進シネマドリー / 表参道並木道</div>
+                        <div style="font-size:0.50rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 35.6715, 139.7032</div>
+                        <button class="btn-opt" style="margin-top:4px; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="deployClipToTimeline('Shot 1: 表参道ドリー', 5.0)">
+                            <i class="fa-solid fa-arrow-down-to-bracket"></i> タイムラインへ配備
+                        </button>
+                    </div>
+
+                    <div class="footage-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.65rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 2: 浅草寺夕焼け</span>
+                            <span class="badge" style="background:#0284c7; color:#fff; font-size:0.50rem; padding:2px 6px; border-radius:3px;">4.5s</span>
+                        </div>
+                        <div style="font-size:0.55rem; color:#94a3b8;">4K 60fps / 夕焼け3000Kクレーン降下 / 雷門前</div>
+                        <div style="font-size:0.50rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 35.7111, 139.7963</div>
+                        <button class="btn-opt" style="margin-top:4px; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="deployClipToTimeline('Shot 2: 浅草寺夕焼け', 4.5)">
+                            <i class="fa-solid fa-arrow-down-to-bracket"></i> タイムラインへ配備
+                        </button>
+                    </div>
+
+                    <div class="footage-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.65rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 3: 鈴鹿直線トラッキング</span>
+                            <span class="badge" style="background:#0284c7; color:#fff; font-size:0.50rem; padding:2px 6px; border-radius:3px;">6.0s</span>
+                        </div>
+                        <div style="font-size:0.55rem; color:#94a3b8;">4K 60fps / 50m超高速追従ドリー / サーキット</div>
+                        <div style="font-size:0.50rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 34.8431, 136.5410</div>
+                        <button class="btn-opt" style="margin-top:4px; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="deployClipToTimeline('Shot 3: 鈴鹿直線トラッキング', 6.0)">
+                            <i class="fa-solid fa-arrow-down-to-bracket"></i> タイムラインへ配備
+                        </button>
+                    </div>
+
+                    <div class="footage-card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.65rem; font-weight:800; color:var(--accent-cyan);">🎬 Shot 4: NYタイムズ夜景</span>
+                            <span class="badge" style="background:#0284c7; color:#fff; font-size:0.50rem; padding:2px 6px; border-radius:3px;">4.0s</span>
+                        </div>
+                        <div style="font-size:0.55rem; color:#94a3b8;">4K 60fps / ネオン看板反射クローズアップ</div>
+                        <div style="font-size:0.50rem; color:var(--accent-gold); font-family:'Fira Code';">GPS: 40.7580, -73.9855</div>
+                        <button class="btn-opt" style="margin-top:4px; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="deployClipToTimeline('Shot 4: NYタイムズ夜景', 4.0)">
+                            <i class="fa-solid fa-arrow-down-to-bracket"></i> タイムラインへ配備
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Preview Box -->
+                <div class="control-box" style="margin-top:10px; border-color:rgba(56,189,248,0.3);">
+                    <div class="box-title" style="color:#38bdf8;">
+                        <span>🎥 フッテージ・インライン試写モニター</span>
+                        <span id="preview-clip-title" style="color:#fff;">Shot 1: 表参道ドリー</span>
+                    </div>
+                    <div style="background:#000; border-radius:4px; height:180px; display:flex; align-items:center; justify-content:center; border:1px solid #1e293b;">
+                        <div style="text-align:center; color:#64748b;">
+                            <i class="fa-solid fa-film" style="font-size:2.5rem; margin-bottom:8px; color:#38bdf8;"></i>
+                            <div style="font-size:0.62rem; font-weight:700; color:#fff;">Veo 3.1 4K Master Footages Ready</div>
+                            <div style="font-size:0.50rem; color:#94a3b8; margin-top:2px;">メイン画面または4Kシアターでフル解像度再生可能</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Column 3: World Scout & Dolly & Weather/Lighting -->
+        <section class="panel">
+            <div class="panel-header">
+                <span><i class="fa-solid fa-sliders"></i> ③ ロケハンスカウト ＆ 撮影制御 ＆ 天候</span>
+                <span id="badge-weather-status" style="background:var(--accent-purple); color:#fff; padding:1px 6px; border-radius:3px; font-size:0.52rem; font-weight:800;">🌆 夕焼け ✕ ☀️ 快晴</span>
+            </div>
+            <div class="panel-body">
+                
+                <!-- World Scout & Alleyway -->
+                <div class="control-box" style="border-color:var(--accent-gold);">
+                    <div class="box-title" style="color:var(--accent-gold);">
+                        <span>🗺️ ロケ地探索ワープ ＆ 🏮路地裏突入</span>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <input type="text" id="input-scout-query" placeholder="例: パリ, ローマ, 京都, 浅草, 香港" style="flex:1; background:#070a14; color:#fff; border:1px solid var(--border-dark); border-radius:4px; font-size:0.60rem; padding:4px 6px;">
+                        <button class="btn-opt" style="padding:4px 8px;" onclick="searchLocation()">ワープ</button>
+                        <button class="btn-opt" style="background:rgba(245,158,11,0.2); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800;" onclick="searchAlleyway()">🏮 路地裏</button>
+                    </div>
+
+                    <div class="btn-grid-3" style="margin-top:4px;">
+                        <button class="btn-opt" onclick="searchAlleyway('浅草')">🏮 浅草・初音小路</button>
+                        <button class="btn-opt" onclick="searchAlleyway('京都')">🏮 京都・先斗町</button>
+                        <button class="btn-opt" onclick="searchAlleyway('パリ')">🏮 パリ・モンマルトル</button>
+                        <button class="btn-opt" onclick="searchAlleyway('ロンドン')">🏮 ロンドン・裏小路</button>
+                        <button class="btn-opt" onclick="searchAlleyway('ローマ')">🏮 ローマ・石畳細道</button>
+                        <button class="btn-opt" onclick="searchAlleyway('香港')">🏮 香港・看板坂道</button>
+                    </div>
+                </div>
+
+                <!-- Dolly Distance -->
+                <div class="control-box">
+                    <div class="box-title" style="color:var(--accent-cyan);">
+                        <span>📐 カメラドリー前進距離</span>
+                        <span id="lbl-dolly-dist" style="color:#fff;">40m</span>
+                    </div>
+                    <div class="btn-grid-4">
+                        <button class="btn-opt" onclick="setDolly(20)">20m</button>
+                        <button class="btn-opt" onclick="setDolly(30)">30m</button>
+                        <button class="btn-opt active" id="btn-dolly-40" onclick="setDolly(40)">40m</button>
+                        <button class="btn-opt" onclick="setDolly(50)">50m</button>
+                    </div>
+                </div>
+
+                <!-- Time of Day -->
+                <div class="control-box" style="border-color:var(--accent-purple);">
+                    <div class="box-title" style="color:var(--accent-purple);">
+                        <span>⏳ 時間帯ライティング</span>
+                    </div>
+                    <div class="btn-grid-4">
+                        <button class="btn-opt" id="btn-tod-sunrise" onclick="setTime('sunrise')">🌅 朝焼け</button>
+                        <button class="btn-opt" id="btn-tod-morning" onclick="setTime('morning')">☀️ 朝</button>
+                        <button class="btn-opt" id="btn-tod-noon" onclick="setTime('noon')">🌤️ 昼</button>
+                        <button class="btn-opt" id="btn-tod-late_afternoon" onclick="setTime('late_afternoon')">🌇 夕方</button>
+                    </div>
+                    <div class="btn-grid-3" style="margin-top:3px;">
+                        <button class="btn-opt active" id="btn-tod-sunset" onclick="setTime('sunset')">🌆 夕焼け (3000K)</button>
+                        <button class="btn-opt" id="btn-tod-night" onclick="setTime('night')">🌙 夜景 (ネオン)</button>
+                        <button class="btn-opt" id="btn-tod-twilight" onclick="setTime('twilight')">🌌 薄明</button>
+                    </div>
+                </div>
+
+                <!-- Weather Atmosphere -->
+                <div class="control-box" style="border-color:var(--accent-purple);">
+                    <div class="box-title" style="color:var(--accent-purple);">
+                        <span>🌦️ 天候・環境アトモスフィア</span>
+                    </div>
+                    <div class="btn-grid-3">
+                        <button class="btn-opt active" id="btn-weath-clear" onclick="setWeather('clear')">☀️ 快晴</button>
+                        <button class="btn-opt" id="btn-weath-overcast" onclick="setWeather('overcast')">☁️ 曇天</button>
+                        <button class="btn-opt" id="btn-weath-heavy_rain" onclick="setWeather('heavy_rain')">🌧️ 大雨・反射</button>
+                        <button class="btn-opt" id="btn-weath-wind_storm" onclick="setWeather('wind_storm')">💨 強風</button>
+                        <button class="btn-opt" id="btn-weath-thunderstorm" onclick="setWeather('thunderstorm')">⚡ 雷雨</button>
+                        <button class="btn-opt" id="btn-weath-dense_fog" onclick="setWeather('dense_fog')">🌫️ 濃霧</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Multi-Display Synchronizer Script -->
+    <script src="multi_display.js"></script>
+    <script>
+        const multiDisplay = window.MultiDisplayEngine || new MultiDisplayEngine();
+
+        let currentActorId = 'ren';
+        let currentAspect = 'front';
+        let currentTimeOfDay = 'sunset';
+        let currentWeather = 'clear';
+
+        const actorNames = {
+            'ren': '如月 蓮 (サイバー探偵)',
+            'kagerou': '緋村 影狼 (闇のフィクサー)',
+            'yuki': '霧島 結衣 (エリート捜査官)',
+            'asuka': '橘 飛鳥 (サイバーアイドル)'
+        };
+
+        function selectActor(id) {
+            currentActorId = id;
+            document.querySelectorAll('#cast-buttons button').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.getElementById(`btn-cast-${id}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            const lbl = document.getElementById('lbl-active-actor');
+            if (lbl) lbl.textContent = actorNames[id] || id;
+
+            renderTurnaroundCanvases();
+
+            // Broadcast to Main Monitor
+            multiDisplay.broadcast('ACTOR_SYNC', { characterId: id });
+        }
+
+        function setAspect(aspect) {
+            currentAspect = aspect;
+            document.querySelectorAll('.turnaround-view-card').forEach(c => c.classList.remove('active-aspect'));
+            const card = document.getElementById(`card-aspect-${aspect}`);
+            if (card) card.classList.add('active-aspect');
+
+            const badge = document.getElementById('badge-char-aspect');
+            const labels = { front: '正面 (Front)', right: '右側面 (Right)', back: '背面 (Back)', left: '左側面 (Left)' };
+            if (badge) badge.textContent = labels[aspect] || aspect;
+
+            // Broadcast to Main Monitor
+            multiDisplay.broadcast('ACTOR_SYNC', { characterId: currentActorId, aspect: aspect });
+        }
+
+        function syncSlots() {
+            const costume = document.getElementById('select-director-costume')?.value || '';
+            const prop = document.getElementById('select-director-prop')?.value || '';
+            const vehicle = document.getElementById('select-director-vehicle')?.value || '';
+
+            multiDisplay.broadcast('PROP_SYNC', { costume, prop, vehicle });
+            if (vehicle) {
+                multiDisplay.broadcast('VEHICLE_SYNC', { key: vehicle });
+            }
+        }
+
+        function toggleStageActor() {
+            multiDisplay.broadcast('ACTOR_SYNC', { toggleStage: true, characterId: currentActorId });
+            alert('📍 メイン画面（index.html）の街角セットへキャストの配置命令を送信しました！');
+        }
+
+        function openCharacterMaker() {
+            window.open('asset_studio.html', 'GENESIS_ASSET_WING', 'width=1200,height=800');
+        }
+
+        function triggerSceneAction() {
+            multiDisplay.broadcast('ACTOR_SYNC', { executeSceneGen: true, characterId: currentActorId });
+            alert('🎬 [ACTION命令送信] メインモニターにてストリートビュー実写映画シーンの生成を開始しました！');
+        }
+
+        function deployClipToTimeline(shotName, duration) {
+            const clip = {
+                id: `clip_${Date.now()}`,
+                title: shotName,
+                durationSec: duration,
+                type: 'video'
+            };
+            multiDisplay.broadcast('TIMELINE_VIDEO_ADD', clip);
+            alert(`🎬 [タイムライン配備完了]
+${shotName} (${duration}秒) をメインモニターのタイムラインへ自動配備しました！`);
+        }
+
+        function searchLocation() {
+            const q = document.getElementById('input-scout-query')?.value.trim();
+            if (!q) return alert('地名を入力してください。');
+            multiDisplay.broadcast('LOCATION_SYNC', { query: q });
+            alert(`🗺️ メインモニターを [${q}] へ探索ワープさせます！`);
+        }
+
+        function searchAlleyway(loc) {
+            const q = loc || document.getElementById('input-scout-query')?.value.trim() || '浅草';
+            multiDisplay.broadcast('LOCATION_SYNC', { query: q, alleyway: true });
+            alert(`🏮 メインモニターで [${q}] の路地裏・石畳小路へ突入します！`);
+        }
+
+        function setDolly(m) {
+            document.querySelectorAll('#lbl-dolly-dist').forEach(el => el.textContent = `${m}m`);
+            multiDisplay.broadcast('LOCATION_SYNC', { dollyDistance: m });
+        }
+
+        function setTime(tod) {
+            currentTimeOfDay = tod;
+            updateWeatherBadge();
+            multiDisplay.broadcast('WEATHER_SYNC', { timeOfDay: tod, weather: currentWeather });
+        }
+
+        function setWeather(w) {
+            currentWeather = w;
+            updateWeatherBadge();
+            multiDisplay.broadcast('WEATHER_SYNC', { timeOfDay: currentTimeOfDay, weather: w });
+        }
+
+        function updateWeatherBadge() {
+            const badge = document.getElementById('badge-weather-status');
+            if (badge) {
+                badge.textContent = `${currentTimeOfDay.toUpperCase()} ✕ ${currentWeather.toUpperCase()}`;
+            }
+        }
+
+        // Draw simple dummy avatars for turnaround preview
+        function renderTurnaroundCanvases() {
+            const aspects = ['front', 'right', 'back', 'left'];
+            aspects.forEach(asp => {
+                const cvs = document.getElementById(`canvas-aspect-${asp}`);
+                if (!cvs) return;
+                const ctx = cvs.getContext('2d');
+                ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+                // Body Silhouette
+                ctx.fillStyle = currentActorId === 'ren' ? '#00f2fe' : (currentActorId === 'asuka' ? '#ec4899' : '#f59e0b');
+                ctx.beginPath();
+                ctx.arc(cvs.width / 2, 35, 18, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillRect(cvs.width / 2 - 16, 58, 32, 60);
+                ctx.fillRect(cvs.width / 2 - 14, 120, 10, 25);
+                ctx.fillRect(cvs.width / 2 + 4, 120, 10, 25);
+
+                // Aspect indicator
+                ctx.fillStyle = '#fff';
+                ctx.font = '9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(asp.toUpperCase(), cvs.width / 2, 148);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTurnaroundCanvases();
+        });
+    </script>
+</body>
+</html>

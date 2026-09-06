@@ -69,7 +69,7 @@
         .studio-layout {
             flex: 1;
             display: grid;
-            grid-template-columns: 390px 1fr 380px;
+            grid-template-columns: 1fr 380px;
             gap: 6px;
             padding: 6px;
             overflow: hidden;
@@ -551,29 +551,49 @@
 </head>
 <body>
 
-    <!-- Top Header -->
-    <header class="studio-header">
-        <div class="studio-brand">
-            <i class="fa-solid fa-earth-americas" style="color:var(--accent-cyan);"></i>
-            <span>GENESIS GLOBAL CINEMA STUDIO</span>
-            <span style="font-size:0.55rem; background:rgba(0,242,254,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:3px; font-weight:700;">Director Cockpit ✕ 5-Track Timeline NLE</span>
+    <!-- Unified Master Cinema Header (1-Row Integrated Controls) -->
+    <header class="studio-header" style="height:44px; display:flex; justify-content:space-between; align-items:center; padding:0 12px; background:linear-gradient(180deg, rgba(15,23,42,0.98) 0%, rgba(3,7,18,0.98) 100%); border-bottom:1px solid var(--border-dark); z-index:100;">
+        
+        <!-- Left: Brand & Integrated Stage Switcher Tabs -->
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="studio-brand" style="font-family:'Cinzel', serif; font-weight:800; font-size:0.85rem; letter-spacing:1px; background:linear-gradient(135deg, #00f2fe 0%, #38bdf8 50%, #f59e0b 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-earth-americas" style="color:var(--accent-cyan);"></i>
+                <span>GENESIS CINEMA STUDIO</span>
+            </div>
+
+            <!-- Stage View Switcher Tabs (Unified & Prominent) -->
+            <div class="stage-view-tabs-inline" style="display:flex; gap:4px; margin-left:6px; background:rgba(6,10,20,0.6); padding:2px 4px; border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
+                <button class="stage-tab-btn active" id="tab-btn-streetview" onclick="switchStageMode('streetview')">
+                    <i class="fa-solid fa-street-view"></i> 🌐 ① 360°実写ストリートビュー
+                </button>
+                <button class="stage-tab-btn" id="tab-btn-map" onclick="switchStageMode('map')">
+                    <i class="fa-solid fa-map-marked-alt"></i> 🗺️ ② 全体マップ探索
+                </button>
+                <button class="stage-tab-btn" id="tab-btn-earth" onclick="openAerialStudioTab()" title="Google Earth空撮ダイブインスタジオを独立別タブで起動">
+                    <i class="fa-solid fa-plane-departure"></i> 🛸 ③ 3D空撮スタジオ (別タブ) <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.46rem; opacity:0.8;"></i>
+                </button>
+                <button class="btn-opt" style="padding:4px 8px; font-size:0.58rem; background:rgba(245,158,11,0.2); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800;" onclick="executeAlleywaySearch()" title="大通りから離れ、この街の細道・石畳小路・路地裏へ突入">
+                    <i class="fa-solid fa-person-walking"></i> 🏮 路地裏へ突入
+                </button>
+            </div>
         </div>
 
-        <div class="header-actions" style="display:flex; gap:6px;">
+        <!-- Right: Studio Wings & Theaters & Vault Controls -->
+        <div class="header-actions" style="display:flex; align-items:center; gap:6px;">
+            <button class="btn-opt" style="background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan); font-weight:800;" onclick="openCastFootageStudioTab()" title="出演キャスト、衣装・小道具、動画フッテージBin、撮影制御を別タブ大画面で操作">
+                <i class="fa-solid fa-users-viewfinder"></i> 👥 出演キャスト＆フッテージ (別タブ) <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.46rem; opacity:0.8;"></i>
+            </button>
             <button class="btn-opt" style="background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:var(--accent-gold);" onclick="openLocationVaultModal()">
                 <i class="fa-solid fa-folder-open"></i> 📂 登録ロケ地台帳
-            </button>
-            <button class="btn-opt" style="background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan);" onclick="launchTripleDisplays()">
-                <i class="fa-solid fa-display"></i> 🖥️ 4画面スタジオ展開 (①監督 ②試写 ③工房 ④台本)
             </button>
             <button class="btn-opt" style="background:linear-gradient(135deg, rgba(0,242,254,0.2), rgba(168,85,247,0.25)); border-color:var(--accent-cyan); color:#fff; font-weight:800;" onclick="window.CharacterStudioUI && window.CharacterStudioUI.openModal()">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> 🎭 キャスト＆クローゼット制作
             </button>
-            <a href="aerial_studio.html" target="_blank" class="btn-opt" style="background:linear-gradient(135deg, rgba(2,132,199,0.3), rgba(56,189,248,0.25)); border-color:#38bdf8; color:#fff; font-weight:800;">
-                <i class="fa-solid fa-plane-departure"></i> 🛸 3D空撮スタジオ (別タブ)
-            </a>
-            <button class="btn-opt" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border:none; padding:6px 12px; font-weight:800;" onclick="triggerDirectVeoCinemaGeneration()">
-                <i class="fa-solid fa-play"></i> 4K試写室シアターで上映
+            <button class="btn-opt" style="background:rgba(30,41,59,0.7); border-color:var(--border-dark); color:#cbd5e1;" onclick="launchTripleDisplays()">
+                <i class="fa-solid fa-display"></i> 🖥️ 4画面スタジオ展開
+            </button>
+            <button class="btn-opt" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border:none; padding:5px 12px; font-weight:800; cursor:pointer;" onclick="triggerDirectVeoCinemaGeneration()">
+                <i class="fa-solid fa-play"></i> ▶ 4K試写室シアター
             </button>
         </div>
     </header>
@@ -582,7 +602,7 @@
     <main class="studio-layout">
 
         <!-- Column 1: Left Controls (Cast Selector + Footage Bin D&D + World Scout & Dolly) -->
-        <aside class="panel">
+        <aside class="panel" id="left-cast-drawer" style="display:none;">
             <div class="panel-header">
                 <span><i class="fa-solid fa-sliders"></i> 出演キャスト ＆ 生成動画フッテージ ＆ 撮影制御</span>
             </div>
@@ -811,28 +831,8 @@
 
         <!-- Column 2: Center Stage Viewport (Street View Shoot & Map & Earth Viewport) -->
         <section class="stage-wrapper">
-            <div class="stage-view-tabs">
-                <button class="stage-tab-btn active" id="tab-btn-streetview" onclick="switchStageMode('streetview')">
-                    <i class="fa-solid fa-street-view"></i> 🌐 ① 360°実写ストリートビュー撮影空間 (LIVE)
-                </button>
-                <button class="stage-tab-btn" id="tab-btn-map" onclick="switchStageMode('map')">
-                    <i class="fa-solid fa-map-marked-alt"></i> 🗺️ ② 全体マップ探索 (Google公式青線 ✕ ペグマン)
-                </button>
-                <button class="stage-tab-btn" id="tab-btn-earth" onclick="openAerialStudioTab()" title="Google Earth空撮ダイブインスタジオを独立した別タブで開きます">
-                    <i class="fa-solid fa-plane-departure"></i> 🛸 ③ 3D空撮スタジオ (別タブで独立) <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.50rem; margin-left:3px; opacity:0.8;"></i>
-                </button>
-                <div style="margin-left:auto; display:flex; gap:4px;">
-                    <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.25); border-color:var(--accent-gold); color:var(--accent-gold); font-weight:800;" onclick="executeAlleywaySearch()" title="大通りから離れ、この街の細道・石畳小路・路地裏へ突入">
-                        <i class="fa-solid fa-person-walking"></i> 🏮 この街の路地裏へ突入
-                    </button>
-                    <button class="btn-opt" style="padding:2px 8px; font-size:0.58rem; background:rgba(245,158,11,0.15); border-color:var(--accent-gold); color:var(--accent-gold);" onclick="openLocationVaultModal()">
-                        <i class="fa-solid fa-book-bookmark"></i> ロケ地台帳
-                    </button>
-                </div>
-            </div>
-
-            <!-- Stage Viewport Container -->
-            <div class="stage-main-area" id="stage-viewport-container">
+            <!-- Stage View Tabs moved to Top Header for maximum vertical viewport -->
+                <div class="stage-main-area" id="stage-viewport-container">
                 <iframe id="google-streetview-iframe" 
                         src="https://maps.google.com/maps?layer=c&cbll=35.7111,139.7963&cbp=11,180,0,0,0&output=svembed"
                         allowfullscreen
@@ -2715,6 +2715,43 @@
         };
 
         // 🛸 Multi-Display Wing Studio: 3D Aerial Flight Sync Handler
+        
+        // 👥 Multi-Display Wing Studio: Cast & Footage Studio Opener
+        function openCastFootageStudioTab() {
+            const win = window.open('cast_footage_studio.html', 'GENESIS_CAST_FOOTAGE_WING', 'width=1400,height=880,left=60,top=40');
+            if (win) win.focus();
+        }
+
+        // 🌦️ Multi-Display Weather & Lighting Sync Handler
+        window.onMultiDisplayWeatherUpdate = (data) => {
+            console.log("🌦️ [MultiDisplay] WEATHER_SYNC received:", data);
+            if (!data) return;
+            if (data.timeOfDay && typeof selectTimeOfDay === 'function') {
+                selectTimeOfDay(data.timeOfDay);
+            }
+            if (data.weather && typeof selectWeather === 'function') {
+                selectWeather(data.weather);
+            }
+            updateHud();
+            updatePrompts();
+        };
+
+        // 🗺️ Multi-Display Location & Dolly Sync Handler
+        window.onMultiDisplayLocationUpdate = (data) => {
+            console.log("🗺️ [MultiDisplay] LOCATION_SYNC received:", data);
+            if (!data) return;
+            if (data.alleyway) {
+                executeAlleywaySearch(data.query || '浅草');
+            } else if (data.query) {
+                const inScout = document.getElementById('input-scout-query');
+                if (inScout) inScout.value = data.query;
+                executeLocationSearch();
+            }
+            if (data.dollyDistance && typeof setDollyDistance === 'function') {
+                setDollyDistance(data.dollyDistance);
+            }
+        };
+
         window.onMultiDisplayAerialFlightAdd = (data) => {
             console.log("🛸 [MultiDisplay] AERIAL_FLIGHT_ADD received from Wing Studio:", data);
             if (!data) return;
