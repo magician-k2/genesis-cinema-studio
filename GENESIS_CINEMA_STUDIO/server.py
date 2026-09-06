@@ -538,6 +538,40 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         
+        # 🏛️ Save New Asset Item to Media Vault
+        if parsed.path == '/api/media_vault':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                new_item = json.loads(body)
+                if 'id' not in new_item:
+                    new_item['id'] = f"custom_asset_{int(time.time() * 1000)}"
+                if 'created_at' not in new_item:
+                    new_item['created_at'] = time.strftime('%Y-%m-%d %H:%M:%S')
+
+                custom_items = []
+                if os.path.exists(MEDIA_VAULT_FILE):
+                    try:
+                        with open(MEDIA_VAULT_FILE, 'r', encoding='utf-8') as f:
+                            custom_items = json.load(f)
+                    except Exception:
+                        custom_items = []
+                
+                custom_items.insert(0, new_item)
+                with open(MEDIA_VAULT_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(custom_items, f, ensure_ascii=False, indent=2)
+
+                res = {'success': True, 'item': new_item, 'message': 'アセットを保管庫に保存しました'}
+            except Exception as e:
+                res = {'success': False, 'error': str(e)}
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+            return
+
         # 💾 Save New Location to Vault Endpoint
         if parsed.path == '/api/locations':
             content_length = int(self.headers.get('Content-Length', 0))
