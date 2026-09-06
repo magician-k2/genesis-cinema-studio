@@ -733,38 +733,6 @@
 
             </div>
         </section>
-
-    
-
-        <div style="background:#090d1a; border:1px solid var(--accent-purple); border-radius:8px; width:440px; max-width:92vw; padding:16px; box-shadow:0 0 30px rgba(168,85,247,0.35); display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-dark); padding-bottom:8px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent-purple);"></i>
-                    <span style="font-size:0.75rem; font-weight:800; color:#fff;">カスタムプロンプト登録 ＆ プリセット保存</span>
-                    <span id="preset-modal-cat-badge" style="font-size:0.52rem; background:rgba(168,85,247,0.2); color:#c084fc; padding:2px 8px; border-radius:3px; font-weight:800;">髪型</span>
-                </div>
-                <button type="button" class="btn-opt" style="padding:2px 8px;" onclick="closeCustomPresetModal()">✕</button>
-            </div>
-
-            <div>
-                <label style="font-size:0.55rem; color:var(--accent-cyan); font-weight:700; margin-bottom:4px; display:block;">
-                    プロンプト入力 (自由記述・日英両対応):
-                </label>
-                <input type="text" id="input-modal-custom-val" class="input-custom" style="font-size:0.68rem; padding:8px;" placeholder="例: 銀髪ツインテール、メカニカル筋肉..." onkeydown="if(event.key==='Enter') saveCustomPresetFromModal()">
-                <div id="preset-modal-hint" style="font-size:0.48rem; color:var(--text-muted); margin-top:4px; line-height:1.4;">
-                    ヒント: ここで保存したプロンプトは、次回以降もドロップダウンから選択できます。
-                </div>
-            </div>
-
-            <div style="display:flex; gap:8px; justify-content:flex-end;">
-                <button type="button" class="btn-opt" style="padding:6px 12px;" onclick="closeCustomPresetModal()">キャンセル</button>
-                <button type="button" class="btn-opt" style="background:linear-gradient(135deg, #a855f7, #3b82f6); color:#fff; border:none; padding:6px 16px; font-weight:800;" onclick="saveCustomPresetFromModal()">
-                    <i class="fa-solid fa-floppy-disk"></i> 保存してこの項目を選択
-                </button>
-            </div>
-
-
-
     </main>
 
     <!-- Essential Scripts -->
@@ -999,6 +967,9 @@
             const modal = document.getElementById('modal-custom-preset');
             if (modal) modal.style.display = 'none';
         }
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCustomPresetModal();
+        });
 
         function saveCustomPresetFromModal() {
             const input = document.getElementById('input-modal-custom-val');
@@ -1675,7 +1646,7 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
     <script src="webgpu_cinema_accel.js"></script>
 
     <!-- ✍️ Top-Level Custom Preset Modal Dialog -->
-    <div id="modal-custom-preset" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(2,6,23,0.88); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;">
+    <div id="modal-custom-preset" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(2,6,23,0.88); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this) closeCustomPresetModal()">
         <div style="background:#090d1a; border:1px solid var(--accent-purple); border-radius:8px; width:460px; max-width:92vw; padding:18px; box-shadow:0 0 40px rgba(168,85,247,0.45); display:flex; flex-direction:column; gap:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-dark); padding-bottom:8px;">
                 <div style="display:flex; align-items:center; gap:8px;">
