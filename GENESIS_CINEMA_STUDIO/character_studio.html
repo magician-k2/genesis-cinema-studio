@@ -417,8 +417,11 @@
                             </select>
                         </div>
                         <div>
-                            <label style="font-size:0.50rem; color:var(--text-muted);">体型:</label>
-                            <select id="select-char-build" class="select-custom" onchange="updateProceduralPreview(); updateGemmaPrompt();">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1px;">
+                                <label style="font-size:0.50rem; color:var(--text-muted);">体型:</label>
+                                <button type="button" class="btn-opt" style="padding:0 4px; font-size:0.42rem; border-color:var(--accent-purple); color:#c084fc;" onclick="openCustomPresetModal('build')" title="カスタム体型プロンプトを登録">＋</button>
+                            </div>
+                            <select id="select-char-build" class="select-custom" onchange="handleSelectChange('build')">
                                 <option value="slender">スリム</option>
                                 <option value="athletic" selected>アスリート</option>
                                 <option value="tactical">特殊部隊</option>
@@ -439,8 +442,11 @@
                     <!-- Hair & Skin Tone -->
                     <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:4px;">
                         <div>
-                            <label style="font-size:0.50rem; color:var(--text-muted);">髪型:</label>
-                            <select id="select-char-hair" class="select-custom" onchange="updateProceduralPreview(); updateGemmaPrompt();">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1px;">
+                                <label style="font-size:0.50rem; color:var(--text-muted);">髪型:</label>
+                                <button type="button" class="btn-opt" style="padding:0 4px; font-size:0.42rem; border-color:var(--accent-purple); color:#c084fc;" onclick="openCustomPresetModal('hair')" title="カスタム髪型プロンプトを登録">＋</button>
+                            </div>
+                            <select id="select-char-hair" class="select-custom" onchange="handleSelectChange('hair')">
                                 <option value="short_crop">ショート</option>
                                 <option value="wolf_cut" selected>ウルフカット</option>
                                 <option value="side_part">七三・サイド</option>
@@ -450,8 +456,11 @@
                             </select>
                         </div>
                         <div>
-                            <label style="font-size:0.50rem; color:var(--text-muted);">髪色:</label>
-                            <select id="select-char-hair-color" class="select-custom" onchange="updateProceduralPreview(); updateGemmaPrompt();">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1px;">
+                                <label style="font-size:0.50rem; color:var(--text-muted);">髪色:</label>
+                                <button type="button" class="btn-opt" style="padding:0 4px; font-size:0.42rem; border-color:var(--accent-purple); color:#c084fc;" onclick="openCustomPresetModal('hair_color')" title="カスタム髪色プロンプトを登録">＋</button>
+                            </div>
+                            <select id="select-char-hair-color" class="select-custom" onchange="handleSelectChange('hair_color')">
                                 <option value="#0a0a0c" selected>漆黒 (Jet Black)</option>
                                 <option value="#94a3b8">シルバー (Silver)</option>
                                 <option value="#0284c7">シアン (Cyan)</option>
@@ -460,8 +469,11 @@
                             </select>
                         </div>
                         <div>
-                            <label style="font-size:0.50rem; color:var(--text-muted);">肌色:</label>
-                            <select id="select-char-skin" class="select-custom" onchange="updateProceduralPreview(); updateGemmaPrompt();">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1px;">
+                                <label style="font-size:0.50rem; color:var(--text-muted);">肌色:</label>
+                                <button type="button" class="btn-opt" style="padding:0 4px; font-size:0.42rem; border-color:var(--accent-purple); color:#c084fc;" onclick="openCustomPresetModal('skin')" title="カスタム肌色プロンプトを登録">＋</button>
+                            </div>
+                            <select id="select-char-skin" class="select-custom" onchange="handleSelectChange('skin')">
                                 <option value="natural" selected>自然 (Natural)</option>
                                 <option value="cyber_pale">サイバーペール</option>
                                 <option value="fair">美白 (Fair)</option>
@@ -473,10 +485,10 @@
                     <!-- Costume & Aesthetic Style -->
                     <div class="box-title" style="color:var(--accent-gold); margin-top:4px;">
                         <span>👘 衣装・アピアランス設定</span>
+                        <button type="button" class="btn-opt" style="padding:0 6px; font-size:0.46rem; border-color:var(--accent-purple); color:#c084fc;" onclick="openCustomPresetModal('costume')">＋衣装プロンプト登録</button>
                     </div>
                     <div>
-                        <label style="font-size:0.50rem; color:var(--text-muted);">衣装スタイル:</label>
-                        <select id="select-char-costume" class="select-custom" onchange="updateProceduralPreview(); updateGemmaPrompt();">
+                        <select id="select-char-costume" class="select-custom" onchange="handleSelectChange('costume')">
                             <option value="noir_trench" selected>🧥 ノワール・ロングトレンチコート (撥水)</option>
                             <option value="urban_techwear">✨ サイバーテックウェア (多機能)</option>
                             <option value="tactical_suit">🛡️ コンバットスーツ (耐火防弾)</option>
@@ -680,6 +692,48 @@
             </div>
         </section>
 
+    
+    <!-- ✍️ Custom Preset Modal Dialog -->
+    <div id="modal-custom-preset" style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.85); backdrop-filter:blur(8px); z-index:999; align-items:center; justify-content:center;">
+        <div style="background:#090d1a; border:1px solid var(--accent-purple); border-radius:8px; width:440px; max-width:92vw; padding:16px; box-shadow:0 0 30px rgba(168,85,247,0.35); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-dark); padding-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--accent-purple);"></i>
+                    <span style="font-size:0.75rem; font-weight:800; color:#fff;">カスタムプロンプト登録 ＆ プリセット保存</span>
+                    <span id="preset-modal-cat-badge" style="font-size:0.52rem; background:rgba(168,85,247,0.2); color:#c084fc; padding:2px 8px; border-radius:3px; font-weight:800;">髪型</span>
+                </div>
+                <button type="button" class="btn-opt" style="padding:2px 8px;" onclick="closeCustomPresetModal()">✕</button>
+            </div>
+
+            <div>
+                <label style="font-size:0.55rem; color:var(--accent-cyan); font-weight:700; margin-bottom:4px; display:block;">
+                    プロンプト入力 (自由記述・日英両対応):
+                </label>
+                <input type="text" id="input-modal-custom-val" class="input-custom" style="font-size:0.68rem; padding:8px;" placeholder="例: 銀髪ツインテール、メカニカル筋肉..." onkeydown="if(event.key==='Enter') saveCustomPresetFromModal()">
+                <div id="preset-modal-hint" style="font-size:0.48rem; color:var(--text-muted); margin-top:4px; line-height:1.4;">
+                    ヒント: ここで保存したプロンプトは、次回以降もドロップダウンから選択できます。
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="btn-opt" style="padding:6px 12px;" onclick="closeCustomPresetModal()">キャンセル</button>
+                <button type="button" class="btn-opt" style="background:linear-gradient(135deg, #a855f7, #3b82f6); color:#fff; border:none; padding:6px 16px; font-weight:800;" onclick="saveCustomPresetFromModal()">
+                    <i class="fa-solid fa-floppy-disk"></i> 保存してこの項目を選択
+                </button>
+            </div>
+
+            <!-- Saved Presets List -->
+            <div style="border-top:1px solid var(--border-dark); padding-top:8px;">
+                <div style="font-size:0.52rem; color:var(--accent-gold); font-weight:800; margin-bottom:6px;">
+                    ⭐ 保存済みカスタムプリセット一覧 (<span id="preset-modal-count">0</span>件):
+                </div>
+                <div id="preset-modal-saved-list" style="max-height:140px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     </main>
 
     <!-- Essential Scripts -->
@@ -727,21 +781,236 @@
             }
         }
 
+        
+        // ==========================================
+        // ✍️ Custom Prompt Presets Management Engine
+        // ==========================================
+        let activePresetCategory = 'hair';
+
+        const presetHints = {
+            build: 'ヒント: 「華奢なサイボーグ体型」「超高密度マッシブ筋肉」「長身スレンダーモデル」「サイバー武術家」など',
+            hair: 'ヒント: 「銀髪ウルフボブ」「サイバーパンク風アシンメトリーツインテール」「ネオン発光ドレッド」「オールバックポニー」など',
+            hair_color: 'ヒント: 「プラチナブロンド」「ネオンピンクと漆黒のインナーカラー」「シアン・エレクトリックブルー」「ホワイトシルバー」など',
+            skin: 'ヒント: 「磁器のようなサイバーペール」「ブロンズの健康的な小麦肌」「青白く透き通るアンドロイド肌」「ダークエルフ肌」など',
+            costume: 'ヒント: 「ホログラム龍が舞うサイバー和装」「スチームパンク調防弾トレンチコート」「軍用耐火タクティカルスーツ」「サイバー巫女装束」など'
+        };
+
+        const categoryLabels = {
+            build: '体型',
+            hair: '髪型',
+            hair_color: '髪色',
+            skin: '肌色',
+            costume: '衣装スタイル'
+        };
+
+        const selectElementIds = {
+            build: 'select-char-build',
+            hair: 'select-char-hair',
+            hair_color: 'select-char-hair-color',
+            skin: 'select-char-skin',
+            costume: 'select-char-costume'
+        };
+
+        function getCustomPresets(category) {
+            try {
+                const data = localStorage.getItem(`genesis_custom_presets_${category}`);
+                return data ? JSON.parse(data) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveCustomPresets(category, presets) {
+            try {
+                localStorage.setItem(`genesis_custom_presets_${category}`, JSON.stringify(presets));
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function initAllCustomPresets() {
+            Object.keys(selectElementIds).forEach(cat => {
+                populateSelectWithPresets(cat);
+            });
+        }
+
+        function populateSelectWithPresets(category) {
+            const sel = document.getElementById(selectElementIds[category]);
+            if (!sel) return;
+
+            const currentVal = sel.value;
+
+            // Remove existing custom optgroups and add option
+            const existingGroup = sel.querySelector('optgroup[data-custom-group="true"]');
+            if (existingGroup) existingGroup.remove();
+            const existingAddOpt = sel.querySelector('option[value="__add_custom__"]');
+            if (existingAddOpt) existingAddOpt.remove();
+
+            const presets = getCustomPresets(category);
+            if (presets.length > 0) {
+                const group = document.createElement('optgroup');
+                group.label = '⭐ 保存済みカスタム';
+                group.dataset.customGroup = 'true';
+
+                presets.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = `custom_${p}`;
+                    opt.textContent = `⭐ ${p}`;
+                    opt.dataset.customPrompt = p;
+                    group.appendChild(opt);
+                });
+                sel.appendChild(group);
+            }
+
+            // Add __add_custom__ option at bottom
+            const addOpt = document.createElement('option');
+            addOpt.value = '__add_custom__';
+            addOpt.textContent = '➕ 自由入力 ＆ プリセット保存...';
+            sel.appendChild(addOpt);
+
+            // Restore selection if valid
+            if (currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
+                sel.value = currentVal;
+            }
+        }
+
+        function handleSelectChange(category) {
+            const sel = document.getElementById(selectElementIds[category]);
+            if (!sel) return;
+
+            if (sel.value === '__add_custom__') {
+                openCustomPresetModal(category);
+                sel.selectedIndex = 0;
+                return;
+            }
+
+            updateProceduralPreview();
+            updateGemmaPrompt();
+        }
+
+        function openCustomPresetModal(category) {
+            activePresetCategory = category;
+            const modal = document.getElementById('modal-custom-preset');
+            const badge = document.getElementById('preset-modal-cat-badge');
+            const hint = document.getElementById('preset-modal-hint');
+            const input = document.getElementById('input-modal-custom-val');
+
+            badge.textContent = categoryLabels[category] || category;
+            hint.textContent = presetHints[category] || '';
+            input.value = '';
+
+            renderModalSavedPresets();
+
+            modal.style.display = 'flex';
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeCustomPresetModal() {
+            const modal = document.getElementById('modal-custom-preset');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function saveCustomPresetFromModal() {
+            const input = document.getElementById('input-modal-custom-val');
+            const val = input.value.trim();
+            if (!val) {
+                alert('プロンプトを入力してください。');
+                return;
+            }
+
+            const presets = getCustomPresets(activePresetCategory);
+            if (!presets.includes(val)) {
+                presets.unshift(val);
+                saveCustomPresets(activePresetCategory, presets);
+            }
+
+            // Re-populate select and choose this preset
+            populateSelectWithPresets(activePresetCategory);
+            const sel = document.getElementById(selectElementIds[activePresetCategory]);
+            if (sel) {
+                sel.value = `custom_${val}`;
+            }
+
+            closeCustomPresetModal();
+            updateProceduralPreview();
+            updateGemmaPrompt();
+        }
+
+        function deleteCustomPreset(category, val) {
+            let presets = getCustomPresets(category);
+            presets = presets.filter(p => p !== val);
+            saveCustomPresets(category, presets);
+            populateSelectWithPresets(category);
+            renderModalSavedPresets();
+            updateGemmaPrompt();
+        }
+
+        function selectPresetDirectly(val) {
+            const sel = document.getElementById(selectElementIds[activePresetCategory]);
+            if (sel) {
+                sel.value = `custom_${val}`;
+            }
+            closeCustomPresetModal();
+            updateProceduralPreview();
+            updateGemmaPrompt();
+        }
+
+        function renderModalSavedPresets() {
+            const listEl = document.getElementById('preset-modal-saved-list');
+            const countEl = document.getElementById('preset-modal-count');
+            const presets = getCustomPresets(activePresetCategory);
+            if (countEl) countEl.textContent = presets.length;
+
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            if (presets.length === 0) {
+                listEl.innerHTML = '<div style="font-size:0.48rem; color:var(--text-muted); padding:4px;">まだ保存されたカスタムプリセットはありません。</div>';
+                return;
+            }
+
+            presets.forEach(p => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#070b16; border:1px solid var(--border-dark); border-radius:4px; padding:3px 8px;';
+                item.innerHTML = `
+                    <span style="font-size:0.56rem; color:#fff; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">⭐ ${p}</span>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" class="btn-opt" style="padding:1px 5px; font-size:0.46rem; color:var(--accent-cyan); border-color:var(--accent-cyan);" onclick="selectPresetDirectly('${p.replace(/'/g, "\\'")}')">選択</button>
+                        <button type="button" class="btn-opt" style="padding:1px 5px; font-size:0.46rem; color:#ef4444; border-color:#ef4444;" onclick="deleteCustomPreset('${activePresetCategory}', '${p.replace(/'/g, "\\'")}')">🗑️</button>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function getSelectedCustomPrompt(selectId) {
+            const sel = document.getElementById(selectId);
+            if (!sel || sel.selectedIndex < 0) return '';
+            const opt = sel.options[sel.selectedIndex];
+            if (!opt) return '';
+            if (opt.dataset && opt.dataset.customPrompt) {
+                return opt.dataset.customPrompt;
+            }
+            return opt.textContent.replace(/^[🧥✨🛡️👔🥋⭐\s]+/, '').replace(/\s*\(.*?\)/, '').trim();
+        }
+
         // 2. Gemma 4 Master Prompt Synthesis
         function updateGemmaPrompt() {
             const nameJa = document.getElementById('input-char-name')?.value || '如月 蓮';
             const nameEn = document.getElementById('input-char-name-en')?.value || 'Ren Kisaragi';
             const age = document.getElementById('input-char-age')?.value || '26';
             const gender = document.getElementById('select-char-gender')?.value || 'male';
-            const build = document.getElementById('select-char-build')?.value || 'athletic';
+            const build = getSelectedCustomPrompt('select-char-build') || 'athletic';
             const height = document.getElementById('range-char-height')?.value || '1.80';
-            const hair = document.getElementById('select-char-hair')?.value || 'wolf_cut';
-            const costume = document.getElementById('select-char-costume')?.value || 'noir_trench';
+            const hair = getSelectedCustomPrompt('select-char-hair') || 'wolf_cut';
+            const hairColor = getSelectedCustomPrompt('select-char-hair-color') || '漆黒';
+            const skinTone = getSelectedCustomPrompt('select-char-skin') || '自然';
+            const costume = getSelectedCustomPrompt('select-char-costume') || 'noir_trench';
             const neon = document.getElementById('input-neon-color')?.value || '#00f2fe';
 
             const prompt = `[Gemma 4 Master Turnaround Sheet]
-Subject: ${nameEn} (${nameJa}), ${age}yo ${gender}, ${height}m tall, ${build} build.
-Features: ${hair} hairstyle, clean facial features, focused gaze.
+Subject: ${nameEn} (${nameJa}), ${age}yo ${gender}, ${height}m tall, ${build} build, ${skinTone} skin.
+Features: ${hair} hairstyle in ${hairColor}, clean facial features, focused gaze.
 Wardrobe: ${costume} style with neon luminescent seams (${neon}).
 Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profile, Rear View, Left Profile) on solid neutral background for zero-tolerance alpha matting. 8K studio lighting, perfect anatomical symmetry, ground contact feet alignment.`;
 
@@ -1302,6 +1571,7 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
+            initAllCustomPresets();
             updateGemmaPrompt();
             await refreshCharacterList();
             if (characterVaultData.length > 0) {
