@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GENESIS DYNAMIC AUDIO MIXER - 音響・アフレコ・マルチトラックミキサー卓</title>
+    <title>GENESIS DYNAMIC AUDIO MIXER - 上下2段マルチトラックミキサー卓</title>
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,7 +38,7 @@
 
         /* Header */
         header {
-            height: 48px;
+            height: 46px;
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(3, 7, 18, 0.98) 100%);
             border-bottom: 1px solid var(--border-dark);
             padding: 0 16px;
@@ -80,68 +80,71 @@
             background: rgba(0, 242, 254, 0.1);
         }
 
-        /* Sub Navigation & Section Tabs */
-        .console-toolbar {
-            background: rgba(10, 15, 30, 0.9);
-            border-bottom: 1px solid var(--border-dark);
-            padding: 6px 16px;
+        /* 🎚️ 2-Deck Console Container (上下2段レイアウト) */
+        .mixer-2deck-container {
+            flex: 1;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-        .section-tags {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .badge-sec {
-            font-size: 0.58rem;
-            font-weight: 800;
-            padding: 3px 10px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            padding: 10px 14px;
+            background: radial-gradient(ellipse at 50% 20%, #080f24 0%, #030610 100%);
         }
 
-        /* Console Main Scrolling Track Deck */
-        .console-deck {
-            flex: 1;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 14px;
+        .deck-row {
             display: flex;
-            gap: 12px;
-            background: radial-gradient(ellipse at 50% 20%, #080f24 0%, #030610 100%);
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(10, 15, 30, 0.7);
+            border: 1px solid var(--border-dark);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+        .deck-header {
+            font-size: 0.66rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 4px;
+        }
+        .deck-strips {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 4px 2px;
+            align-items: stretch;
         }
 
         /* Channel Strip (Vertical DAW Mixer Fader) */
         .channel-strip {
-            width: 145px;
-            min-width: 145px;
+            width: 140px;
+            min-width: 140px;
             background: var(--bg-strip);
             border: 1px solid var(--border-dark);
             border-radius: 8px;
-            padding: 10px 8px;
+            padding: 8px 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            transition: border-color 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            transition: all 0.2s;
         }
         .channel-strip:hover {
-            border-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(15, 23, 45, 0.95);
         }
         .channel-strip.master-strip {
-            width: 160px;
-            min-width: 160px;
-            background: linear-gradient(180deg, #111827 0%, #0b1120 100%);
-            border-color: rgba(245, 158, 11, 0.4);
-            margin-left: auto;
+            width: 165px;
+            min-width: 165px;
+            background: linear-gradient(180deg, #151d30 0%, #0b1120 100%);
+            border-color: rgba(245, 158, 11, 0.45);
             box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+            margin-left: auto;
         }
 
         .strip-header {
@@ -152,25 +155,57 @@
             gap: 2px;
             text-align: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            padding-bottom: 6px;
+            padding-bottom: 4px;
         }
         .strip-number {
-            font-size: 0.50rem;
+            font-size: 0.48rem;
             font-family: 'Fira Code', monospace;
             font-weight: 700;
             color: var(--text-muted);
         }
+
+        /* Editable Strip Name */
+        .strip-name-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         .strip-name {
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             font-weight: 800;
             color: #fff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 130px;
+            max-width: 125px;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
+        .strip-name:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-cyan);
+        }
+        .strip-name-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 3px;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-align: center;
+            padding: 2px 4px;
+            outline: none;
+        }
+
         .strip-role-badge {
-            font-size: 0.46rem;
+            font-size: 0.44rem;
             padding: 1px 6px;
             border-radius: 10px;
             font-weight: 700;
@@ -185,11 +220,11 @@
             gap: 2px;
             background: var(--bg-card-inner);
             border-radius: 4px;
-            padding: 4px;
+            padding: 3px 4px;
             border: 1px solid rgba(255,255,255,0.05);
         }
         .pan-label {
-            font-size: 0.48rem;
+            font-size: 0.46rem;
             color: var(--text-muted);
             display: flex;
             justify-content: space-between;
@@ -206,13 +241,13 @@
         /* Mute & Solo Buttons */
         .strip-mute-solo {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             width: 100%;
         }
         .btn-ms {
             flex: 1;
-            padding: 3px 0;
-            font-size: 0.52rem;
+            padding: 2px 0;
+            font-size: 0.50rem;
             font-weight: 800;
             border-radius: 3px;
             border: 1px solid var(--border-dark);
@@ -223,28 +258,27 @@
             transition: all 0.2s;
         }
         .btn-ms.mute-active {
-            background: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.35);
             border-color: var(--accent-red);
             color: #fca5a5;
         }
         .btn-ms.solo-active {
-            background: rgba(245, 158, 11, 0.3);
+            background: rgba(245, 158, 11, 0.35);
             border-color: var(--accent-gold);
             color: #fde047;
         }
 
         /* Fader & VU Meter Section */
         .fader-section {
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             width: 100%;
-            padding: 6px 0;
+            padding: 4px 0;
         }
         .fader-wrap {
-            height: 180px;
+            height: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -254,14 +288,14 @@
             writing-mode: bt-lr;
             -webkit-appearance: slider-vertical;
             width: 8px;
-            height: 170px;
+            height: 110px;
             cursor: pointer;
         }
 
         /* LED VU Meter Bar */
         .vu-meter {
             width: 6px;
-            height: 170px;
+            height: 110px;
             background: #020408;
             border-radius: 3px;
             border: 1px solid rgba(255,255,255,0.1);
@@ -273,7 +307,7 @@
         }
         .vu-led {
             width: 100%;
-            height: 3px;
+            height: 2.5px;
             background: #1e293b;
             border-radius: 1px;
             transition: background 0.08s;
@@ -284,11 +318,11 @@
 
         /* Volume dB Label */
         .vol-label {
-            font-size: 0.65rem;
+            font-size: 0.60rem;
             font-family: 'Fira Code', monospace;
             font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 1px 4px;
+            border-radius: 3px;
             background: var(--bg-card-inner);
             border: 1px solid rgba(255,255,255,0.06);
             width: 100%;
@@ -301,32 +335,21 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-dark);
             color: #fff;
-            padding: 6px 4px;
+            padding: 5px 3px;
             border-radius: 4px;
-            font-size: 0.58rem;
+            font-size: 0.54rem;
             font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
             transition: all 0.2s;
         }
         .btn-audition:hover {
             border-color: var(--accent-cyan);
             color: var(--accent-cyan);
             background: rgba(0, 242, 254, 0.15);
-        }
-
-        /* 📱 Split View (Vertical Portrait / 50% Width Mode) & WebGPU Optimized */
-        body.layout-split .console-deck {
-            overflow-x: auto !important;
-            padding: 8px !important;
-        }
-        body.layout-split .channel-strip {
-            width: 130px !important;
-            min-width: 130px !important;
-            padding: 6px !important;
         }
     </style>
 </head>
@@ -337,14 +360,14 @@
         <div class="brand-title">
             <i class="fa-solid fa-sliders" style="color:var(--accent-gold);"></i>
             <span>GENESIS DYNAMIC AUDIO MIXER</span>
-            <span style="font-size:0.52rem; background:rgba(245,158,11,0.15); color:var(--accent-gold); border:1px solid rgba(245,158,11,0.3); padding:2px 8px; border-radius:4px; font-weight:800;">
-                Pro DAW Console
+            <span style="font-size:0.50rem; background:rgba(245,158,11,0.15); color:var(--accent-gold); border:1px solid rgba(245,158,11,0.3); padding:2px 8px; border-radius:4px; font-weight:800;">
+                上下2段デッキ ✕ チャンネル名変更対応
             </span>
         </div>
 
         <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:0.58rem; color:#10b981; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:4px; font-weight:700;">
-                <i class="fa-solid fa-circle-nodes"></i> 📡 メイン画面とリアルタイム同期中 (<span id="sync-latency">0.0001s</span>)
+            <span style="font-size:0.56rem; color:#10b981; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:4px; font-weight:700;">
+                <i class="fa-solid fa-circle-nodes"></i> 📡 メイン画面とリアルタイム同期中
             </span>
             <button class="btn-opt btn-layout-toggle" style="background:rgba(255,255,255,0.08); border-color:var(--accent-cyan); color:#fff; font-weight:800;" onclick="window.WebGPUCinema && window.WebGPUCinema.toggleLayout()" title="全画面と縦長分割画面を切り替えます">
                 <i class="fa-solid fa-table-columns"></i> 📱 縦分割
@@ -361,36 +384,47 @@
         </div>
     </header>
 
-    <!-- Toolbar & Track Adders -->
-    <div class="console-toolbar">
-        <div class="section-tags">
-            <span class="badge-sec" style="background:rgba(192,132,252,0.15); border:1px solid #c084fc; color:#c084fc;">
-                <i class="fa-solid fa-microphone-lines"></i> 👤 VOICE: <span id="count-voice">4</span> Tracks
-            </span>
-            <span class="badge-sec" style="background:rgba(245,158,11,0.15); border:1px solid #f59e0b; color:#fbbf24;">
-                <i class="fa-solid fa-bolt"></i> ⚡ SFX / FOLEY: <span id="count-sfx">4</span> Tracks
-            </span>
-            <span class="badge-sec" style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#34d399;">
-                <i class="fa-solid fa-music"></i> 🎵 BGM: <span id="count-bgm">2</span> Tracks
-            </span>
-        </div>
+    <!-- 🎚️ 2-Deck Console Main (上下2段) -->
+    <main class="mixer-2deck-container">
+        
+        <!-- 【上段デッキ (Upper Deck)】: キャスト・ボイストラック群 👤 -->
+        <section class="deck-row">
+            <div class="deck-header">
+                <span style="color:#c084fc; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-microphone-lines"></i> 👤 【上段】出演キャスト・声優ボイストラック群 (<span id="count-voice">4</span> Tracks)
+                </span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:0.50rem; color:var(--text-muted);">💡 トラック名をクリックすると名前を自由に変更できます</span>
+                    <button class="btn-opt" style="border-color:#c084fc; color:#c084fc; padding:2px 8px;" onclick="addNewTrack('voice')">
+                        <i class="fa-solid fa-plus"></i> ＋ 声優トラック追加
+                    </button>
+                </div>
+            </div>
+            <div class="deck-strips" id="deck-voice-strips">
+                <!-- Voice strips dynamically rendered here -->
+            </div>
+        </section>
 
-        <div style="display:flex; gap:6px;">
-            <button class="btn-opt" style="border-color:#c084fc; color:#c084fc;" onclick="addNewTrack('voice')">
-                <i class="fa-solid fa-plus"></i> ＋ 声優トラック
-            </button>
-            <button class="btn-opt" style="border-color:#f59e0b; color:#fbbf24;" onclick="addNewTrack('sfx')">
-                <i class="fa-solid fa-plus"></i> ＋ 効果音トラック
-            </button>
-            <button class="btn-opt" style="border-color:#10b981; color:#34d399;" onclick="addNewTrack('bgm')">
-                <i class="fa-solid fa-plus"></i> ＋ BGMトラック
-            </button>
-        </div>
-    </div>
+        <!-- 【下段デッキ (Lower Deck)】: SFX効果音 ⚡ ＆ 劇伴BGM 🎵 ＆ マスター出力 🎛️ -->
+        <section class="deck-row">
+            <div class="deck-header">
+                <span style="color:var(--accent-gold); display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-sliders"></i> ⚡🎵 【下段】効果音 (SFX: <span id="count-sfx">4</span>) ＆ 劇伴 (BGM: <span id="count-bgm">2</span>) ＆ MASTER出力卓
+                </span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <button class="btn-opt" style="border-color:#f59e0b; color:#fbbf24; padding:2px 8px;" onclick="addNewTrack('sfx')">
+                        <i class="fa-solid fa-plus"></i> ＋ 効果音トラック
+                    </button>
+                    <button class="btn-opt" style="border-color:#10b981; color:#34d399; padding:2px 8px;" onclick="addNewTrack('bgm')">
+                        <i class="fa-solid fa-plus"></i> ＋ BGMトラック
+                    </button>
+                </div>
+            </div>
+            <div class="deck-strips" id="deck-sfx-bgm-strips">
+                <!-- SFX and BGM and Master strips dynamically rendered here -->
+            </div>
+        </section>
 
-    <!-- Main Multi-Track Console Deck -->
-    <main class="console-deck" id="mixer-strips-container">
-        <!-- Strips dynamically rendered here -->
     </main>
 
     <!-- Scripts -->
@@ -401,19 +435,19 @@
 
         // Multi-Track Console Audio State
         let audioTracks = [
-            // 👤 Voice Tracks (Auto-populated from Cast)
+            // 👤 Upper Deck: Voice Tracks
             { id: 'v_ren', type: 'voice', name: '如月 蓮', subtitle: 'サイバー探偵', profile: 'Fenrir', vol: 90, pan: 0, mute: false, solo: false, color: '#c084fc' },
             { id: 'v_kagerou', type: 'voice', name: '緋村 影狼', subtitle: '闇のフィクサー', profile: 'Charon', vol: 85, pan: -20, mute: false, solo: false, color: '#c084fc' },
             { id: 'v_yuki', type: 'voice', name: '霧島 結衣', subtitle: 'エリート捜査官', profile: 'Aoede', vol: 88, pan: 25, mute: false, solo: false, color: '#c084fc' },
             { id: 'v_asuka', type: 'voice', name: '橘 飛鳥', subtitle: 'サイバーアイドル', profile: 'Kore', vol: 92, pan: 10, mute: false, solo: false, color: '#c084fc' },
 
-            // ⚡ SFX / Foley Tracks
+            // ⚡ Lower Deck: SFX / Foley Tracks
             { id: 'sfx_footsteps', type: 'sfx', name: '足音・靴音', subtitle: 'Foley / 歩行', profile: 'Footsteps', vol: 75, pan: 0, mute: false, solo: false, color: '#f59e0b' },
-            { id: 'sfx_weather', type: 'sfx', name: '天候・環境音', subtitle: 'Rain & Wind', profile: 'Ambience', vol: 70, pan: -15, mute: false, solo: false, color: '#f59e0b' },
-            { id: 'sfx_city', type: 'sfx', name: '街の喧騒・モブ', subtitle: 'Traffic & Crowd', profile: 'City Murmur', vol: 65, pan: 20, mute: false, solo: false, color: '#f59e0b' },
-            { id: 'sfx_vehicles', type: 'sfx', name: '都営バス・車両', subtitle: 'Engine & Horn', profile: 'Vehicle', vol: 80, pan: -30, mute: false, solo: false, color: '#f59e0b' },
+            { id: 'sfx_weather', type: 'sfx', name: '天候・雨風', subtitle: 'Rain & Wind', profile: 'Ambience', vol: 70, pan: -15, mute: false, solo: false, color: '#f59e0b' },
+            { id: 'sfx_city', type: 'sfx', name: '街の喧騒', subtitle: 'Traffic & Crowd', profile: 'City Murmur', vol: 65, pan: 20, mute: false, solo: false, color: '#f59e0b' },
+            { id: 'sfx_vehicles', type: 'sfx', name: '都営バス音', subtitle: 'Engine & Horn', profile: 'Vehicle', vol: 80, pan: -30, mute: false, solo: false, color: '#f59e0b' },
 
-            // 🎵 BGM Tracks
+            // 🎵 Lower Deck: BGM Tracks
             { id: 'bgm_main', type: 'bgm', name: 'メインテーマ', subtitle: 'Cinematic Score', profile: 'Orchestra', vol: 60, pan: 0, mute: false, solo: false, color: '#10b981' },
             { id: 'bgm_suspense', type: 'bgm', name: 'サスペンス', subtitle: 'Synth Underscore', profile: 'Sub Bass', vol: 55, pan: 0, mute: false, solo: false, color: '#10b981' }
         ];
@@ -437,7 +471,6 @@
                 const res = await fetch('/api/characters');
                 if (res.ok) {
                     const chars = await res.json();
-                    // Merge any newly discovered characters
                     chars.forEach(c => {
                         const exists = audioTracks.some(t => t.id === `v_${c.id}`);
                         if (!exists) {
@@ -463,9 +496,12 @@
         }
 
         function renderConsoleDeck() {
-            const container = document.getElementById('mixer-strips-container');
-            if (!container) return;
-            container.innerHTML = '';
+            const voiceDeck = document.getElementById('deck-voice-strips');
+            const lowerDeck = document.getElementById('deck-sfx-bgm-strips');
+            if (!voiceDeck || !lowerDeck) return;
+
+            voiceDeck.innerHTML = '';
+            lowerDeck.innerHTML = '';
 
             let vCount = 0, sCount = 0, bCount = 0;
 
@@ -474,66 +510,20 @@
                 if (track.type === 'sfx') sCount++;
                 if (track.type === 'bgm') bCount++;
 
-                const strip = document.createElement('div');
-                strip.className = 'channel-strip';
-                strip.id = `strip-${track.id}`;
-
-                let icon = 'fa-microphone-lines';
-                if (track.type === 'sfx') icon = 'fa-bolt';
-                if (track.type === 'bgm') icon = 'fa-music';
-
-                strip.innerHTML = `
-                    <div class="strip-header">
-                        <span class="strip-number" style="color:${track.color};">CH ${idx + 1}</span>
-                        <div class="strip-name" title="${track.name}">${track.name}</div>
-                        <span class="strip-role-badge" style="background:${track.color}22; color:${track.color}; border:1px solid ${track.color}66;">
-                            <i class="fa-solid ${icon}"></i> ${track.profile || track.subtitle}
-                        </span>
-                    </div>
-
-                    <!-- Pan Control -->
-                    <div class="pan-control">
-                        <div class="pan-label">
-                            <span>L</span>
-                            <span id="pan-val-${track.id}">${track.pan === 0 ? 'C' : (track.pan < 0 ? `L${Math.abs(track.pan)}` : `R${track.pan}`)}</span>
-                            <span>R</span>
-                        </div>
-                        <input type="range" class="pan-slider" min="-50" max="50" value="${track.pan}" oninput="updatePan('${track.id}', this.value)">
-                    </div>
-
-                    <!-- Mute & Solo -->
-                    <div class="strip-mute-solo">
-                        <button class="btn-ms ${track.mute ? 'mute-active' : ''}" onclick="toggleMute('${track.id}')">MUTE</button>
-                        <button class="btn-ms ${track.solo ? 'solo-active' : ''}" onclick="toggleSolo('${track.id}')">SOLO</button>
-                    </div>
-
-                    <!-- Fader & VU Meter -->
-                    <div class="fader-section">
-                        <div class="fader-wrap">
-                            <input class="fader" type="range" min="0" max="100" value="${track.vol}" style="accent-color:${track.color};" oninput="updateVol('${track.id}', this.value)">
-                        </div>
-                        <div class="vu-meter" id="vu-${track.id}">
-                            ${generateVuLeds()}
-                        </div>
-                    </div>
-
-                    <!-- dB Label -->
-                    <div class="vol-label" id="vol-lbl-${track.id}" style="color:${track.color};">${track.vol}%</div>
-
-                    <!-- Audition / Trigger Button -->
-                    <button class="btn-audition" onclick="auditionTrack('${track.id}')">
-                        <i class="fa-solid fa-play"></i> 試聴
-                    </button>
-                `;
-                container.appendChild(strip);
+                const strip = createChannelStripElement(track, idx + 1);
+                if (track.type === 'voice') {
+                    voiceDeck.appendChild(strip);
+                } else {
+                    lowerDeck.appendChild(strip);
+                }
             });
 
-            // Update Header Counts
+            // Update Counts
             document.getElementById('count-voice').textContent = vCount;
             document.getElementById('count-sfx').textContent = sCount;
             document.getElementById('count-bgm').textContent = bCount;
 
-            // Append MASTER OUTPUT Strip
+            // Append MASTER OUTPUT Strip to Lower Deck
             const masterStrip = document.createElement('div');
             masterStrip.className = 'channel-strip master-strip';
             masterStrip.innerHTML = `
@@ -545,7 +535,7 @@
                     </span>
                 </div>
 
-                <div class="strip-mute-solo" style="margin-top:16px;">
+                <div class="strip-mute-solo" style="margin-top:6px;">
                     <button class="btn-ms ${masterState.mute ? 'mute-active' : ''}" style="width:100%;" onclick="toggleMasterMute()">MUTE ALL</button>
                 </div>
 
@@ -565,16 +555,103 @@
                     <i class="fa-solid fa-volume-high"></i> 全音響MIX再生
                 </button>
             `;
-            container.appendChild(masterStrip);
+            lowerDeck.appendChild(masterStrip);
+        }
+
+        function createChannelStripElement(track, chNum) {
+            const strip = document.createElement('div');
+            strip.className = 'channel-strip';
+            strip.id = `strip-${track.id}`;
+
+            let icon = 'fa-microphone-lines';
+            if (track.type === 'sfx') icon = 'fa-bolt';
+            if (track.type === 'bgm') icon = 'fa-music';
+
+            strip.innerHTML = `
+                <div class="strip-header">
+                    <span class="strip-number" style="color:${track.color};">CH ${chNum}</span>
+                    
+                    <!-- Editable Name Area -->
+                    <div class="strip-name-container">
+                        <div class="strip-name" id="name-display-${track.id}" onclick="startEditName('${track.id}')" title="クリックして名前を変更">
+                            <span>${track.name}</span>
+                            <i class="fa-solid fa-pen" style="font-size:0.45rem; opacity:0.5;"></i>
+                        </div>
+                        <input type="text" class="strip-name-input" id="name-input-${track.id}" value="${track.name}" style="display:none;" 
+                               onblur="finishEditName('${track.id}', this.value)" 
+                               onkeydown="if(event.key==='Enter')finishEditName('${track.id}', this.value)">
+                    </div>
+
+                    <span class="strip-role-badge" style="background:${track.color}22; color:${track.color}; border:1px solid ${track.color}66;">
+                        <i class="fa-solid ${icon}"></i> ${track.profile || track.subtitle}
+                    </span>
+                </div>
+
+                <!-- Pan Control -->
+                <div class="pan-control">
+                    <div class="pan-label">
+                        <span>L</span>
+                        <span id="pan-val-${track.id}">${track.pan === 0 ? 'C' : (track.pan < 0 ? `L${Math.abs(track.pan)}` : `R${track.pan}`)}</span>
+                        <span>R</span>
+                    </div>
+                    <input type="range" class="pan-slider" min="-50" max="50" value="${track.pan}" oninput="updatePan('${track.id}', this.value)">
+                </div>
+
+                <!-- Mute & Solo -->
+                <div class="strip-mute-solo">
+                    <button class="btn-ms ${track.mute ? 'mute-active' : ''}" onclick="toggleMute('${track.id}')">MUTE</button>
+                    <button class="btn-ms ${track.solo ? 'solo-active' : ''}" onclick="toggleSolo('${track.id}')">SOLO</button>
+                </div>
+
+                <!-- Fader & VU Meter -->
+                <div class="fader-section">
+                    <div class="fader-wrap">
+                        <input class="fader" type="range" min="0" max="100" value="${track.vol}" style="accent-color:${track.color};" oninput="updateVol('${track.id}', this.value)">
+                    </div>
+                    <div class="vu-meter" id="vu-${track.id}">
+                        ${generateVuLeds()}
+                    </div>
+                </div>
+
+                <!-- dB Label -->
+                <div class="vol-label" id="vol-lbl-${track.id}" style="color:${track.color};">${track.vol}%</div>
+
+                <!-- Audition / Trigger Button -->
+                <button class="btn-audition" onclick="auditionTrack('${track.id}')">
+                    <i class="fa-solid fa-play"></i> 試聴
+                </button>
+            `;
+            return strip;
+        }
+
+        // Editable Channel Name Handlers
+        function startEditName(trackId) {
+            const display = document.getElementById(`name-display-${trackId}`);
+            const input = document.getElementById(`name-input-${trackId}`);
+            if (display && input) {
+                display.style.display = 'none';
+                input.style.display = 'block';
+                input.focus();
+                input.select();
+            }
+        }
+
+        function finishEditName(trackId, newName) {
+            const track = audioTracks.find(t => t.id === trackId);
+            if (track && newName && newName.trim()) {
+                track.name = newName.trim();
+                multiDisplay.broadcast('AUDIO_RENAME', { trackId, name: track.name });
+            }
+            renderConsoleDeck();
         }
 
         function generateVuLeds() {
             let html = '';
-            for (let i = 0; i < 24; i++) {
+            for (let i = 0; i < 18; i++) {
                 let cls = 'active-green';
-                if (i >= 18) cls = 'active-yellow';
-                if (i >= 22) cls = 'active-red';
-                html += `<div class="vu-led ${cls}" style="opacity:0.25;"></div>`;
+                if (i >= 13) cls = 'active-yellow';
+                if (i >= 16) cls = 'active-red';
+                html += `<div class="vu-led ${cls}" style="opacity:0.22;"></div>`;
             }
             return html;
         }
@@ -640,8 +717,8 @@
                 led.style.opacity = (i < activeCount) ? '1.0' : '0.15';
             });
             setTimeout(() => {
-                leds.forEach(led => led.style.opacity = '0.2');
-            }, 350);
+                leds.forEach(led => led.style.opacity = '0.22');
+            }, 300);
         }
 
         function auditionTrack(trackId) {
@@ -651,7 +728,6 @@
             pulseVuMeter('vu-master-l', masterState.vol);
             pulseVuMeter('vu-master-r', masterState.vol);
 
-            // Synthesize subtle tone preview
             try {
                 const ctx = getAudioContext();
                 const osc = ctx.createOscillator();
@@ -665,7 +741,7 @@
 
                 osc.frequency.setValueAtTime(freq, ctx.currentTime);
                 gain.gain.setValueAtTime((track.vol / 100) * 0.15, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
 
                 if (panNode) {
                     panNode.pan.setValueAtTime(track.pan / 50, ctx.currentTime);
@@ -675,7 +751,7 @@
                 }
 
                 osc.start();
-                osc.stop(ctx.currentTime + 0.4);
+                osc.stop(ctx.currentTime + 0.35);
             } catch (e) {
                 console.warn(e);
             }
@@ -684,8 +760,8 @@
         }
 
         function triggerFullMixAudition() {
-            pulseVuMeter('vu-master-l', 90);
-            pulseVuMeter('vu-master-r', 90);
+            pulseVuMeter('vu-master-l', 95);
+            pulseVuMeter('vu-master-r', 95);
             audioTracks.forEach(t => pulseVuMeter(`vu-${t.id}`, t.vol));
             multiDisplay.broadcast('AUDIO_TRIGGER', { action: 'FULL_MIX_AUDITION' });
             alert('🔊 [全音響ミックス試聴] 4Kシネマシアターへ全トラック音響バランス信号を送信しました！');
@@ -699,7 +775,7 @@
             const newTrack = {
                 id: `${type}_${Date.now()}`,
                 type: type,
-                name: name,
+                name: name.trim(),
                 subtitle: 'ユーザー追加トラック',
                 profile: 'Custom',
                 vol: 80,
