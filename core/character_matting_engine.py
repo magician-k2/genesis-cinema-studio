@@ -114,33 +114,90 @@ class CharacterMattingEngine:
                 print(f"[MattingEngine] rembg execution error: {e}, using fallback", file=sys.stderr)
 
         # Fallback heuristic: Corner-sampled background detection & flood-fill / thresholding
-        np_img = np.array(img.convert("RGBA"))
-        h, w, _ = np_img.shape
-        
-        # Sample corners to find background color
+        np_img = np.array(img.convert("RGB"))
+        H, W, _ = np_img.shape
+
+        if cv2 is not None:
+            # 1. Background & floor tile candidate detection via HSV (high V, low S)
+            hsv = cv2.cvtColor(np_img, cv2.COLOR_RGB2HSV)
+            v_channel = hsv[:, :, 2]
+            s_channel = hsv[:, :, 1]
+            is_light_bg = (v_channel > 135) & (s_channel < 60)
+
+            # 2. Multi-point floodfill from outer borders to mark connected background & floor
+            flood_mask = np.zeros((H + 2, W + 2), dtype=np.uint8)
+            flood_input = is_light_bg.astype(np.uint8) * 255
+
+            seeds = []
+            for x in range(0, W, 8):
+                seeds.append((x, 0))
+                seeds.append((x, H - 1))
+            for y in range(0, H, 8):
+                seeds.append((0, y))
+                seeds.append((W - 1, y))
+
+            for sx, sy in seeds:
+                if is_light_bg[sy, sx] and flood_input[sy, sx] == 255:
+                    cv2.floodFill(flood_input, flood_mask, (sx, sy), 128)
+
+            is_bg_connected = (flood_input == 128)
+            fg_mask = (~is_bg_connected).astype(np.uint8)
+
+            # 3. Detect boots sole: scan from y = 0.85*H downwards to eliminate floor text & platform
+            start_y = int(H * 0.85)
+            boot_bottom_y = H
+            for y in range(start_y, H):
+                cnt = sum(1 for x in range(int(W * 0.1), int(W * 0.9)) if np_img[y, x, :3].mean() < 90)
+                if cnt == 0 and y > start_y + 15:
+                    boot_bottom_y = y
+                    break
+
+            fg_mask[boot_bottom_y:, :] = 0
+
+            # Suppress remaining light floor residue between ankle and boot sole
+            for y in range(int(H * 0.88), boot_bottom_y):
+                for x in range(W):
+                    if fg_mask[y, x] and np_img[y, x, :3].mean() > 130:
+                        fg_mask[y, x] = 0
+
+            # 4. Keep main connected character body
+            num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(fg_mask, connectivity=8)
+            if num_labels > 1:
+                valid_mask = np.zeros_like(fg_mask)
+                for lbl in range(1, num_labels):
+                    cx, cy = centroids[lbl]
+                    area = stats[lbl, cv2.CC_STAT_AREA]
+                    top = stats[lbl, cv2.CC_STAT_TOP]
+                    h_stat = stats[lbl, cv2.CC_STAT_HEIGHT]
+                    if area > 150 and (top + h_stat > int(H * 0.25)):
+                        if abs(cx - W / 2) < W * 0.42:
+                            valid_mask[labels == lbl] = 1
+                fg_mask = valid_mask
+
+            # 5. Distance transform boundary feathering
+            dist_inside = cv2.distanceTransform(fg_mask, cv2.DIST_L2, 3)
+            alpha = np.zeros((H, W), dtype=np.uint8)
+            alpha[fg_mask == 1] = 255
+            transition = (dist_inside <= 1.5) & (fg_mask == 1)
+            alpha[transition] = np.clip(dist_inside[transition] * 160.0, 60, 255).astype(np.uint8)
+
+            rgba = np.dstack([np_img, alpha])
+            return Image.fromarray(rgba, "RGBA")
+
+        # Fallback without cv2:
         corners = [
             np_img[0, 0, :3].astype(float),
-            np_img[0, w-1, :3].astype(float),
-            np_img[h-1, 0, :3].astype(float),
-            np_img[h-1, w-1, :3].astype(float)
+            np_img[0, W-1, :3].astype(float),
+            np_img[H-1, 0, :3].astype(float),
+            np_img[H-1, W-1, :3].astype(float)
         ]
         bg_mean = np.mean(corners, axis=0)
-
-        # Color distance from bg_mean
         diff = np_img[:, :, :3].astype(float) - bg_mean
         dist = np.sqrt(np.sum(diff ** 2, axis=2))
-        
-        # Compute alpha mask
         thresh = 35.0
         alpha = np.clip((dist - thresh) * (255.0 / 30.0), 0, 255).astype(np.uint8)
-        
-        # Edge mask cleanup with morphological operations if cv2 is available
-        if cv2 is not None:
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-            alpha = cv2.morphologyEx(alpha, cv2.MORPH_OPEN, kernel)
-        
-        np_img[:, :, 3] = alpha
-        return Image.fromarray(np_img, "RGBA")
+        rgba = np.dstack([np_img, alpha])
+        return Image.fromarray(rgba, "RGBA")
 
     @staticmethod
     def defringe_color_decontamination(img: Image.Image, iterations: int = 3) -> Image.Image:

@@ -30,9 +30,75 @@ if ROOT_DIR not in sys.path:
 from core.character_matting_engine import CharacterMattingEngine
 from core.mocap_pose_transfer_engine import MocapPoseTransferEngine
 from core.aerial_flight_swarm_engine import AerialFlightSwarmEngine
+from core.quantum_gemma4_engine import quantum_gemma_engine
+from core.genesis_4view_to_3d_mesh_engine import mesh_3d_engine
+from core.genesis_hybrid_3d_dispatcher import hybrid_3d_dispatcher
+from core.genesis_humanoid_figure_basemesh_engine import figure_basemesh_engine
+from core.face_synthesis_docking_engine import face_docking_engine
+from core.quantum_nervous_orchestrator import QuantumNervousOrchestrator
+qno = QuantumNervousOrchestrator()
 matting_engine = CharacterMattingEngine(vault_dir=os.path.join(DIRECTORY, 'characters'))
 mocap_engine = MocapPoseTransferEngine(root_dir=ROOT_DIR)
 aerial_engine = AerialFlightSwarmEngine()
+
+def generate_ai_character_turnaround(prompt_text: str, metadata: dict):
+    """
+    Generate photorealistic 4-view turnaround sheet using Google GenAI (gemini-3.1-flash-image / gemini-2.5-flash-image).
+    """
+    from PIL import Image
+    import io
+    from google import genai
+
+    api_key = os.environ.get('GEMINI_API_KEY', 'AIzaSyBycrf1yVVcARNepmrblZJYtAxtKEUN92s')
+    client = genai.Client(api_key=api_key)
+
+    char_name = metadata.get('name', '')
+    char_name_en = metadata.get('name_en', '')
+    age = metadata.get('age', 26)
+    gender = metadata.get('gender', 'male')
+    height_m = metadata.get('height_m', 1.80)
+    build = metadata.get('build', 'athletic')
+    costume_tags = metadata.get('costume_tags', [])
+    costume = ', '.join(costume_tags) if isinstance(costume_tags, list) else str(costume_tags)
+    neon_accent = metadata.get('neon_accent')
+    has_neon = bool(neon_accent and str(neon_accent).lower() not in ['none', '#000000', ''])
+
+    wardrobe_desc = (
+        f"{costume} style with subtle luminous neon trim ({neon_accent})."
+        if has_neon else
+        f"{costume}. Authentic premium textile textures, natural fabric folds, NO glowing neon lines, NO cybernetic seams, pure realistic clothing."
+    )
+
+    turnaround_instruction = (
+        f"Master photorealistic 4-view character turnaround sheet showing 4 angles side-by-side: "
+        f"1. Front View, 2. Right Side Profile, 3. Back View, 4. Left Side Profile. "
+        f"Subject: {char_name_en} ({char_name}), {age}-year-old Japanese {gender} detective/actor, {height_m}m tall, {build} build. "
+        f"Face & Hair: Defined facial features, sharp intense cinematic gaze, natural textured hair strands. "
+        f"Wardrobe: {wardrobe_desc} "
+        f"Pose: Strict neutral standing A-pose. Both arms hanging naturally down along the sides of the body. Both hands completely empty, open relaxed fingers, natural wrists, NO held objects, NO tablets, NO weapons, NO hands in pockets, NO raised arms. "
+        f"Framing & Consistency: Full body visible from head to boots. All 4 views are evenly spaced side-by-side on an infinite solid pure white background (#FFFFFF). Perfectly identical character and clothing across all 4 views. "
+        f"Quality: Hyper-realistic 8K cinema still photography, ARRI Alexa LF, 35mm anamorphic prime lens, natural human skin pores and texture, studio lighting, photorealistic live-action movie actor. "
+        f"Negative constraints: anime, cartoon, 3D CGI render, illustration, drawing, painting, "
+        f"{'' if has_neon else 'glowing neon lines, cybernetic glow, '}held items, handheld tablets, guns, swords, cut off hands, severed wrists, floor grid, ground text, shadows on floor, pedestals."
+    )
+
+    models_to_try = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"]
+    last_err = None
+    for model_name in models_to_try:
+        try:
+            resp = client.models.generate_content(
+                model=model_name,
+                contents=turnaround_instruction
+            )
+            for part in resp.candidates[0].content.parts:
+                if part.inline_data and part.inline_data.data:
+                    return Image.open(io.BytesIO(part.inline_data.data))
+        except Exception as e:
+            last_err = e
+            print(f"[AI Turnaround] Model {model_name} failed: {e}, trying fallback...", file=sys.stderr)
+            continue
+
+    raise RuntimeError(f"All Google AI image models failed: {last_err}")
 
 class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -40,9 +106,19 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+
+        # ⚛️ Quantum Nervous Orchestrator (Q-NO) Status Endpoint
+        if parsed.path == '/api/qno/status':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            status_data = qno.get_topology_status()
+            self.wfile.write(json.dumps(status_data, ensure_ascii=False).encode('utf-8'))
+            return
         
         # 1. 🌐 Cloud Street View Gateway Endpoint
-        if parsed.path == '/api/streetview':
+        elif parsed.path == '/api/streetview':
             qs = urllib.parse.parse_qs(parsed.query)
             lat = qs.get('lat', ['35.7111'])[0]
             lng = qs.get('lng', ['139.7963'])[0]
@@ -494,6 +570,64 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": "Character not found"}, ensure_ascii=False).encode('utf-8'))
                 return
 
+        # 🥋 DessinPose 100-Pose Master Library Endpoint
+        elif parsed.path == '/api/dessinpose/manifest':
+            vault_index = os.path.join(DIRECTORY, 'assets', 'dessinpose_vault', 'poses_master_index.json')
+            if os.path.exists(vault_index):
+                with open(vault_index, 'r', encoding='utf-8') as f:
+                    manifest_data = json.load(f)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(manifest_data, ensure_ascii=False).encode('utf-8'))
+                return
+            else:
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "DessinPose manifest not found"}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 💈 MEN'S NON-NO 360° Hair Catalog Master Library Endpoint
+        elif parsed.path == '/api/haircatalog/manifest':
+            hair_index = os.path.join(DIRECTORY, 'assets', 'haircatalog_vault', 'hair_master_index.json')
+            if os.path.exists(hair_index):
+                with open(hair_index, 'r', encoding='utf-8') as f:
+                    manifest_data = json.load(f)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(manifest_data, ensure_ascii=False).encode('utf-8'))
+                return
+            else:
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Hair catalog manifest not found"}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🎭 Fictional Golden-Ratio Faces Master Library Endpoint
+        elif parsed.path == '/api/face/manifest':
+            try:
+                manifest_data = face_docking_engine.get_manifest()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(manifest_data, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
         # 7. 🎭 Scene Assets Vault (Costumes, Props, Vehicles/Liveries) Endpoint
         elif parsed.path == '/api/scene/assets':
             assets = {"costumes": [], "props": [], "vehicles": []}
@@ -600,6 +734,45 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+                return
+
+        # 🚀 Google AI Photorealistic 4-View Turnaround Generator Endpoint
+        elif parsed.path == '/api/character/generate_ai_turnaround':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                prompt_text = payload.get('prompt', '')
+                char_id = payload.get('char_id') or f"char_{int(time.time()*1000)}"
+                metadata = payload.get('metadata', {})
+
+                # 1. Generate 4-view turnaround sheet with Google AI
+                ai_sheet_img = generate_ai_character_turnaround(prompt_text, metadata)
+
+                # 2. Save raw sheet in character folder
+                char_dir = os.path.join(matting_engine.vault_dir, char_id)
+                os.makedirs(char_dir, exist_ok=True)
+                raw_sheet_path = os.path.join(char_dir, 'raw_sheet.png')
+                ai_sheet_img.save(raw_sheet_path, 'PNG')
+
+                # 3. Process with SOTA matting, slicing, defringe & ground alignment
+                result = matting_engine.process_turnaround_sheet(ai_sheet_img, char_id, metadata)
+                result['raw_sheet'] = f"/characters/{char_id}/raw_sheet.png"
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "character": result}, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
                 return
 
         # 🎭 Process Turnaround Sheet (Input A)
@@ -996,10 +1169,528 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
                 return
 
-        return super().do_POST()
+        # ⚛️ Quantum-Type Gemma 4 SQA Timeline Cut Optimizer Endpoint
+        elif parsed.path == '/api/quantum/optimize_timeline':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                clips = payload.get('clips', [])
+                target_sec = float(payload.get('target_duration_sec', 30.0))
+                bpm = float(payload.get('bpm', 120.0))
+
+                res = quantum_gemma_engine.optimize_timeline_cuts(
+                    candidate_clips=clips,
+                    target_duration_sec=target_sec,
+                    bpm=bpm
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # ⚛️ Quantum-Type Gemma 4 3D Pose & Rigging Optimizer Endpoint
+        elif parsed.path == '/api/quantum/optimize_3d_pose':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                joint_angles = payload.get('joint_angles', [])
+                collision_pairs = [tuple(p) for p in payload.get('collision_pairs', [])]
+                weights = payload.get('desired_pose_weights', [])
+
+                res = quantum_gemma_engine.optimize_3d_pose_rigging(
+                    joint_angles=joint_angles,
+                    collision_pairs=collision_pairs,
+                    desired_pose_weights=weights
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # ⚛️ Dual-AI Code AST Verification Endpoint (Antigravity 2.0 Telepathy Bridge)
+        elif parsed.path == '/api/quantum/code_assist':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                symbols = payload.get('symbols', [])
+                required_calls = payload.get('required_calls', [])
+
+                res = quantum_gemma_engine.verify_code_dependencies(
+                    symbol_definitions=symbols,
+                    required_calls=required_calls
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # ⚛️ Quantum Nervous Orchestrator (Q-NO) - Pulse Emission Endpoint
+        elif parsed.path == '/api/qno/pulse':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                pulse = QuantumOrganPulse(
+                    source_organ=payload.get('source_organ', 'UNKNOWN_ORGAN'),
+                    target_organ=payload.get('target_organ', 'ALL'),
+                    action=payload.get('action', 'NOOP'),
+                    payload=payload.get('payload', {}),
+                    priority=float(payload.get('priority', 1.0)),
+                    qubo_affinity=float(payload.get('qubo_affinity', 0.5))
+                )
+                res = qno.emit_pulse(pulse)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # ⚛️ Quantum Nervous Orchestrator (Q-NO) - Workload Arbitration Endpoint
+        elif parsed.path == '/api/qno/arbitrate':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                tasks = payload.get('tasks', [])
+                res = qno.arbitrate_workload(tasks)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # ⚛️ Quantum Nervous Orchestrator (Q-NO) - Edge SEED Node Registration / Heartbeat Endpoint
+        elif parsed.path == '/api/qno/register_seed':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                node_id = payload.get('node_id', f"seed_{int(time.time()*1000)}")
+                res = qno.register_edge_seed(
+                    node_id=node_id,
+                    device_type=payload.get('device_type', 'BROWSER_WEBGPU'),
+                    gpu_vendor=payload.get('gpu_vendor', 'GENERIC_GPU'),
+                    latency_ms=float(payload.get('latency_ms', 10.0)),
+                    battery_level=payload.get('battery_level')
+                )
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "seed": res}, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🧊 GENESIS AI 3D Mesh Generator (TripoSR-Equivalent Engine)
+        elif parsed.path == '/api/character/generate_3d_mesh':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', 'ren')
+                char_dir = os.path.join(DIRECTORY, 'characters', char_id)
+                front_p = os.path.join(char_dir, 'front.png')
+                right_p = os.path.join(char_dir, 'right.png')
+                back_p  = os.path.join(char_dir, 'back.png')
+                left_p  = os.path.join(char_dir, 'left.png')
+                out_obj = os.path.join(char_dir, 'actor_model.obj')
+
+                res = hybrid_3d_dispatcher.dispatch_3d_generation(
+                    character_id=char_id,
+                    height_m=float(payload.get('height_m', 1.82)),
+                    mode=payload.get('mode', 'hybrid_optimal')
+                )
+                res["model_url"] = f"/characters/{char_id}/actor_model.obj?t={int(time.time())}"
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🥋 GENESIS Anatomical Figure Basemesh Generator (Amazon Body-kun/chan Standard)
+        elif parsed.path == '/api/character/generate_basemesh':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', 'ren')
+                char_dir = os.path.join(DIRECTORY, 'characters', char_id)
+                os.makedirs(char_dir, exist_ok=True)
+
+                gender = payload.get('gender', 'male')
+                height_m = float(payload.get('height_m', 1.80))
+                body_type = payload.get('body_type', 'standard')
+                bust_cm = float(payload.get('bust_cm')) if payload.get('bust_cm') is not None else None
+                waist_cm = float(payload.get('waist_cm')) if payload.get('waist_cm') is not None else None
+                hip_cm = float(payload.get('hip_cm')) if payload.get('hip_cm') is not None else None
+                skin_tone = payload.get('skin_tone', 'natural')
+
+                # 保存先: actor_model.obj を素体ベースで更新
+                out_obj = os.path.join(char_dir, 'actor_model.obj')
+                basemesh_obj = os.path.join(char_dir, 'basemesh_model.obj')
+
+                res = figure_basemesh_engine.generate_figure_basemesh(
+                    output_obj_path=out_obj,
+                    gender=gender,
+                    height_m=height_m,
+                    body_type=body_type,
+                    bust_cm=bust_cm,
+                    waist_cm=waist_cm,
+                    hip_cm=hip_cm,
+                    skin_tone=skin_tone
+                )
+
+                # basemesh_model.obj にも複製コピー
+                import shutil
+                shutil.copyfile(out_obj, basemesh_obj)
+                mtl_src = os.path.join(char_dir, 'figure_basemesh.mtl')
+                if os.path.exists(mtl_src):
+                    shutil.copyfile(mtl_src, os.path.join(char_dir, 'actor_model.mtl'))
+
+                res["model_url"] = f"/characters/{char_id}/actor_model.obj?t={int(time.time() * 1000)}"
+                res["basemesh_url"] = f"/characters/{char_id}/basemesh_model.obj?t={int(time.time() * 1000)}"
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🥋 DessinPose Apply to Character Endpoint
+        elif parsed.path == '/api/dessinpose/apply':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', 'ren')
+                gender = payload.get('gender', 'female')
+                category = payload.get('category', 'standing')
+                pose_id = payload.get('pose_id', '0000')
+
+                pose_src_dir = os.path.join(DIRECTORY, 'assets', 'dessinpose_vault', gender, category, f"pose_{pose_id}")
+                char_dir = os.path.join(DIRECTORY, 'characters', char_id)
+                os.makedirs(char_dir, exist_ok=True)
+
+                import shutil
+                copied_files = []
+                for fname in ['front.jpg', 'right.jpg', 'back.jpg', 'left.jpg', 'top.jpg']:
+                    src_f = os.path.join(pose_src_dir, fname)
+                    if os.path.exists(src_f):
+                        dst_f = os.path.join(char_dir, f"pose_{fname}")
+                        shutil.copyfile(src_f, dst_f)
+                        shutil.copyfile(src_f, os.path.join(char_dir, fname))
+                        copied_files.append(fname)
+
+                angles_urls = [
+                    f"/assets/dessinpose_vault/{gender}/{category}/pose_{pose_id}/angle_h{h:02d}.jpg"
+                    for h in range(24)
+                ]
+
+                res = {
+                    "success": True,
+                    "character_id": char_id,
+                    "pose_id": pose_id,
+                    "gender": gender,
+                    "category": category,
+                    "copied_views": copied_files,
+                    "angles_24": angles_urls,
+                    "top_url": f"/assets/dessinpose_vault/{gender}/{category}/pose_{pose_id}/top.jpg",
+                    "thumbnail_url": f"/assets/dessinpose_vault/{gender}/{category}/pose_{pose_id}/thumbnail.jpg"
+                }
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 💈 Apply Hair Style to Character Endpoint
+        elif parsed.path == '/api/haircatalog/apply':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', 'ren')
+                category = payload.get('category', 'short')
+                style_id = payload.get('style_id', '')
+
+                # Execute natural hair docking onto 4-view character images
+                dock_res = face_docking_engine.dock_hair_onto_character(char_id, category, style_id)
+
+                style_src_dir = os.path.join(DIRECTORY, 'assets', 'haircatalog_vault', category, f"style_{style_id}")
+                char_dir = os.path.join(DIRECTORY, 'characters', char_id)
+                os.makedirs(char_dir, exist_ok=True)
+
+                import shutil
+                copied_files = []
+                for fname in ['front.jpg', 'right.jpg', 'back.jpg', 'left.jpg']:
+                    src_f = os.path.join(style_src_dir, fname)
+                    if os.path.exists(src_f):
+                        dst_f = os.path.join(char_dir, f"hair_{fname}")
+                        shutil.copyfile(src_f, dst_f)
+                        copied_files.append(fname)
+
+                angles_urls = [
+                    f"/assets/haircatalog_vault/{category}/style_{style_id}/angle_{deg:03d}.jpg"
+                    for deg in range(0, 360, 30)
+                ]
+
+                # Update character_meta.json if present
+                char_meta_file = os.path.join(char_dir, 'character_meta.json')
+                if os.path.exists(char_meta_file):
+                    try:
+                        with open(char_meta_file, 'r', encoding='utf-8') as cmf:
+                            char_meta_data = json.load(cmf)
+                        char_meta_data['hair_style_ref'] = {
+                            "style_id": style_id,
+                            "category": category,
+                            "angles_12": angles_urls,
+                            "thumbnail_url": f"/assets/haircatalog_vault/{category}/style_{style_id}/thumbnail.jpg"
+                        }
+                        with open(char_meta_file, 'w', encoding='utf-8') as cmf:
+                            json.dump(char_meta_data, cmf, ensure_ascii=False, indent=2)
+                    except Exception as meta_e:
+                        print("Error updating character meta hair ref:", meta_e)
+
+                res = {
+                    "success": True,
+                    "character_id": char_id,
+                    "style_id": style_id,
+                    "category": category,
+                    "copied_views": copied_files,
+                    "angles_12": angles_urls,
+                    "views": dock_res.get('views', {}),
+                    "timestamp": dock_res.get('timestamp', int(time.time())),
+                    "thumbnail_url": f"/assets/haircatalog_vault/{category}/style_{style_id}/thumbnail.jpg"
+                }
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 💈 Revert Hair Style to Original Endpoint
+        elif parsed.path == '/api/haircatalog/revert':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else '{}'
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', 'ren')
+                revert_res = face_docking_engine.restore_character_backup(char_id)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(revert_res, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🎭 Generate AI Fictional Face Endpoint
+        elif parsed.path == '/api/face/generate':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                prompt = payload.get('prompt', '20代の知性派映画主役俳優')
+                gender = payload.get('gender', 'male')
+                category = payload.get('category', 'cool_sharp')
+                result_face = face_docking_engine.generate_ai_face(prompt=prompt, gender=gender, category=category)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "face": result_face}, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 🧬 Trinity Face Fusion & Docking Endpoint (Dessin + Hair + Fictional Face)
+        elif parsed.path == '/api/face/dock':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', 'ren')
+                face_id = payload.get('face_id', 'male_cool_01')
+                hair_category = payload.get('hair_category', 'short')
+                hair_style_id = payload.get('hair_style_id', '000')
+                dessin_gender = payload.get('dessin_gender', 'male')
+                dessin_category = payload.get('dessin_category', 'standing')
+                dessin_pose_id = payload.get('dessin_pose_id', '0000')
+
+                dock_result = face_docking_engine.dock_trinity(
+                    character_id=char_id,
+                    face_id=face_id,
+                    hair_category=hair_category,
+                    hair_style_id=hair_style_id,
+                    dessin_gender=dessin_gender,
+                    dessin_category=dessin_category,
+                    dessin_pose_id=dessin_pose_id
+                )
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(dock_result, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        # 👤 Apply Fictional Face Metadata Endpoint
+        elif parsed.path == '/api/face/apply':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                char_id = payload.get('character_id', 'ren')
+                face_id = payload.get('face_id', 'male_cool_01')
+                char_dir = os.path.join(DIRECTORY, 'characters', char_id)
+                char_meta_file = os.path.join(char_dir, 'character_meta.json')
+                
+                meta_data = {}
+                if os.path.exists(char_meta_file):
+                    with open(char_meta_file, 'r', encoding='utf-8') as cmf:
+                        meta_data = json.load(cmf)
+                
+                meta_data['fictional_face_ref'] = {
+                    "face_id": face_id,
+                    "thumbnail_url": f"/assets/face_vault/{face_id}/thumbnail.jpg",
+                    "front_url": f"/assets/face_vault/{face_id}/front.png"
+                }
+
+                with open(char_meta_file, 'w', encoding='utf-8') as cmf:
+                    json.dump(meta_data, cmf, ensure_ascii=False, indent=2)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "character_id": char_id, "face_id": face_id}, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        self.send_response(404)
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(json.dumps({"error": f"Endpoint not found: {parsed.path}"}).encode('utf-8'))
+        return
+
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    daemon_threads = True
+    allow_reuse_address = True
 
 if __name__ == '__main__':
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), GenesisCinemaHandler) as httpd:
+    with ThreadedHTTPServer(("", PORT), GenesisCinemaHandler) as httpd:
         print(f"🎬 GENESIS Global Cinema Studio Server running on http://localhost:{PORT}")
         httpd.serve_forever()
+

@@ -162,6 +162,42 @@ class TestServerCharacterAPI(unittest.TestCase):
             self.assertEqual(img.mode, "RGBA")
             self.assertEqual(img.size, (600, 1000))
 
+    def test_06_api_generate_ai_turnaround_endpoint(self):
+        payload = {
+            "char_id": "test_ai_turnaround_char",
+            "prompt": "Test cyber detective actor in trench coat",
+            "metadata": {
+                "name": "AI 探偵テスト",
+                "name_en": "AI Detective Test",
+                "age": 28,
+                "gender": "male",
+                "height_m": 1.82,
+                "build": "athletic"
+            }
+        }
+        original_gen = server.generate_ai_character_turnaround
+        try:
+            mock_sheet = Image.new("RGB", (1600, 800), (255, 255, 255))
+            draw = ImageDraw.Draw(mock_sheet)
+            for i in range(4):
+                draw.rectangle([i * 400 + 100, 100, i * 400 + 300, 700], fill=(20, 20, 30))
+            server.generate_ai_character_turnaround = lambda prompt, meta: mock_sheet
+
+            req = urllib.request.Request(
+                f"http://localhost:{self.port}/api/character/generate_ai_turnaround",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"}
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                self.assertEqual(resp.status, 200)
+                res = json.loads(resp.read().decode("utf-8"))
+                self.assertTrue(res["success"])
+                self.assertEqual(res["character"]["id"], "test_ai_turnaround_char")
+                self.assertIn("raw_sheet", res["character"])
+                self.assertIn("front", res["character"]["views"])
+        finally:
+            server.generate_ai_character_turnaround = original_gen
+
 
 if __name__ == "__main__":
     unittest.main()

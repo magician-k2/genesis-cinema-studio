@@ -317,9 +317,109 @@
             flex-direction: column !important;
             gap: 8px !important;
         }
-        body.layout-split .panel {
-            min-height: 480px !important;
-            flex: none !important;
+        /* High-Res Lightbox Inspector Modal */
+        #modal-inspector {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(2, 6, 18, 0.94);
+            backdrop-filter: blur(12px);
+            z-index: 99999;
+            flex-direction: column;
+        }
+        #modal-inspector.active {
+            display: flex;
+        }
+        .inspector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: #060a14;
+            border-bottom: 1px solid var(--border-dark);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .inspector-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+            background-image:
+                linear-gradient(45deg, #090e1d 25%, transparent 25%),
+                linear-gradient(-45deg, #090e1d 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #090e1d 75%),
+                linear-gradient(-45deg, transparent 75%, #090e1d 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+        .inspector-body:active {
+            cursor: grabbing;
+        }
+        #inspector-img {
+            max-height: 86vh;
+            max-width: 86vw;
+            object-fit: contain;
+            transition: transform 0.08s ease-out;
+            filter: drop-shadow(0 0 30px rgba(0, 242, 254, 0.25));
+            user-select: none;
+            pointer-events: none;
+        }
+        #inspector-3d-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            outline: none;
+            cursor: grab;
+        }
+        #inspector-3d-canvas:active {
+            cursor: grabbing;
+        }
+        .inspector-hud {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            background: rgba(3, 7, 18, 0.88);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 0.56rem;
+            font-family: 'Fira Code', monospace;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 10;
+        }
+        .turnaround-view-card .btn-zoom-card {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: rgba(3, 7, 18, 0.85);
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.48rem;
+            font-weight: 800;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .turnaround-view-card:hover .btn-zoom-card {
+            opacity: 1;
+        }
+
+        /* 3D Turntable Drag Cursor */
+        .turntable-stage-container {
+            cursor: ew-resize;
+            user-select: none;
         }
     </style>
 </head>
@@ -411,22 +511,54 @@
                         </div>
                         <div>
                             <label style="font-size:0.50rem; color:var(--text-muted);">性別:</label>
-                            <select id="select-char-gender" class="select-custom" onchange="updateProceduralPreview(); updateGemmaPrompt();">
+                            <select id="select-char-gender" class="select-custom" onchange="updateProceduralPreview(); updateGemmaPrompt(); updateFigureBasemeshLive();">
                                 <option value="male">男性 (Male)</option>
                                 <option value="female">女性 (Female)</option>
                             </select>
                         </div>
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1px;">
-                                <label style="font-size:0.50rem; color:var(--text-muted);">体型:</label>
+                                <label style="font-size:0.50rem; color:var(--text-muted);">体型素体 (Figure Type):</label>
                                 <button type="button" class="btn-opt" style="padding:0 4px; font-size:0.42rem; border-color:var(--accent-purple); color:#c084fc;" onclick="toggleInlineBox('build')" title="カスタム体型プロンプトを入力・保存">＋自由入力</button>
                             </div>
-                            <select id="select-char-build" class="select-custom" onchange="handleSelectChange('build')">
-                                <option value="slender">スリム</option>
-                                <option value="athletic" selected>アスリート</option>
-                                <option value="tactical">特殊部隊</option>
-                                <option value="heavy">マッシブ</option>
+                            <select id="select-char-build" class="select-custom" onchange="handleSelectChange('build'); updateFigureBasemeshLive();">
+                                <option value="standard">普通 (Standard)</option>
+                                <option value="muscular" selected>マッチョ (Muscular 筋肉質)</option>
+                                <option value="sexy">セクシー (Sexy 砂時計くびれ)</option>
+                                <option value="athletic_swimming">水泳特化 (Swimming 逆三角形)</option>
+                                <option value="athletic_running">陸上短距離 (Sprint 太腿・臀筋)</option>
+                                <option value="obese">肥満 (Obese 豊満)</option>
+                                <option value="child">幼い幼児体型 (4〜5頭身)</option>
+                                <option value="slender">スリム (Slender)</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <!-- 📐 Three Sizes (B/W/H) Sliders -->
+                    <div style="background:rgba(0,242,254,0.04); border:1px solid rgba(0,242,254,0.2); border-radius:4px; padding:5px 8px; margin-top:3px;">
+                        <div style="font-size:0.48rem; color:var(--accent-cyan); font-weight:800; margin-bottom:3px; display:flex; justify-content:space-between;">
+                            <span>📐 素体スリーサイズ (B/W/H)</span>
+                            <span style="font-size:0.42rem; color:var(--text-muted);">cm単位精密変形</span>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.46rem; color:var(--text-muted);">
+                                    <span>バスト:</span><span id="lbl-bust-cm" style="color:#fff; font-weight:800;">96cm</span>
+                                </div>
+                                <input type="range" id="range-bust-cm" min="65" max="130" value="96" style="width:100%; accent-color:var(--accent-cyan);" oninput="document.getElementById('lbl-bust-cm').textContent = this.value + 'cm'; updateFigureBasemeshLive();">
+                            </div>
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.46rem; color:var(--text-muted);">
+                                    <span>ウエスト:</span><span id="lbl-waist-cm" style="color:#fff; font-weight:800;">74cm</span>
+                                </div>
+                                <input type="range" id="range-waist-cm" min="50" max="120" value="74" style="width:100%; accent-color:var(--accent-cyan);" oninput="document.getElementById('lbl-waist-cm').textContent = this.value + 'cm'; updateFigureBasemeshLive();">
+                            </div>
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.46rem; color:var(--text-muted);">
+                                    <span>ヒップ:</span><span id="lbl-hip-cm" style="color:#fff; font-weight:800;">94cm</span>
+                                </div>
+                                <input type="range" id="range-hip-cm" min="65" max="130" value="94" style="width:100%; accent-color:var(--accent-cyan);" oninput="document.getElementById('lbl-hip-cm').textContent = this.value + 'cm'; updateFigureBasemeshLive();">
+                            </div>
                         </div>
                     </div>
                     <!-- Inline Custom Input for Build -->
@@ -445,7 +577,7 @@
                             <span>身長スケール:</span>
                             <span style="color:var(--accent-gold); font-weight:800;" id="lbl-char-height">1.80m</span>
                         </div>
-                        <input type="range" id="range-char-height" min="1.40" max="2.10" step="0.01" value="1.80" style="width:100%; accent-color:var(--accent-gold);" oninput="document.getElementById('lbl-char-height').textContent = this.value + 'm'; updateProceduralPreview(); updateGemmaPrompt();">
+                        <input type="range" id="range-char-height" min="1.40" max="2.10" step="0.01" value="1.80" style="width:100%; accent-color:var(--accent-gold);" oninput="document.getElementById('lbl-char-height').textContent = this.value + 'm'; updateProceduralPreview(); updateGemmaPrompt(); updateFigureBasemeshLive();">
                     </div>
 
                     <!-- Hair & Skin Tone -->
@@ -545,8 +677,13 @@
                             <input type="color" id="input-costume-color" value="#0f172a" style="width:100%; height:24px; border:1px solid var(--border-dark); background:#070b16; border-radius:3px; cursor:pointer;" onchange="updateProceduralPreview(); updateGemmaPrompt();">
                         </div>
                         <div>
-                            <label style="font-size:0.50rem; color:var(--text-muted);">発光ライン色:</label>
-                            <input type="color" id="input-neon-color" value="#00f2fe" style="width:100%; height:24px; border:1px solid var(--border-dark); background:#070b16; border-radius:3px; cursor:pointer;" onchange="updateProceduralPreview(); updateGemmaPrompt();">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                                <label style="font-size:0.50rem; color:var(--text-muted);">発光ライン:</label>
+                                <label style="font-size:0.48rem; color:var(--accent-cyan); cursor:pointer; display:flex; align-items:center; gap:3px;">
+                                    <input type="checkbox" id="check-neon-enable" onchange="toggleNeonEnable()"> 発光あり
+                                </label>
+                            </div>
+                            <input type="color" id="input-neon-color" value="#00f2fe" style="width:100%; height:24px; border:1px solid var(--border-dark); background:#070b16; border-radius:3px; cursor:pointer; opacity:0.35;" disabled onchange="updateProceduralPreview(); updateGemmaPrompt();">
                         </div>
                     </div>
 
@@ -561,9 +698,20 @@
                         <textarea id="txt-gemma-prompt" class="input-custom" style="height:48px; font-size:0.50rem; line-height:1.3; font-family:'Fira Code', monospace; resize:none;" readonly></textarea>
                     </div>
 
+                    <!-- Generation Engine Selector -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; background:rgba(0,242,254,0.06); padding:4px 8px; border-radius:4px; border:1px solid rgba(0,242,254,0.2);">
+                        <span style="font-size:0.50rem; color:var(--accent-cyan); font-weight:800;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> AIエンジン:
+                        </span>
+                        <select id="select-gen-engine" class="select-custom" style="width:auto; padding:2px 6px; font-size:0.50rem; border-color:var(--accent-cyan); color:var(--accent-cyan); background:#070b16;">
+                            <option value="google_ai" selected>🚀 Google Gemini 3.1 Flash Image (実写映画級)</option>
+                            <option value="procedural">📐 簡易マネキン (オフライン軽量)</option>
+                        </select>
+                    </div>
+
                     <!-- Gemma 4 Generator Button (REAL EXECUTION) -->
-                    <button class="btn-opt" id="btn-exec-gemma4-gen" style="background:linear-gradient(135deg, #a855f7, #3b82f6); color:#fff; font-weight:900; font-size:0.72rem; padding:10px; border:none; margin-top:6px; box-shadow:0 0 16px rgba(168,85,247,0.4);" onclick="executeRealCharacterGeneration()">
-                        <i class="fa-solid fa-bolt"></i> ⚡ 4面ターンアラウンド高解像度生成 ＆ 32bit透過保存！
+                    <button class="btn-opt" id="btn-exec-gemma4-gen" style="background:linear-gradient(135deg, #a855f7, #3b82f6); color:#fff; font-weight:900; font-size:0.75rem; padding:12px; border:none; margin-top:8px; box-shadow:0 0 16px rgba(168,85,247,0.4); cursor:pointer; width:100%; transition:all 0.2s ease; position:relative; z-index:10; pointer-events:auto;" onclick="executeRealCharacterGeneration()">
+                        <i class="fa-solid fa-wand-magic-sparkles" id="icon-exec-btn"></i> <span id="text-exec-btn">⚡ 実写4面ターンアラウンド高解像度生成 ＆ 32bit透過保存！</span>
                     </button>
                 </div>
 
@@ -635,33 +783,64 @@
                 <div class="turnaround-grid">
                     <div class="turnaround-view-card active-aspect" id="card-aspect-front" onclick="selectActiveAspect('front')">
                         <span class="aspect-title">① 正面 (Front)</span>
-                        <canvas id="canvas-front" class="checker-bg" width="120" height="200" style="width:100%; height:auto;"></canvas>
+                        <button type="button" class="btn-zoom-card" onclick="event.stopPropagation(); openHighResInspector('front');" title="正面を高解像度拡大確認">🔍 拡大</button>
+                        <canvas id="canvas-front" class="checker-bg" width="240" height="380" style="width:100%; height:auto;"></canvas>
                     </div>
                     <div class="turnaround-view-card" id="card-aspect-right" onclick="selectActiveAspect('right')">
                         <span class="aspect-title">② 右側面 (Right)</span>
-                        <canvas id="canvas-right" class="checker-bg" width="120" height="200" style="width:100%; height:auto;"></canvas>
+                        <button type="button" class="btn-zoom-card" onclick="event.stopPropagation(); openHighResInspector('right');" title="右側面を高解像度拡大確認">🔍 拡大</button>
+                        <canvas id="canvas-right" class="checker-bg" width="240" height="380" style="width:100%; height:auto;"></canvas>
                     </div>
                     <div class="turnaround-view-card" id="card-aspect-back" onclick="selectActiveAspect('back')">
                         <span class="aspect-title">③ 背面 (Back)</span>
-                        <canvas id="canvas-back" class="checker-bg" width="120" height="200" style="width:100%; height:auto;"></canvas>
+                        <button type="button" class="btn-zoom-card" onclick="event.stopPropagation(); openHighResInspector('back');" title="背面を高解像度拡大確認">🔍 拡大</button>
+                        <canvas id="canvas-back" class="checker-bg" width="240" height="380" style="width:100%; height:auto;"></canvas>
                     </div>
                     <div class="turnaround-view-card" id="card-aspect-left" onclick="selectActiveAspect('left')">
                         <span class="aspect-title">④ 左側面 (Left)</span>
-                        <canvas id="canvas-left" class="checker-bg" width="120" height="200" style="width:100%; height:auto;"></canvas>
+                        <button type="button" class="btn-zoom-card" onclick="event.stopPropagation(); openHighResInspector('left');" title="左側面を高解像度拡大確認">🔍 拡大</button>
+                        <canvas id="canvas-left" class="checker-bg" width="240" height="380" style="width:100%; height:auto;"></canvas>
                     </div>
                 </div>
 
-                <!-- 360 Turntable Inspection Stage -->
-                <div class="turntable-stage-container" id="turntable-container">
-                    <canvas id="canvas-turntable" class="turntable-canvas checker-bg" width="400" height="520"></canvas>
+                <!-- 360 Turntable Inspection Stage (DessinPose 24-Angle Real Ingest & 3D Engine) -->
+                <div class="turntable-stage-container" id="turntable-container" style="height:380px; min-height:340px; max-height:420px;" title="マウスドラッグで360度シームレスに立体回転できます">
+                    <!-- 1. 🎬 4面実写キャラクター 360°立体回転 & 360°ヘア連動レイヤー -->
+                    <div id="dessin-turntable-layer" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:8; pointer-events:none;">
+                        <!-- Character Full Body 4-View Cylindrical Spatial Stage + Catalog View -->
+                        <div id="character-turntable-wrapper" style="position:relative; height:92%; width:320px; max-width:90%; display:flex; align-items:center; justify-content:center; perspective:800px;">
+                            <img id="img-turntable-front" src="/characters/ren/front.png" alt="Front" style="position:absolute; max-height:100%; max-width:100%; object-fit:contain; filter:drop-shadow(0 15px 30px rgba(0,0,0,0.85)); transform-origin:center center; will-change:transform,opacity;">
+                            <img id="img-turntable-right" src="/characters/ren/right.png" alt="Right" style="position:absolute; max-height:100%; max-width:100%; object-fit:contain; filter:drop-shadow(0 15px 30px rgba(0,0,0,0.85)); transform-origin:center center; will-change:transform,opacity; display:none;">
+                            <img id="img-turntable-back" src="/characters/ren/back.png" alt="Back" style="position:absolute; max-height:100%; max-width:100%; object-fit:contain; filter:drop-shadow(0 15px 30px rgba(0,0,0,0.85)); transform-origin:center center; will-change:transform,opacity; display:none;">
+                            <img id="img-turntable-left" src="/characters/ren/left.png" alt="Left" style="position:absolute; max-height:100%; max-width:100%; object-fit:contain; filter:drop-shadow(0 15px 30px rgba(0,0,0,0.85)); transform-origin:center center; will-change:transform,opacity; display:none;">
+                            <img id="img-dessin-turntable" src="/characters/ren/front.png" alt="Catalog Turntable" style="position:absolute; max-height:100%; max-width:100%; object-fit:contain; filter:drop-shadow(0 15px 30px rgba(0,0,0,0.85)); display:none;">
+                        </div>
+                    </div>
+
+                    <!-- 2. 🧊 Three.js 3Dポリゴンキャンバス (背景/3Dモード時) -->
+                    <canvas id="canvas-turntable" class="turntable-canvas checker-bg" width="400" height="520" style="z-index:2;"></canvas>
                     
                     <!-- Ground Shadow Overlay -->
-                    <div id="ground-shadow" style="position:absolute; bottom:10%; width:160px; height:20px; background:radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 75%); border-radius:50%; pointer-events:none; transition:opacity 0.2s;"></div>
+                    <div id="ground-shadow" style="position:absolute; bottom:8%; width:180px; height:22px; background:radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 75%); border-radius:50%; pointer-events:none; transition:opacity 0.2s; z-index:3;"></div>
 
-                    <!-- Turntable Angle Overlay Tag -->
-                    <div style="position:absolute; top:10px; left:12px; background:rgba(3,7,18,0.85); border:1px solid var(--border-dark); padding:4px 10px; border-radius:4px; font-size:0.56rem; font-family:'Fira Code', monospace; display:flex; align-items:center; gap:8px;">
-                        <span style="color:var(--accent-cyan); font-weight:800;" id="lbl-turntable-angle">0° FRONT</span>
-                        <span style="color:var(--text-muted);">| 32bit透過 ＆ 白フチDefringe消去済</span>
+                    <!-- Turntable Angle & Status Overlay Tag -->
+                    <div style="position:absolute; top:10px; left:12px; background:rgba(3,7,18,0.92); border:1px solid var(--accent-cyan); padding:4px 10px; border-radius:4px; font-size:0.54rem; font-family:'Fira Code', monospace; display:flex; align-items:center; gap:8px; box-shadow:0 0 10px rgba(0,242,254,0.2); z-index:20;">
+                        <span style="color:var(--accent-cyan); font-weight:900;" id="lbl-turntable-angle">0° FRONT</span>
+                        <span id="lbl-turntable-mode-badge" style="background:linear-gradient(135deg, rgba(168,85,247,0.4), rgba(0,242,254,0.4)); color:#fff; padding:1px 6px; border-radius:3px; font-weight:800;">🥋 360°実写デッサン</span>
+                        <span style="color:#94a3b8; font-size:0.48rem;">🖱️ 左右ドラッグで360°滑らか回転</span>
+                    </div>
+
+                    <!-- 3-Way Mode Switch: 🎬 360°リアルキャラ vs 🧊 3D素体 vs 📐 デッサン素体 -->
+                    <div style="position:absolute; top:10px; right:12px; display:flex; gap:4px; z-index:20; background:rgba(3,7,18,0.85); padding:2px; border-radius:5px; border:1px solid rgba(255,255,255,0.15);">
+                        <button id="btn-mode-costume" type="button" onclick="setMainViewerMode('costume')" class="btn-opt active-viewer-mode" style="background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:900; padding:3px 10px; font-size:0.52rem; border-radius:4px; border:none; box-shadow:0 0 10px rgba(0,242,254,0.5);" title="4面実写キャラクター画像をそのまま360度立体回転表示">
+                            🎬 360°リアルキャラ
+                        </button>
+                        <button id="btn-mode-figure" type="button" onclick="setMainViewerMode('figure')" class="btn-opt" style="background:transparent; color:var(--text-muted); font-weight:800; padding:3px 8px; font-size:0.52rem; border-radius:4px; border:none;" title="解剖学ポリゴンメッシュ(.obj)を表示">
+                            🧊 3D素体メッシュ
+                        </button>
+                        <button id="btn-mode-dessin" type="button" onclick="setMainViewerMode('dessin')" class="btn-opt" style="background:transparent; color:var(--text-muted); font-weight:800; padding:3px 8px; font-size:0.52rem; border-radius:4px; border:none;" title="内部デッサン素体ポーズを確認">
+                            📐 内部素体
+                        </button>
                     </div>
                 </div>
 
@@ -675,9 +854,219 @@
                             <span style="font-size:0.52rem; color:var(--text-muted); white-space:nowrap;">回転アングル:</span>
                             <input type="range" id="range-turntable" min="0" max="360" value="0" style="flex:1; accent-color:var(--accent-cyan);" oninput="setTurntableAngle(this.value)">
                         </div>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:0.52rem; color:var(--text-muted); cursor:pointer;">
-                            <input type="checkbox" id="chk-drop-shadow" checked onchange="toggleDropShadow(this.checked)"> 接地影 (Shadow)
-                        </label>
+                        <button class="btn-opt" onclick="openHighResInspector(currentAspect)" style="background:rgba(168,85,247,0.2); border-color:var(--accent-purple); color:#c084fc; font-weight:800; padding:4px 8px; white-space:nowrap;">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i> 🔍 拡大確認
+                        </button>
+                        <button class="btn-opt" id="btn-gen-3d-mesh" onclick="generateAndLoad3DMesh()" style="background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:900; border:none; padding:4px 10px; white-space:nowrap; box-shadow:0 0 10px rgba(0,242,254,0.4);" title="4面画像から本物の3次元ポリゴンメッシュ(.obj)を完全自前・無料($0)で自動生成">
+                            <i class="fa-solid fa-cube"></i> 🧊 AI 3Dメッシュ生成 ($0)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 🥋 360°デッサン素体 ＆ 💈 360°ヘアカタログ 統合ライブラリ -->
+                <div class="control-box" style="margin-top:8px; border-color:var(--accent-purple); background:rgba(15,23,42,0.85);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:6px;">
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" id="tab-btn-hair-db" onclick="switchLibraryTab('hair')" class="btn-opt" style="font-size:0.56rem; font-weight:900; background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; border-color:#f59e0b; box-shadow:0 0 12px rgba(245,158,11,0.5);">
+                                <i class="fa-solid fa-scissors"></i> 💈 360°ヘアカタログ (全344スタイル)
+                            </button>
+                            <button type="button" id="tab-btn-face-db" onclick="switchLibraryTab('face')" class="btn-opt" style="font-size:0.56rem; font-weight:900; background:transparent; color:var(--text-muted); border-color:var(--border-dark);">
+                                <i class="fa-solid fa-masks-theater"></i> 🎭 実在しない人気顔 (黄金比AIフェイス)
+                            </button>
+                            <button type="button" id="tab-btn-dessin-db" onclick="switchLibraryTab('dessin')" class="btn-opt" style="font-size:0.56rem; font-weight:900; background:transparent; color:var(--text-muted); border-color:var(--border-dark);">
+                                <i class="fa-solid fa-person-rays"></i> 📐 内部骨格・ポーズ制約 (100ポーズ)
+                            </button>
+                        </div>
+                        <span id="lbl-active-lib-badge" style="background:rgba(16,185,129,0.25); color:#10b981; font-size:0.48rem; font-weight:800; padding:2px 8px; border-radius:3px; border:1px solid rgba(16,185,129,0.4);">
+                            ⚛️ 量子Gemma4 DB稼働中
+                        </span>
+                    </div>
+
+                    <!-- 1. 🥋 デッサン素体 パネル -->
+                    <div id="panel-dessin-library" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;">
+                        <!-- Gender & Category Selection Bar -->
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <!-- Gender Toggle -->
+                            <div style="display:flex; background:rgba(0,0,0,0.5); border-radius:4px; padding:2px; border:1px solid rgba(255,255,255,0.12);">
+                                <button type="button" id="btn-pose-female" onclick="selectDessinGender('female')" class="btn-opt" style="background:rgba(236,72,153,0.3); color:#f472b6; font-size:0.52rem; font-weight:800; padding:3px 8px; border-radius:3px; border:none;">
+                                    👩 女性 (50)
+                                </button>
+                                <button type="button" id="btn-pose-male" onclick="selectDessinGender('male')" class="btn-opt" style="background:transparent; color:var(--text-muted); font-size:0.52rem; font-weight:800; padding:3px 8px; border-radius:3px; border:none;">
+                                    👨 男性 (50)
+                                </button>
+                            </div>
+
+                            <!-- Category Tabs -->
+                            <div style="display:flex; gap:3px; flex:1; overflow-x:auto;" id="dessin-category-tabs">
+                                <button type="button" onclick="selectDessinCategory('standing')" class="btn-opt cat-tab-active" data-cat="standing" style="font-size:0.50rem; padding:3px 7px; font-weight:800; background:rgba(168,85,247,0.25); border-color:var(--accent-purple); color:#fff;">
+                                    🧍 立つ (10)
+                                </button>
+                                <button type="button" onclick="selectDessinCategory('crouching')" class="btn-opt" data-cat="crouching" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🧎 中腰・しゃがむ (10)
+                                </button>
+                                <button type="button" onclick="selectDessinCategory('kneeling')" class="btn-opt" data-cat="kneeling" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🧘 膝をつく (10)
+                                </button>
+                                <button type="button" onclick="selectDessinCategory('sitting')" class="btn-opt" data-cat="sitting" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🪑 座る (10)
+                                </button>
+                                <button type="button" onclick="selectDessinCategory('lying')" class="btn-opt" data-cat="lying" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🛌 寝る (10)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pose Thumbnails Grid (Horizontal Scrollable) -->
+                        <div id="dessin-pose-thumbnails-container" style="display:flex; gap:6px; overflow-x:auto; padding:6px 2px; scrollbar-width:thin; min-height:86px; align-items:center;">
+                            <div style="color:var(--text-muted); font-size:0.54rem; padding:10px;">ポーズDB読み込み中...</div>
+                        </div>
+
+                        <!-- Active Selected Pose Status & Action Bar -->
+                        <div id="active-pose-control-bar" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.6); padding:6px 10px; border-radius:4px; border:1px solid rgba(255,255,255,0.08); flex-wrap:wrap; gap:6px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span id="lbl-current-pose-info" style="font-size:0.54rem; font-weight:800; color:#fff;">
+                                    選択ポーズ: <span style="color:var(--accent-cyan);" id="lbl-pose-title">女性・立つ #0000</span>
+                                </span>
+                                <span id="lbl-pose-biomechanics" style="font-size:0.48rem; color:#a855f7; font-weight:700;">
+                                    ✨ 美術解剖学：自然な重心・S字湾曲・脱力指先
+                                </span>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button type="button" class="btn-opt" onclick="viewAll24AnglesModal()" style="background:rgba(255,255,255,0.08); font-size:0.50rem; font-weight:700; padding:4px 8px;" title="360度全周の24枚アングル画像を一覧展開">
+                                    <i class="fa-solid fa-arrows-spin"></i> 360°全周24アングル一覧
+                                </button>
+                                <button type="button" id="btn-apply-dessinpose" onclick="applySelectedDessinPose()" class="btn-opt" style="background:linear-gradient(135deg, #a855f7, #00f2fe); color:#000; font-size:0.54rem; font-weight:900; padding:4px 12px; border:none; box-shadow:0 0 10px rgba(168,85,247,0.3);">
+                                    <i class="fa-solid fa-check-double"></i> 🥋 このポーズを素体マスターに適用！
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. 💈 MEN'S NON-NO ヘアカタログ パネル -->
+                    <div id="panel-hair-library" style="display:none; flex-direction:column; gap:6px; margin-top:6px;">
+                        <!-- Hair Category Tabs -->
+                        <div style="display:flex; gap:3px; overflow-x:auto; padding-bottom:2px;" id="hair-category-tabs">
+                            <button type="button" onclick="selectHairCategory('all')" class="btn-opt active-hair-cat" data-hcat="all" style="font-size:0.50rem; padding:3px 8px; font-weight:800; background:rgba(0,242,254,0.25); border-color:var(--accent-cyan); color:#fff;">
+                                🔥 すべて (344)
+                            </button>
+                            <button type="button" onclick="selectHairCategory('short')" class="btn-opt" data-hcat="short" style="font-size:0.50rem; padding:3px 8px; font-weight:800;">
+                                ✂️ ショート (208)
+                            </button>
+                            <button type="button" onclick="selectHairCategory('veryshort')" class="btn-opt" data-hcat="veryshort" style="font-size:0.50rem; padding:3px 8px; font-weight:800;">
+                                ⚡ ベリーショート (27)
+                            </button>
+                            <button type="button" onclick="selectHairCategory('medium')" class="btn-opt" data-hcat="medium" style="font-size:0.50rem; padding:3px 8px; font-weight:800;">
+                                🌊 ミディアム (62)
+                            </button>
+                            <button type="button" onclick="selectHairCategory('long')" class="btn-opt" data-hcat="long" style="font-size:0.50rem; padding:3px 8px; font-weight:800;">
+                                ✨ ロング (14)
+                            </button>
+                            <button type="button" onclick="selectHairCategory('color')" class="btn-opt" data-hcat="color" style="font-size:0.50rem; padding:3px 8px; font-weight:800;">
+                                🎨 カラー (33)
+                            </button>
+                        </div>
+
+                        <!-- Hair Style Thumbnails Grid (Horizontal Scrollable) -->
+                        <div id="hair-style-thumbnails-container" style="display:flex; gap:6px; overflow-x:auto; padding:6px 2px; scrollbar-width:thin; min-height:86px; align-items:center;">
+                            <div style="color:var(--text-muted); font-size:0.54rem; padding:10px;">ヘアカタログ読み込み中...</div>
+                        </div>
+
+                        <!-- Active Selected Hair Status & Action Bar -->
+                        <div id="active-hair-control-bar" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.6); padding:6px 10px; border-radius:4px; border:1px solid rgba(255,255,255,0.08); flex-wrap:wrap; gap:6px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span id="lbl-current-hair-info" style="font-size:0.54rem; font-weight:800; color:#fff;">
+                                    選択髪型: <span style="color:var(--accent-gold);" id="lbl-hair-title">スタイルを選択してください</span>
+                                </span>
+                                <span id="lbl-hair-meta-tag" style="font-size:0.48rem; color:#38bdf8; font-weight:700;">
+                                    📸 360°立体ヘッド (12アングル・つむじ/後頭部完備)
+                                </span>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button type="button" class="btn-opt" onclick="viewAll12HairAnglesModal()" style="background:rgba(255,255,255,0.08); font-size:0.50rem; font-weight:700; padding:4px 8px;" title="360度全周の12枚アングル画像を一覧展開">
+                                    <i class="fa-solid fa-arrows-spin"></i> 360°全12アングル一覧
+                                </button>
+                                <button type="button" id="btn-apply-haircatalog" onclick="applySelectedHairStyle()" class="btn-opt" style="background:linear-gradient(135deg, #f59e0b, #ec4899); color:#fff; font-size:0.54rem; font-weight:900; padding:4px 12px; border:none; box-shadow:0 0 10px rgba(245,158,11,0.4);">
+                                    <i class="fa-solid fa-scissors"></i> 💈 この髪型をアクター頭部にドッキング！
+                                </button>
+                                <button type="button" id="btn-revert-haircatalog" onclick="revertHairStyleToOriginal()" class="btn-opt" style="background:rgba(239,68,68,0.2); border-color:#ef4444; color:#fca5a5; font-size:0.50rem; font-weight:800; padding:4px 8px;" title="髪型を着せ替え前の初期状態に戻す">
+                                    <i class="fa-solid fa-rotate-left"></i> ↩️ 初期髪型に戻す
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 🎭 実在しない人気顔 (黄金比AIフェイス) パネル -->
+                    <div id="panel-face-library" style="display:none; flex-direction:column; gap:6px; margin-top:6px;">
+                        <!-- Gender & Category Selection Bar -->
+                        <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <!-- Gender Toggle -->
+                            <div style="display:flex; background:rgba(0,0,0,0.5); border-radius:4px; padding:2px; border:1px solid rgba(255,255,255,0.12);">
+                                <button type="button" id="btn-face-male" onclick="selectFaceGender('men')" class="btn-opt" style="background:rgba(0,242,254,0.3); color:#38bdf8; font-size:0.52rem; font-weight:800; padding:3px 8px; border-radius:3px; border:none;">
+                                    👨 男性 (イケメン)
+                                </button>
+                                <button type="button" id="btn-face-female" onclick="selectFaceGender('women')" class="btn-opt" style="background:transparent; color:var(--text-muted); font-size:0.52rem; font-weight:800; padding:3px 8px; border-radius:3px; border:none;">
+                                    👩 女性 (美女・ヒロイン)
+                                </button>
+                            </div>
+
+                            <!-- Category Filter Tabs -->
+                            <div style="display:flex; gap:3px; flex:1; overflow-x:auto;" id="face-category-tabs">
+                                <button type="button" onclick="selectFaceCategory('all')" class="btn-opt" data-fcat="all" style="font-size:0.50rem; padding:3px 7px; font-weight:800; background:rgba(0,242,254,0.25); border-color:var(--accent-cyan); color:#fff;">
+                                    ✨ 全スタイル
+                                </button>
+                                <button type="button" onclick="selectFaceCategory('cool_sharp')" class="btn-opt" data-fcat="cool_sharp" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🗡️ クール・知性派
+                                </button>
+                                <button type="button" onclick="selectFaceCategory('fresh_athletic')" class="btn-opt" data-fcat="fresh_athletic" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🌟 爽やか・アクター
+                                </button>
+                                <button type="button" onclick="selectFaceCategory('wild_edge')" class="btn-opt" data-fcat="wild_edge" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🔥 精悍・ワイルド
+                                </button>
+                                <button type="button" onclick="selectFaceCategory('andro_elegant')" class="btn-opt" data-fcat="andro_elegant" style="font-size:0.50rem; padding:3px 7px; font-weight:800;">
+                                    🌙 中性・モード美青年
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- On-demand AI Face Generator Bar -->
+                        <div style="display:flex; gap:6px; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:4px; border:1px solid rgba(0,242,254,0.2); align-items:center;">
+                            <span style="font-size:0.50rem; font-weight:800; color:var(--accent-cyan); white-space:nowrap;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI架空顔即時創出:
+                            </span>
+                            <input type="text" id="input-custom-face-prompt" class="input-custom" placeholder="例: 20代前半、アンニュイな雰囲気、琥珀色の瞳の架空美青年 (肖像権完全フリー)" style="flex:1; font-size:0.52rem; padding:3px 6px;">
+                            <button type="button" id="btn-gen-ai-face" onclick="generateNewAiFaceOnDemand()" class="btn-opt" style="background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-size:0.50rem; font-weight:900; padding:3px 8px; border:none; white-space:nowrap;">
+                                ✨ 架空顔を生成
+                            </button>
+                        </div>
+
+                        <!-- Face Thumbnails Grid -->
+                        <div id="face-thumbnails-container" style="display:flex; gap:6px; overflow-x:auto; padding:6px 2px; scrollbar-width:thin; min-height:86px; align-items:center;">
+                            <div style="color:var(--text-muted); font-size:0.54rem; padding:10px;">架空顔ライブラリ読み込み中...</div>
+                        </div>
+
+                        <!-- Active Selected Face Status & Action Bar -->
+                        <div id="active-face-control-bar" style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.6); padding:6px 10px; border-radius:4px; border:1px solid rgba(255,255,255,0.08); flex-wrap:wrap; gap:6px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span id="lbl-current-face-info" style="font-size:0.54rem; font-weight:800; color:#fff;">
+                                    選択フェイス: <span style="color:var(--accent-cyan);" id="lbl-face-title">読み込み中...</span>
+                                </span>
+                                <span id="lbl-face-golden-ratio" style="font-size:0.48rem; color:#10b981; font-weight:800; background:rgba(16,185,129,0.2); padding:1px 5px; border-radius:3px;">
+                                    👑 黄金比スコア 98.6%
+                                </span>
+                                <span id="lbl-face-copyright-badge" style="font-size:0.48rem; color:#f59e0b; font-weight:700;">
+                                    🛡️ 肖像権侵害リスク完全ゼロ（実在人物一切非該当）
+                                </span>
+                            </div>
+                            <div style="display:flex; gap:6px;">
+                                <button type="button" class="btn-opt" onclick="viewAllFaceAnglesModal()" style="background:rgba(255,255,255,0.08); font-size:0.50rem; font-weight:700; padding:4px 8px;" title="正面・右横・左横の顔貌アングルを展開">
+                                    <i class="fa-solid fa-arrows-spin"></i> 3アングル確認
+                                </button>
+                                <button type="button" id="btn-dock-trinity" onclick="dockTrinityCharacter()" class="btn-opt" style="background:linear-gradient(135deg, #00f2fe, #a855f7); color:#000; font-size:0.56rem; font-weight:900; padding:4px 14px; border:none; box-shadow:0 0 14px rgba(0,242,254,0.5);">
+                                    <i class="fa-solid fa-masks-theater"></i> 🎭 この架空顔を素体＆ヘアにドッキング合成！
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -731,12 +1120,119 @@
                 <div id="character-vault-list" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;">
                     <!-- Dynamically populated from /api/characters -->
                 </div>
+                
+                <div style="margin-top:10px; display:flex; gap:6px;">
+                    <button class="btn-opt" onclick="openHighResInspector(currentAspect, '3d')" style="background:linear-gradient(135deg, rgba(0,242,254,0.25), rgba(168,85,247,0.25)); border-color:var(--accent-cyan); color:#00f2fe; font-weight:800; padding:4px 10px; white-space:nowrap; box-shadow:0 0 10px rgba(0,242,254,0.2);">
+                        <i class="fa-solid fa-up-right-and-down-left-from-center"></i> 🔍 3D大画面拡大
+                    </button>
+                    <button class="btn-opt" id="btn-gen-3d-mesh" onclick="generateAndLoad3DMesh()" style="background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:900; border:none; padding:4px 10px; white-space:nowrap; box-shadow:0 0 10px rgba(0,242,254,0.4);" title="4面画像から本物の3次元ポリゴンメッシュ(.obj)を完全自前・無料($0)で自動生成">
+                        <i class="fa-solid fa-cube"></i> 🧊 AI 3Dメッシュ生成 ($0)
+                    </button>
+                </div>
 
             </div>
         </section>
     </main>
 
+    <!-- 🔍 High-Res Character Inspector Modal (2D & 3D Dual-Engine) -->
+    <div id="modal-inspector">
+        <div class="inspector-header">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:0.8rem; font-weight:900; color:var(--accent-cyan);">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i> 高精細キャスト拡大インスペクター
+                </span>
+                <span id="inspector-char-badge" style="background:rgba(0,242,254,0.15); color:var(--accent-cyan); padding:2px 8px; border-radius:4px; font-size:0.6rem; font-weight:800;">
+                    如月 蓮 | 3D立体
+                </span>
+
+                <!-- Mode Selector: 3D vs 2D -->
+                <div class="tab-bar" style="margin-left:8px;">
+                    <button class="tab-btn active" id="btn-insp-mode-3d" onclick="switchInspectorMode('3d')">
+                        <i class="fa-solid fa-cube"></i> 🧊 3D立体ビューア
+                    </button>
+                    <button class="tab-btn" id="btn-insp-mode-2d" onclick="switchInspectorMode('2d')">
+                        <i class="fa-solid fa-image"></i> 🖼️ 2D高解像度写真
+                    </button>
+                </div>
+
+                <!-- 2D View Aspect Tabs (Visible only in 2D mode) -->
+                <div class="tab-bar" id="inspector-2d-tabs" style="margin-left:6px; display:none;">
+                    <button class="tab-btn active" id="btn-insp-front" onclick="switchInspectorAspect('front')">① 正面</button>
+                    <button class="tab-btn" id="btn-insp-right" onclick="switchInspectorAspect('right')">② 右</button>
+                    <button class="tab-btn" id="btn-insp-back" onclick="switchInspectorAspect('back')">③ 背面</button>
+                    <button class="tab-btn" id="btn-insp-left" onclick="switchInspectorAspect('left')">④ 左</button>
+                </div>
+            </div>
+
+            <!-- Controls (Zoom, Reset, Toggles) -->
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <!-- 3D Controls Bar -->
+                <div id="inspector-3d-controls" style="display:flex; align-items:center; gap:6px;">
+                    <div style="display:flex; gap:3px; background:rgba(0,0,0,0.4); padding:2px; border-radius:4px; border:1px solid rgba(255,255,255,0.1);">
+                        <button id="btn-insp-mode-figure" type="button" onclick="toggleMeshDisplayMode('figure')" class="btn-opt" style="background:var(--accent-cyan); color:#000; font-weight:800; padding:2px 6px; font-size:0.52rem; border:none; border-radius:3px;">🥋 素体マネキン</button>
+                        <button id="btn-insp-mode-costume" type="button" onclick="toggleMeshDisplayMode('costume')" class="btn-opt" style="background:transparent; color:var(--text-muted); font-weight:800; padding:2px 6px; font-size:0.52rem; border:none; border-radius:3px;">👔 衣装テクスチャ</button>
+                    </div>
+                    <button class="btn-opt" id="btn-insp-autorotate" onclick="toggleInspectorAutoRotate()" style="padding:3px 8px; font-size:0.56rem; background:rgba(0,242,254,0.15); border-color:var(--accent-cyan); color:var(--accent-cyan);">
+                        <i class="fa-solid fa-rotate"></i> 自動回転
+                    </button>
+                    <button class="btn-opt" id="btn-insp-wireframe" onclick="toggleInspectorWireframe()" style="padding:3px 8px; font-size:0.56rem; background:rgba(255,255,255,0.06); border-color:var(--border-dark); color:#94a3b8;">
+                        <i class="fa-solid fa-border-all"></i> ワイヤー
+                    </button>
+                </div>
+
+                <!-- Universal Zoom Bar -->
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:0.6rem; color:#94a3b8;">ズーム:</span>
+                    <input type="range" id="range-inspector-zoom" min="40" max="400" value="100" style="width:110px; accent-color:var(--accent-cyan);" oninput="setInspectorZoom(this.value)">
+                    <span id="lbl-inspector-zoom" style="font-size:0.6rem; color:var(--accent-cyan); font-family:monospace; min-width:35px;">100%</span>
+                    <button class="btn-opt" onclick="resetInspectorZoom()" style="padding:2px 6px; font-size:0.55rem;">リセット</button>
+                </div>
+
+                <button class="btn-opt" style="background:#ef4444; color:#fff; border:none; padding:4px 12px; font-weight:800; font-size:0.7rem; border-radius:4px;" onclick="closeHighResInspector()">
+                    ✕ 閉じる
+                </button>
+            </div>
+        </div>
+
+        <div class="inspector-body" id="inspector-body">
+            <!-- 2D Image View -->
+            <img id="inspector-img" src="" alt="Character High-Res Inspection" style="display:none;" />
+
+            <!-- 3D Three.js High-Fidelity Canvas -->
+            <canvas id="inspector-3d-canvas" style="display:block;"></canvas>
+
+            <!-- 3D Overlay HUD -->
+            <div class="inspector-hud" id="inspector-3d-hud">
+                <div style="color:var(--accent-cyan); font-weight:800; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-cube"></i> <span id="hud-mesh-status">GENESIS ULTRA-HD 3D MESH</span>
+                </div>
+                <div style="color:#94a3b8;" id="hud-mesh-stats">頂点: 11,700 / 面: 22,912 / 2048px Ultra-HD 写真テクスチャ</div>
+                <div style="color:#64748b; font-size:0.50rem;" id="hud-mesh-controls">
+                    🖱️ 左ドラッグ: 360°立体回転 | 右ドラッグ: 上下左右移動 | ホイール: 超拡大・縮小
+                </div>
+            </div>
+
+            <!-- Quick 3D Generation Callout (if 3D mesh not loaded) -->
+            <div id="inspector-3d-missing-box" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(6,10,20,0.92); border:1px solid var(--accent-cyan); border-radius:8px; padding:20px; text-align:center; box-shadow:0 0 30px rgba(0,242,254,0.3); z-index:20;">
+                <i class="fa-solid fa-cube" style="font-size:2rem; color:var(--accent-cyan); margin-bottom:8px;"></i>
+                <div style="font-size:0.78rem; font-weight:800; color:#fff; margin-bottom:4px;">3Dポリゴンメッシュが未作成です</div>
+                <div style="font-size:0.58rem; color:#94a3b8; margin-bottom:12px;">4面画像から0.8秒で本物の3Dモデルを無料($0)自動生成します</div>
+                <button class="btn-opt" style="background:linear-gradient(135deg, #00f2fe, #3b82f6); color:#000; font-weight:900; font-size:0.72rem; padding:8px 16px; border:none; border-radius:4px;" onclick="generateAndLoad3DMesh();">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> 🧊 今すぐ3Dポリゴンメッシュ生成 ($0)
+                </button>
+            </div>
+        </div>
+
+        <div style="background:#060a14; border-top:1px solid var(--border-dark); padding:6px 16px; font-size:0.52rem; color:#64748b; display:flex; justify-content:space-between; align-items:center;">
+            <span id="lbl-inspector-footer-tip">💡 マウスドラッグで360度立体回転、ホイールで超近接拡大（顔・衣装・靴底の凹凸立体形状をじっくり確認可能）</span>
+            <span id="lbl-inspector-res">モード: 3D立体ビューア (Three.js WebGL)</span>
+        </div>
+    </div>
+
     <!-- Essential Scripts -->
+    <script src="three.min.js"></script>
+    <script src="OBJLoader.js"></script>
+    <script src="webgpu_qgemma4_runtime.js"></script>
     <script src="multi_display.js"></script>
     <script src="gemma4_client.js"></script>
     <script src="character_turnaround_engine.js"></script>
@@ -747,6 +1243,7 @@
 
         // State
         let currentActorId = 'ren';
+        let activeCharIndex = 0;
         let currentAspect = 'front';
         let turntableAngle = 0;
         let isTurntablePlaying = false;
@@ -1096,6 +1593,16 @@
             });
         }
 
+        function toggleNeonEnable() {
+            const check = document.getElementById('check-neon-enable');
+            const colorInput = document.getElementById('input-neon-color');
+            if (!check || !colorInput) return;
+            colorInput.disabled = !check.checked;
+            colorInput.style.opacity = check.checked ? '1.0' : '0.35';
+            updateProceduralPreview();
+            updateGemmaPrompt();
+        }
+
         // 2. Gemma 4 Master Prompt Synthesis
         function updateGemmaPrompt() {
             const nameJa = document.getElementById('input-char-name')?.value || '如月 蓮';
@@ -1108,13 +1615,22 @@
             const hairColor = getSelectedCustomPrompt('select-char-hair-color') || '漆黒';
             const skinTone = getSelectedCustomPrompt('select-char-skin') || '自然';
             const costume = getSelectedCustomPrompt('select-char-costume') || 'noir_trench';
-            const neon = document.getElementById('input-neon-color')?.value || '#00f2fe';
+            
+            const neonEnabled = document.getElementById('check-neon-enable')?.checked || false;
+            const neon = neonEnabled ? (document.getElementById('input-neon-color')?.value || '#00f2fe') : 'none';
+
+            const wardrobeDesc = neonEnabled 
+                ? `${costume} style with subtle luminous seams (${neon}).` 
+                : `${costume}. Authentic premium textile textures, natural fabric folds, NO glowing neon lines, NO cybernetic seams, pure realistic clothing.`;
 
             const prompt = `[Gemma 4 Master Turnaround Sheet]
-Subject: ${nameEn} (${nameJa}), ${age}yo ${gender}, ${height}m tall, ${build} build, ${skinTone} skin.
-Features: ${hair} hairstyle in ${hairColor}, clean facial features, focused gaze.
-Wardrobe: ${costume} style with neon luminescent seams (${neon}).
-Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profile, Rear View, Left Profile) on solid neutral background for zero-tolerance alpha matting. 8K studio lighting, perfect anatomical symmetry, ground contact feet alignment.`;
+Subject: ${nameEn} (${nameJa}), ${age}-year-old ${gender}, ${height}m tall, ${build} build, ${skinTone} skin.
+Features: ${hair} hairstyle in ${hairColor}, handsome defined facial features, focused gaze, natural hair strands.
+Wardrobe: ${wardrobeDesc}
+Pose: Strict neutral standing A-pose. Both arms hanging naturally down along the sides of the body. Both hands completely empty, open relaxed fingers, natural wrists, NO held objects, NO tablets, NO weapons, NO raised arms.
+Framing & Background: Professional 4-View Character Turnaround Sheet showing 4 angles side-by-side (1. Front View, 2. Right Side Profile, 3. Back View, 4. Left Side Profile) on an infinite solid pure white background (#FFFFFF). Perfectly identical character and clothing across all 4 views.
+Quality & Camera: Hyper-realistic 8K cinema still photography, ARRI Alexa LF, 35mm anamorphic prime lens, natural skin pores, studio lighting, live-action movie actor.
+Negative constraints: anime, cartoon, 3D CGI render, illustration, drawing, ${neonEnabled ? '' : 'glowing neon lines, '}held items, tablets, cut off hands, floor grid, ground text, shadows on floor.`;
 
             const promptBox = document.getElementById('txt-gemma-prompt');
             if (promptBox) promptBox.value = prompt;
@@ -1162,17 +1678,122 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
         }
 
         // 5. Turntable Angle Setting
+
+        // =========================================================================
+        // 🎬 4面実写キャラクター 360°ターンテーブル同期 & 360°ヘア連動エンジン
+        // =========================================================================
+        function syncRealCharacterToTurntable(deg) {
+            const normDeg = ((deg % 360) + 360) % 360;
+            const rad = normDeg * Math.PI / 180;
+            const vaultList = window.characterVaultData || characterVaultData || [];
+            const activeChar = vaultList.find(c => c.id === (currentActorId || 'ren')) || vaultList[0];
+
+            // Hide catalog single image if active
+            const catImg = document.getElementById('img-dessin-turntable');
+            if (catImg) catImg.style.display = 'none';
+
+            // 1. Ensure all 4 images are loaded and source updated
+            const imgF = document.getElementById('img-turntable-front');
+            const imgR = document.getElementById('img-turntable-right');
+            const imgB = document.getElementById('img-turntable-back');
+            const imgL = document.getElementById('img-turntable-left');
+
+            const setSrc = (el, asp) => {
+                if (!el) return;
+                const srcToUse = (loadedActorImages[asp] && loadedActorImages[asp].src) ||
+                                 (activeChar && activeChar.views && activeChar.views[asp]);
+                if (srcToUse && el.src !== srcToUse) {
+                    el.src = srcToUse;
+                }
+            };
+            setSrc(imgF, 'front');
+            setSrc(imgR, 'right');
+            setSrc(imgB, 'back');
+            setSrc(imgL, 'left');
+
+            // 2. Continuous Cylindrical Harmonic Cross-fade & Perspective Scale
+            // cos(rad): front (+), back (-)
+            // sin(rad): right (+), left (-)
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            const updatePlane = (el, val) => {
+                if (!el) return;
+                if (val > 0.001) {
+                    el.style.display = 'block';
+                    // Harmonic opacity curve
+                    el.style.opacity = Math.min(1.0, Math.pow(val, 0.85));
+                    // Perspective horizontal compression as plane turns obliquely away:
+                    const scaleX = Math.max(0.08, val);
+                    el.style.transform = `scaleX(${scaleX.toFixed(3)})`;
+                    el.style.zIndex = Math.round(val * 20);
+                } else {
+                    el.style.display = 'none';
+                    el.style.opacity = '0';
+                }
+            };
+
+            updatePlane(imgF, cos);
+            updatePlane(imgB, -cos);
+            updatePlane(imgR, sin);
+            updatePlane(imgL, -sin);
+
+            // 3. Update Angle & Mode Badge
+            const angleBadge = document.getElementById('lbl-turntable-angle');
+            if (angleBadge) {
+                let primaryAsp = '正面';
+                if (normDeg >= 45 && normDeg < 135) primaryAsp = '右側面';
+                else if (normDeg >= 135 && normDeg < 225) primaryAsp = '背面';
+                else if (normDeg >= 225 && normDeg < 315) primaryAsp = '左側面';
+                angleBadge.textContent = `${normDeg}° (${primaryAsp}) [滑らか回転]`;
+            }
+
+            const modeBadge = document.getElementById('lbl-turntable-mode-badge');
+            if (modeBadge) {
+                modeBadge.textContent = '🎬 360°リアルキャラ (滑らか連続回転)';
+                modeBadge.style.background = 'linear-gradient(135deg, rgba(0,242,254,0.4), rgba(59,130,246,0.4))';
+            }
+        }
+
         function setTurntableAngle(deg) {
             turntableAngle = parseInt(deg);
-            document.getElementById('range-turntable').value = turntableAngle;
-            
-            let label = `${turntableAngle}° `;
-            if (turntableAngle >= 315 || turntableAngle < 45) label += 'FRONT (正面)';
-            else if (turntableAngle >= 45 && turntableAngle < 135) label += 'RIGHT (右側面)';
-            else if (turntableAngle >= 135 && turntableAngle < 225) label += 'BACK (背面)';
-            else label += 'LEFT (左側面)';
-            document.getElementById('lbl-turntable-angle').textContent = label;
+            const rangeEl = document.getElementById('range-turntable');
+            if (rangeEl) rangeEl.value = turntableAngle;
 
+            const layer = document.getElementById('dessin-turntable-layer');
+            if (layer) layer.style.display = 'flex';
+
+            // 1. 🎬 360° Real Character mode (Primary): Smooth continuous 360 cylindrical rotation!
+            if (currentMainViewerMode === 'costume') {
+                const catImg = document.getElementById('img-dessin-turntable');
+                if (catImg) catImg.style.display = 'none';
+                syncRealCharacterToTurntable(turntableAngle);
+            }
+            // 2. 🥋 Dessin Pose mode: 24 photographic turnaround angles
+            else if (currentMainViewerMode === 'dessin' && typeof syncDessinPoseToTurntable === 'function') {
+                ['img-turntable-front', 'img-turntable-right', 'img-turntable-back', 'img-turntable-left'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+                const catImg = document.getElementById('img-dessin-turntable');
+                if (catImg) catImg.style.display = 'block';
+                syncDessinPoseToTurntable(turntableAngle);
+            }
+            // 3. 💈 Hair standalone preview mode: 12 photographic turnaround angles
+            else if (typeof currentLibraryTab !== 'undefined' && currentLibraryTab === 'hair' && typeof syncHairStyleToTurntable === 'function') {
+                ['img-turntable-front', 'img-turntable-right', 'img-turntable-back', 'img-turntable-left'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+                const catImg = document.getElementById('img-dessin-turntable');
+                if (catImg) catImg.style.display = 'block';
+                syncHairStyleToTurntable(turntableAngle);
+            }
+            else {
+                syncRealCharacterToTurntable(turntableAngle);
+            }
+
+            // Always rotate the 3D pedestal on canvas
             renderTurntableCanvas();
         }
 
@@ -1230,8 +1851,12 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
                 ctx.clearRect(0, 0, cvs.width, cvs.height);
 
                 if (loadedActorImages[asp]) {
-                    // Draw loaded real 32bit PNG
-                    ctx.drawImage(loadedActorImages[asp], 0, 0, cvs.width, cvs.height);
+                    // Draw loaded real 32bit PNG with aspect fit
+                    const img = loadedActorImages[asp];
+                    const ratio = Math.min(cvs.width / img.width, cvs.height / img.height);
+                    const cx = (cvs.width - img.width * ratio) / 2;
+                    const cy = (cvs.height - img.height * ratio) / 2;
+                    ctx.drawImage(img, 0, 0, img.width, img.height, cx, cy, img.width * ratio, img.height * ratio);
                 } else {
                     // Render high-precision procedural actor
                     turnaroundEngine.renderCleanProceduralActor(ctx, cvs.width, cvs.height, asp);
@@ -1241,55 +1866,1251 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
             renderTurntableCanvas();
         }
 
-        function renderTurntableCanvas() {
-            const cvs = document.getElementById('canvas-turntable');
-            if (!cvs) return;
-            const ctx = cvs.getContext('2d');
-            ctx.clearRect(0, 0, cvs.width, cvs.height);
+        // =========================================================================
+        // ⚛️ Three.js & Q-Gemma 4 True-3D Multi-Plane Spatial Rig Engine
+        // =========================================================================
+        let threeScene = null;
+        let threeCamera = null;
+        let threeRenderer = null;
+        let threeCharacterGroup = null;
+        let threePedestalGroup = null;
+        let threePlanes = { front: null, right: null, back: null, left: null };
+        let threeTextures = { front: null, right: null, back: null, left: null };
+        let isThreeInitialized = false;
 
-            // Interpolate aspect based on turntableAngle
-            let primaryAspect = 'front';
-            let rotationFactor = 1.0;
-            if (turntableAngle >= 45 && turntableAngle < 135) {
-                primaryAspect = 'right';
-                rotationFactor = Math.cos((turntableAngle - 90) * Math.PI / 180);
-            } else if (turntableAngle >= 135 && turntableAngle < 225) {
-                primaryAspect = 'back';
-                rotationFactor = Math.cos((turntableAngle - 180) * Math.PI / 180);
-            } else if (turntableAngle >= 225 && turntableAngle < 315) {
-                primaryAspect = 'left';
-                rotationFactor = Math.cos((turntableAngle - 270) * Math.PI / 180);
-            } else {
-                primaryAspect = 'front';
-                rotationFactor = Math.cos(turntableAngle * Math.PI / 180);
+        function updateThreeCharacterTextures() {
+            if (typeof THREE === 'undefined') return;
+
+            ['front', 'right', 'back', 'left'].forEach(asp => {
+                let imgSource = null;
+                if (loadedActorImages[asp]) {
+                    imgSource = loadedActorImages[asp];
+                } else {
+                    const cvs = document.getElementById(`canvas-${asp}`);
+                    if (cvs) imgSource = cvs;
+                }
+
+                if (imgSource) {
+                    if (!threeTextures[asp]) {
+                        const tex = new THREE.Texture(imgSource);
+                        tex.needsUpdate = true;
+                        tex.minFilter = THREE.LinearFilter;
+                        tex.magFilter = THREE.LinearFilter;
+                        threeTextures[asp] = tex;
+                    } else {
+                        threeTextures[asp].image = imgSource;
+                        threeTextures[asp].needsUpdate = true;
+                    }
+
+                    if (threePlanes[asp] && threePlanes[asp].material) {
+                        threePlanes[asp].material.map = threeTextures[asp];
+                        threePlanes[asp].material.needsUpdate = true;
+                    }
+                }
+            });
+        }
+
+        function initThree3DScene() {
+            const cvs = document.getElementById('canvas-turntable');
+            if (!cvs || typeof THREE === 'undefined') return false;
+
+            const W = cvs.width || 400;
+            const H = cvs.height || 520;
+
+            threeScene = new THREE.Scene();
+
+            // Perspective Camera (ARRI Alexa 35mm Hollywood Lens)
+            threeCamera = new THREE.PerspectiveCamera(36, W / H, 0.1, 100);
+            threeCamera.position.set(0, 0.02, 3.40);
+
+            try {
+                threeRenderer = new THREE.WebGLRenderer({ canvas: cvs, alpha: true, antialias: true, preserveDrawingBuffer: true });
+                threeRenderer.setSize(W, H, false);
+                threeRenderer.setPixelRatio(window.devicePixelRatio || 1);
+            } catch (e) {
+                console.warn("WebGL init fallback:", e);
+                return false;
             }
+
+            // Cinema Lighting (Toned down for real figure skin shading)
+            const amb = new THREE.AmbientLight(0xffffff, 0.45);
+            threeScene.add(amb);
+
+            const key = new THREE.DirectionalLight(0xffffff, 0.70);
+            key.position.set(1.5, 2.5, 3.0);
+            threeScene.add(key);
+
+            const rim = new THREE.DirectionalLight(0x00f2fe, 0.35);
+            rim.position.set(-2.0, 1.5, -2.0);
+            threeScene.add(rim);
+
+            // 🛸 3D High-Tech Turntable Pedestal (Stage)
+            threePedestalGroup = new THREE.Group();
+            const pedGeo = new THREE.CylinderGeometry(0.85, 0.92, 0.07, 48);
+            const pedMat = new THREE.MeshStandardMaterial({ color: 0x060c18, metalness: 0.85, roughness: 0.2 });
+            const pedMesh = new THREE.Mesh(pedGeo, pedMat);
+            pedMesh.position.y = -0.96;
+            threePedestalGroup.add(pedMesh);
+
+            const ringGeo = new THREE.TorusGeometry(0.86, 0.015, 16, 64);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+            ringMesh.rotation.x = Math.PI / 2;
+            ringMesh.position.y = -0.92;
+            threePedestalGroup.add(ringMesh);
+
+            // Rotating Angle Marks
+            for (let i = 0; i < 16; i++) {
+                const angle = (i / 16) * Math.PI * 2;
+                const tickGeo = new THREE.BoxGeometry(0.012, 0.005, 0.08);
+                const tickMat = new THREE.MeshBasicMaterial({ color: (i % 4 === 0) ? 0x00f2fe : 0x475569 });
+                const tickMesh = new THREE.Mesh(tickGeo, tickMat);
+                tickMesh.position.set(Math.cos(angle) * 0.76, -0.915, Math.sin(angle) * 0.76);
+                tickMesh.rotation.y = -angle;
+                threePedestalGroup.add(tickMesh);
+            }
+            threeScene.add(threePedestalGroup);
+
+            // 🧍 3D Multi-Plane Humanoid Spatial Rig (Real 3D Actor Depth & Volumetric Rig)
+            threeCharacterGroup = new THREE.Group();
+
+            // Geometry matching character aspect ratio (Height 1.84m, Width 1.15m)
+            const planeGeo = new THREE.PlaneGeometry(1.15, 1.84);
+
+            updateThreeCharacterTextures();
+
+            const createPlaneMat = (tex) => new THREE.MeshStandardMaterial({
+                map: tex,
+                transparent: true,
+                alphaTest: 0.15,
+                roughness: 0.7,
+                metalness: 0.1,
+                side: THREE.DoubleSide
+            });
+
+            // Front View Plane (Z = +0.06m)
+            threePlanes.front = new THREE.Mesh(planeGeo, createPlaneMat(threeTextures.front));
+            threePlanes.front.position.set(0, 0, 0.06);
+            threeCharacterGroup.add(threePlanes.front);
+
+            // Back View Plane (Z = -0.06m, Y-rotation 180 deg)
+            threePlanes.back = new THREE.Mesh(planeGeo, createPlaneMat(threeTextures.back));
+            threePlanes.back.position.set(0, 0, -0.06);
+            threePlanes.back.rotation.y = Math.PI;
+            threeCharacterGroup.add(threePlanes.back);
+
+            // Right Side View Plane (X = +0.03m, Y-rotation +90 deg)
+            threePlanes.right = new THREE.Mesh(planeGeo, createPlaneMat(threeTextures.right));
+            threePlanes.right.position.set(0.03, 0, 0);
+            threePlanes.right.rotation.y = Math.PI / 2;
+            threeCharacterGroup.add(threePlanes.right);
+
+            // Left Side View Plane (X = -0.03m, Y-rotation -90 deg)
+            threePlanes.left = new THREE.Mesh(planeGeo, createPlaneMat(threeTextures.left));
+            threePlanes.left.position.set(-0.03, 0, 0);
+            threePlanes.left.rotation.y = -Math.PI / 2;
+            threeCharacterGroup.add(threePlanes.left);
+
+            threeScene.add(threeCharacterGroup);
+
+            isThreeInitialized = true;
+            return true;
+        }
+
+        function renderTurntableCanvas() {
+            if (!isThreeInitialized) {
+                if (!initThree3DScene()) {
+                    return;
+                }
+            }
+
+            // In costume / 360 real character mode, always make spatial 4-view rig visible & active:
+            if (currentMainViewerMode === 'costume') {
+                if (threeCharacterGroup) threeCharacterGroup.visible = true;
+                if (loaded3DObject) loaded3DObject.visible = false;
+            } else if (loaded3DObject && threeCharacterGroup) {
+                threeCharacterGroup.visible = false;
+                loaded3DObject.visible = true;
+            }
+
+            const rad = turntableAngle * Math.PI / 180;
+
+            // Rotate Humanoid Rig and Pedestal
+            if (threeCharacterGroup) {
+                threeCharacterGroup.rotation.y = rad;
+            }
+            if (threePedestalGroup) {
+                threePedestalGroup.rotation.y = rad;
+            }
+
+            // Smooth Angle-based Harmonic Alpha Blending (Q-Gemma 4 Volumetric Occlusion)
+            // Camera is looking down Z-axis at (0, 0, +3.4)
+            // When character rotates by rad, the plane normal facing the camera has maximum visibility.
+            if (threePlanes.front && threePlanes.front.material) {
+                const cosRot = Math.cos(rad);
+                const sinRot = Math.sin(rad);
+
+                // Normal dot camera vector (0, 0, 1) in character local space
+                // Front normal: (0, 0, 1) -> world dot: cosRot
+                // Back normal: (0, 0, -1) -> world dot: -cosRot
+                // Right normal: (1, 0, 0) -> world dot: sinRot
+                // Left normal: (-1, 0, 0) -> world dot: -sinRot
+                const dotFront = cosRot;
+                const dotBack  = -cosRot;
+                const dotRight = sinRot;
+                const dotLeft  = -sinRot;
+
+                threePlanes.front.material.opacity = Math.max(0.0, Math.min(1.0, dotFront * 1.5 + 0.3));
+                threePlanes.back.material.opacity  = Math.max(0.0, Math.min(1.0, dotBack  * 1.5 + 0.3));
+                threePlanes.right.material.opacity = Math.max(0.0, Math.min(1.0, dotRight * 1.5 + 0.3));
+                threePlanes.left.material.opacity  = Math.max(0.0, Math.min(1.0, dotLeft  * 1.5 + 0.3));
+            }
+
+            updateThreeCharacterTextures();
+
+            if (threeRenderer && threeScene && threeCamera) {
+                threeRenderer.render(threeScene, threeCamera);
+            }
+
+            // Synchronize Drop Shadow
+            const shadow = document.getElementById('ground-shadow');
+            if (shadow) {
+                const shadowScale = 0.85 + 0.15 * Math.abs(Math.cos(rad));
+                shadow.style.transform = `scale(${shadowScale}, 1.0)`;
+            }
+
+            // Rotate Real 3D Polygon Mesh if active
+            if (loaded3DObject) {
+                loaded3DObject.rotation.y = rad;
+            }
+        }
+
+        // =========================================================================
+        // 🥋 Amazon Anatomical Figure Basemesh & 3D Multi-View Engine
+        // =========================================================================
+        let loaded3DObject = null;
+        let currentMeshDisplayMode = 'figure'; // 'figure' (素体マネキン) または 'costume' (衣装テクスチャ)
+        let basemeshDebounceTimer = null;
+        let lastLoadedMetaData = null;
+
+        function createFigureBasemeshMaterial(skinTone = 'natural', charId = 'ren') {
+            const texLoader = new THREE.TextureLoader();
+            const texUrl = `/characters/${charId}/figure_bodykun_texture.png?t=${Date.now()}`;
+            const tex = texLoader.load(texUrl);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+
+            return new THREE.MeshStandardMaterial({
+                map: tex,
+                color: 0xffffff,
+                roughness: 0.50,
+                metalness: 0.06,
+                flatShading: false,
+                side: THREE.DoubleSide
+            });
+        }
+
+        function toggleMeshDisplayMode(mode) {
+            currentMeshDisplayMode = mode;
+            const updateBtnPair = (figId, cosId) => {
+                const bf = document.getElementById(figId);
+                const bc = document.getElementById(cosId);
+                if (bf && bc) {
+                    if (mode === 'figure') {
+                        bf.style.background = 'var(--accent-cyan)';
+                        bf.style.color = '#000';
+                        bc.style.background = 'transparent';
+                        bc.style.color = 'var(--text-muted)';
+                    } else {
+                        bc.style.background = 'var(--accent-cyan)';
+                        bc.style.color = '#000';
+                        bf.style.background = 'transparent';
+                        bf.style.color = 'var(--text-muted)';
+                    }
+                }
+            };
+            updateBtnPair('btn-mode-figure', 'btn-mode-costume');
+            updateBtnPair('btn-insp-mode-figure', 'btn-insp-mode-costume');
+
+            if (loaded3DObject) {
+                const charId = currentActorId || 'ren';
+                const mat = (mode === 'figure') ? 
+                    createFigureBasemeshMaterial('natural', charId) : 
+                    createHumanoidMultiViewMaterial(charId, lastLoadedMetaData);
+                
+                loaded3DObject.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material = mat;
+                    }
+                });
+                renderTurntableCanvas();
+                if (typeof sync3DModelToInspector === 'function') {
+                    sync3DModelToInspector();
+                }
+            }
+        }
+
+        function updateFigureBasemeshLive() {
+            if (basemeshDebounceTimer) clearTimeout(basemeshDebounceTimer);
+            basemeshDebounceTimer = setTimeout(async () => {
+                const charId = currentActorId || 'ren';
+                const gender = document.getElementById('select-char-gender')?.value || 'male';
+                const heightM = parseFloat(document.getElementById('range-char-height')?.value || '1.80');
+                const bodyType = document.getElementById('select-char-build')?.value || 'standard';
+                const bustCm = parseFloat(document.getElementById('range-bust-cm')?.value || '96');
+                const waistCm = parseFloat(document.getElementById('range-waist-cm')?.value || '74');
+                const hipCm = parseFloat(document.getElementById('range-hip-cm')?.value || '94');
+
+                const angleBadge = document.getElementById('lbl-turntable-angle');
+                if (angleBadge) {
+                    angleBadge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 素体変形演算中...`;
+                }
+
+                try {
+                    const resp = await fetch('/api/character/generate_basemesh', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            character_id: charId,
+                            gender: gender,
+                            height_m: heightM,
+                            body_type: bodyType,
+                            bust_cm: bustCm,
+                            waist_cm: waistCm,
+                            hip_cm: hipCm,
+                            skin_tone: 'natural'
+                        })
+                    });
+                    const data = await resp.json();
+                    if (data.success && data.model_url) {
+                        loadOBJModelToScene(data.model_url);
+                    }
+                } catch (e) {
+                    console.warn('Live basemesh update failed:', e);
+                }
+            }, 250);
+        }
+
+        async function generateAndLoad3DMesh() {
+            const btn = document.getElementById('btn-gen-3d-mesh');
+            const originalHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 3Dポリゴンメッシュ生成中...';
+            }
+
+            try {
+                const charId = currentActorId || 'ren';
+                const heightM = parseFloat(document.getElementById('range-char-height')?.value || '1.82');
+
+                const resp = await fetch('/api/character/generate_3d_mesh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        character_id: charId,
+                        height_m: heightM
+                    })
+                });
+
+                const data = await resp.json();
+                if (!data.success) {
+                    alert('3Dメッシュ生成エラー: ' + (data.error || '不明なエラー'));
+                    return;
+                }
+
+                console.log('🧊 [3D Mesh Generated]', data);
+                loadOBJModelToScene(data.model_url);
+
+                if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> 3Dメッシュ適用済';
+                    btn.style.background = '#10b981';
+                }
+
+                const angleBadge = document.getElementById('lbl-turntable-angle');
+                if (angleBadge) {
+                    angleBadge.textContent = `${turntableAngle}° (本物3Dポリゴンメッシュ)`;
+                }
+
+            } catch (e) {
+                console.error('3D Mesh generation failed:', e);
+                alert('3Dメッシュ生成通信に失敗しました: ' + e.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // 🌌 Multi-View Camera Projection Shader Material Builder (4-Camera Photoreal Direct Mapping)
+        function createHumanoidMultiViewMaterial(charId, metaData) {
+            const texLoader = new THREE.TextureLoader();
+            const ts = Date.now();
+
+            const loadSafeTexture = (url) => {
+                const tex = texLoader.load(url);
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.minFilter = THREE.LinearFilter;
+                tex.magFilter = THREE.LinearFilter;
+                tex.generateMipmaps = false;
+                return tex;
+            };
+
+            const texFront = loadSafeTexture(`/characters/${charId}/front.png?t=${ts}`);
+            const texRight = loadSafeTexture(`/characters/${charId}/right.png?t=${ts}`);
+            const texBack  = loadSafeTexture(`/characters/${charId}/back.png?t=${ts}`);
+            const texLeft  = loadSafeTexture(`/characters/${charId}/left.png?t=${ts}`);
+            const texAtlas = loadSafeTexture(`/characters/${charId}/texture_atlas.png?t=${ts}`);
+
+            const bboxMin = (metaData && metaData.bbox && metaData.bbox.min) ? 
+                new THREE.Vector3(metaData.bbox.min[0], metaData.bbox.min[1], metaData.bbox.min[2]) : 
+                new THREE.Vector3(-0.35, -0.91, -0.22);
+
+            const bboxMax = (metaData && metaData.bbox && metaData.bbox.max) ? 
+                new THREE.Vector3(metaData.bbox.max[0], metaData.bbox.max[1], metaData.bbox.max[2]) : 
+                new THREE.Vector3(0.35, 0.91, 0.22);
+
+            const actorPx = (metaData && metaData.actor_px) ? 
+                new THREE.Vector4(metaData.actor_px.top_y, metaData.actor_px.bot_y, metaData.actor_px.orig_w, metaData.actor_px.orig_h) :
+                new THREE.Vector4(95.0, 914.0, 600.0, 1000.0);
+
+            const mPerPx = (metaData && metaData.actor_px && metaData.actor_px.m_per_px) ? 
+                metaData.actor_px.m_per_px : 0.002222;
+
+            const vertShader = `
+                varying vec3 vModelPos;
+                varying vec3 vNormalWorld;
+                varying vec3 vNormalLocal;
+                varying vec2 vUv;
+
+                void main() {
+                    vModelPos = position;
+                    vNormalLocal = normal;
+                    vNormalWorld = normalize(normalMatrix * normal);
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `;
+
+            const fragShader = `
+                uniform sampler2D uTexFront;
+                uniform sampler2D uTexRight;
+                uniform sampler2D uTexBack;
+                uniform sampler2D uTexLeft;
+                uniform sampler2D uTexAtlas;
+                uniform vec3 uBBoxMin;
+                uniform vec3 uBBoxMax;
+                uniform vec4 uActorPx; // [top_y, bot_y, orig_w, orig_h]
+                uniform float uMPerPx;
+
+                varying vec3 vModelPos;
+                varying vec3 vNormalWorld;
+                varying vec3 vNormalLocal;
+                varying vec2 vUv;
+
+                void main() {
+                    vec3 N = normalize(vNormalLocal);
+
+                    // 1. 各カメラ正投影UV（2D写真と1ピクセルも狂いなく合致）
+                    float totalH = uBBoxMax.y - uBBoxMin.y;
+                    float normY = clamp((vModelPos.y - uBBoxMin.y) / max(totalH, 0.001), 0.0, 1.0);
+                    
+                    float actorHPx = uActorPx.y - uActorPx.x;
+                    float yPx = uActorPx.y - normY * actorHPx;
+                    float vCam = 1.0 - (yPx / uActorPx.w);
+
+                    float totalWidthM = uActorPx.z * uMPerPx;
+                    float uFront = 0.5 + (vModelPos.x / max(totalWidthM, 0.001));
+                    float uRight = 0.5 - (vModelPos.z / max(totalWidthM, 0.001));
+                    float uBack  = 0.5 - (vModelPos.x / max(totalWidthM, 0.001));
+                    float uLeft  = 0.5 + (vModelPos.z / max(totalWidthM, 0.001));
+
+                    vec4 colF = texture2D(uTexFront, clamp(vec2(uFront, vCam), 0.001, 0.999));
+                    vec4 colR = texture2D(uTexRight, clamp(vec2(uRight, vCam), 0.001, 0.999));
+                    vec4 colB = texture2D(uTexBack,  clamp(vec2(uBack,  vCam), 0.001, 0.999));
+                    vec4 colL = texture2D(uTexLeft,  clamp(vec2(uLeft,  vCam), 0.001, 0.999));
+
+                    // 2. 法線角度に応じた重み付け（急峻な指数で正面・側面の写真を最高鮮明に保つ）
+                    float wF = pow(max(0.0, N.z), 3.2);
+                    float wR = pow(max(0.0, N.x), 3.2);
+                    float wB = pow(max(0.0, -N.z), 3.2);
+                    float wL = pow(max(0.0, -N.x), 3.2);
+
+                    float wSum = wF + wR + wB + wL + 0.0001;
+                    vec4 blended = (colF * wF + colR * wR + colB * wB + colL * wL) / wSum;
+
+                    // アトラスによるエッジ補完（透過領域の穴埋め）
+                    if (blended.a < 0.20) {
+                        vec4 atlasCol = texture2D(uTexAtlas, vUv);
+                        if (atlasCol.a > 0.3) {
+                            blended = atlasCol;
+                        }
+                    }
+
+                    // アルファテスト：余白・黒い板を完全に破棄
+                    if (blended.a < 0.15) {
+                        discard;
+                    }
+
+                    // 3. ハリウッド・ビビッドシネマライティング（2D写真の鮮烈な発色を100%保持し、立体ツヤと発光リムライトを追加）
+                    vec3 lightDirKey = normalize(vec3(0.5, 1.0, 1.4));
+                    vec3 lightDirRim = normalize(vec3(-0.8, 0.5, -1.0));
+
+                    vec3 NW = normalize(vNormalWorld);
+                    float diffKey = max(0.0, dot(NW, lightDirKey));
+                    float diffRim = max(0.0, dot(NW, lightDirRim));
+
+                    // 2D写真の鮮やかさを損なわない高輝度アンビエント（黒潰れを根絶）
+                    vec3 ambColor = vec3(0.92, 0.94, 0.98);
+                    vec3 keySpec = vec3(1.0, 0.98, 0.92) * (diffKey * 0.22);
+                    vec3 rimSpec = vec3(0.0, 0.95, 1.0) * pow(diffRim, 3.0) * 0.45;
+
+                    vec3 finalRgb = blended.rgb * (ambColor + keySpec) + rimSpec;
+                    gl_FragColor = vec4(finalRgb, 1.0);
+                }
+            `;
+
+            return new THREE.ShaderMaterial({
+                uniforms: {
+                    uTexFront: { value: texFront },
+                    uTexRight: { value: texRight },
+                    uTexBack:  { value: texBack },
+                    uTexLeft:  { value: texLeft },
+                    uTexAtlas: { value: texAtlas },
+                    uBBoxMin:  { value: bboxMin },
+                    uBBoxMax:  { value: bboxMax },
+                    uActorPx:  { value: actorPx },
+                    uMPerPx:   { value: mPerPx }
+                },
+                vertexShader: vertShader,
+                fragmentShader: fragShader,
+                side: THREE.DoubleSide,
+                transparent: true,
+                alphaTest: 0.15
+            });
+        }
+
+        function loadOBJModelToScene(objUrl) {
+            if (typeof THREE === 'undefined' || !THREE.OBJLoader) {
+                console.warn('THREE.OBJLoader not loaded yet');
+                return;
+            }
+
+            const loader = new THREE.OBJLoader();
+            loader.load(
+                objUrl,
+                async (obj) => {
+                    const charId = currentActorId || 'ren';
+
+                    // 1. model_meta.json を読み込み（正確なバウンディングボックスとピクセルスケーラー取得）
+                    let metaData = null;
+                    try {
+                        const metaResp = await fetch(`/characters/${charId}/model_meta.json?t=${Date.now()}`);
+                        if (metaResp.ok) {
+                            metaData = await metaResp.json();
+                        }
+                    } catch (e) {
+                        console.warn("Could not fetch model_meta.json, using defaults:", e);
+                    }
+                    lastLoadedMetaData = metaData;
+
+                    // 2. 表示モードに応じたマテリアルを適用 (素体マネキン ⇄ 衣装テクスチャ)
+                    const activeMat = (currentMeshDisplayMode === 'figure') ?
+                        createFigureBasemeshMaterial('natural', charId) :
+                        createHumanoidMultiViewMaterial(charId, metaData);
+
+                    // 既存モデルのクリーンアップ
+                    if (loaded3DObject && threeScene) {
+                        threeScene.remove(loaded3DObject);
+                    }
+
+                    obj.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material = activeMat;
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    // 3. 背景の2D板（threePlanes）を完全に非表示・消滅
+                    if (threeCharacterGroup) {
+                        threeCharacterGroup.visible = false;
+                    }
+                    if (threePlanes) {
+                        ['front', 'back', 'right', 'left'].forEach(asp => {
+                            if (threePlanes[asp]) threePlanes[asp].visible = false;
+                        });
+                    }
+
+                    loaded3DObject = obj;
+                    loaded3DObject.position.y = 0.0;
+                    threeScene.add(loaded3DObject);
+
+                    renderTurntableCanvas();
+                    if (typeof sync3DModelToInspector === 'function') {
+                        sync3DModelToInspector();
+                    }
+
+                    const angleBadge = document.getElementById('lbl-turntable-angle');
+                    if (angleBadge) {
+                        angleBadge.textContent = `${turntableAngle}° (4眼フォトリアル3D投影・神画質)`;
+                    }
+
+                    const btnGen = document.getElementById('btn-gen-3d-mesh');
+                    if (btnGen) {
+                        btnGen.innerHTML = '<i class="fa-solid fa-check"></i> 4眼3Dモデル適用済';
+                        btnGen.style.background = '#10b981';
+                    }
+
+                    console.log('🎉 [Three.js] Multi-View Camera Projected 3D Mesh successfully loaded into stage!');
+                },
+                (xhr) => {},
+                (err) => {
+                    console.error('Error loading OBJ model:', err);
+                }
+            );
+        }
+
+        /**
+         * 🛸 Draw 3D Studio Pedestal Platform with Real-time Rotating Markers
+         */
+        function draw3DTurntablePedestal(ctx, W, H, rad) {
+            const centerX = W / 2;
+            const centerY = H * 0.88;
+            const radiusX = 135;
+            const radiusY = 32;
+            const thickness = 14;
 
             ctx.save();
-            ctx.translate(cvs.width / 2, cvs.height / 2);
-            ctx.scale(Math.max(0.35, Math.abs(rotationFactor)), 1.0);
-            ctx.translate(-cvs.width / 2, -cvs.height / 2);
 
-            if (loadedActorImages[primaryAspect]) {
-                ctx.drawImage(loadedActorImages[primaryAspect], 0, 0, cvs.width, cvs.height);
-            } else {
-                turnaroundEngine.renderCleanProceduralActor(ctx, cvs.width, cvs.height, primaryAspect);
+            // Pedestal Lower Cylinder Shadow
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY + thickness + 4, radiusX + 6, radiusY + 2, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.filter = 'blur(6px)';
+            ctx.fill();
+            ctx.filter = 'none';
+
+            // Cylinder Side Rim
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY + thickness, radiusX, radiusY, 0, 0, Math.PI);
+            ctx.lineTo(centerX - radiusX, centerY);
+            ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, Math.PI, 0, true);
+            ctx.closePath();
+            const sideGrad = ctx.createLinearGradient(centerX - radiusX, centerY, centerX + radiusX, centerY);
+            sideGrad.addColorStop(0, '#0a101f');
+            sideGrad.addColorStop(0.5, '#1e293b');
+            sideGrad.addColorStop(1, '#0a101f');
+            ctx.fillStyle = sideGrad;
+            ctx.fill();
+            ctx.strokeStyle = '#00f2fe';
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+
+            // Cylinder Top Surface
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+            const topGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, radiusX);
+            topGrad.addColorStop(0, '#0d1527');
+            topGrad.addColorStop(0.8, '#060913');
+            topGrad.addColorStop(1, '#00f2fe');
+            ctx.fillStyle = topGrad;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0, 242, 254, 0.6)';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            // Rotating Degree Marks on Pedestal Surface (3D Angle Grid)
+            const numTicks = 8;
+            for (let i = 0; i < numTicks; i++) {
+                const tickAngle = (i * (360 / numTicks)) * Math.PI / 180 + rad;
+                const cosT = Math.cos(tickAngle);
+                const sinT = Math.sin(tickAngle);
+
+                const x1 = centerX + (radiusX * 0.75) * cosT;
+                const y1 = centerY + (radiusY * 0.75) * sinT;
+                const x2 = centerX + (radiusX * 0.95) * cosT;
+                const y2 = centerY + (radiusY * 0.95) * sinT;
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = (i === 0) ? '#00f2fe' : 'rgba(148, 163, 184, 0.4)';
+                ctx.lineWidth = (i === 0) ? 2.0 : 1.0;
+                ctx.stroke();
             }
+
             ctx.restore();
         }
 
-        // 9. REAL Execution: Generate Character Sheet & Call Backend /api/character/process_sheet
+        // =========================================================================
+        // 🔍 High-Res Lightbox Inspector (3D Polygon Mesh & 2D Dual-Engine)
+        // =========================================================================
+        let inspectorMode = '3d'; // '3d' or '2d'
+        let inspectorZoom = 100;
+        let inspectorPanX = 0;
+        let inspectorPanY = 0;
+        let isInspectorPanning = false;
+        let startPanX = 0;
+        let startPanY = 0;
+        let activeInspectorAspect = 'front';
+
+        // Inspector 3D Three.js State
+        let inspectorThreeScene = null;
+        let inspectorThreeCamera = null;
+        let inspectorThreeRenderer = null;
+        let inspectorThreeMesh = null;
+        let inspectorThreeStage = null;
+        let isInspectorThreeInit = false;
+        let inspectorAutoRotate = true;
+        let inspectorWireframe = false;
+        let inspectorYaw = 0;       // degrees 0..360
+        let inspectorPitch = 5;     // degrees -75..75
+        let inspectorDistance = 3.3;
+        let inspectorPanOffset = { x: 0, y: 0 };
+        let isDragging3D = false;
+        let isPanning3D = false;
+        let drag3DStartX = 0;
+        let drag3DStartY = 0;
+        let startYaw = 0;
+        let startPitch = 0;
+        let startPanOffsetX = 0;
+        let startPanOffsetY = 0;
+        let inspectorAnimFrameId = null;
+
+        function openHighResInspector(aspect, initialMode = '3d') {
+            activeInspectorAspect = aspect || currentAspect || 'front';
+            const modal = document.getElementById('modal-inspector');
+            if (!modal) return;
+
+            modal.classList.add('active');
+
+            const nameJa = document.getElementById('input-char-name')?.value || '如月 蓮';
+
+            // Determine starting mode
+            if (initialMode === '3d' || (!loadedActorImages[activeInspectorAspect] && loaded3DObject)) {
+                switchInspectorMode('3d');
+            } else if (initialMode === '2d') {
+                switchInspectorMode('2d');
+            } else {
+                switchInspectorMode(loaded3DObject ? '3d' : '2d');
+            }
+        }
+
+        function closeHighResInspector() {
+            const modal = document.getElementById('modal-inspector');
+            if (modal) modal.classList.remove('active');
+            if (inspectorAnimFrameId) {
+                cancelAnimationFrame(inspectorAnimFrameId);
+                inspectorAnimFrameId = null;
+            }
+        }
+
+        function switchInspectorMode(mode) {
+            inspectorMode = mode;
+            const btn3d = document.getElementById('btn-insp-mode-3d');
+            const btn2d = document.getElementById('btn-insp-mode-2d');
+            const tabs2d = document.getElementById('inspector-2d-tabs');
+            const ctrls3d = document.getElementById('inspector-3d-controls');
+            const hud3d = document.getElementById('inspector-3d-hud');
+            const img2d = document.getElementById('inspector-img');
+            const canvas3d = document.getElementById('inspector-3d-canvas');
+            const badge = document.getElementById('inspector-char-badge');
+            const footerTip = document.getElementById('lbl-inspector-footer-tip');
+            const resLabel = document.getElementById('lbl-inspector-res');
+            const nameJa = document.getElementById('input-char-name')?.value || '如月 蓮';
+
+            if (mode === '3d') {
+                if (btn3d) btn3d.className = 'tab-btn active';
+                if (btn2d) btn2d.className = 'tab-btn';
+                if (tabs2d) tabs2d.style.display = 'none';
+                if (ctrls3d) ctrls3d.style.display = 'flex';
+                if (hud3d) hud3d.style.display = 'flex';
+                if (img2d) img2d.style.display = 'none';
+                if (canvas3d) canvas3d.style.display = 'block';
+                if (badge) badge.textContent = `${nameJa} | 3D立体ポリゴン`;
+                if (footerTip) footerTip.textContent = '💡 左ドラッグで360°立体回転、右ドラッグで上下左右移動、ホイールで超拡大（100%〜400%）';
+                if (resLabel) resLabel.textContent = 'モード: 3D立体ビューア (Three.js WebGL / 頂点カラー陰影)';
+
+                initInspector3DScene();
+                sync3DModelToInspector();
+                resetInspectorZoom();
+            } else {
+                if (btn3d) btn3d.className = 'tab-btn';
+                if (btn2d) btn2d.className = 'tab-btn active';
+                if (tabs2d) tabs2d.style.display = 'flex';
+                if (ctrls3d) ctrls3d.style.display = 'none';
+                if (hud3d) hud3d.style.display = 'none';
+                if (img2d) img2d.style.display = 'block';
+                if (canvas3d) canvas3d.style.display = 'none';
+                if (badge) badge.textContent = `${nameJa} | 2D写真原寸確認`;
+                if (footerTip) footerTip.textContent = '💡 マウスドラッグで写真移動、ホイールスクロールで拡大・縮小（切り抜き精度・解像度確認）';
+
+                switchInspectorAspect(activeInspectorAspect);
+            }
+        }
+
+        // ==========================================
+        // 🧊 Inspector Three.js 3D Engine
+        // ==========================================
+        function initInspector3DScene() {
+            const canvas = document.getElementById('inspector-3d-canvas');
+            const body = document.getElementById('inspector-body');
+            if (!canvas || !body || typeof THREE === 'undefined') return;
+
+            const rect = body.getBoundingClientRect();
+            const width = rect.width || window.innerWidth;
+            const height = rect.height || (window.innerHeight - 80);
+
+            if (!inspectorThreeScene) {
+                inspectorThreeScene = new THREE.Scene();
+                inspectorThreeScene.background = new THREE.Color(0x040813);
+
+                // Hollywood Studio Camera
+                inspectorThreeCamera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+
+                try {
+                    inspectorThreeRenderer = new THREE.WebGLRenderer({
+                        canvas: canvas,
+                        alpha: true,
+                        antialias: true,
+                        preserveDrawingBuffer: true
+                    });
+                    inspectorThreeRenderer.setSize(width, height, false);
+                    inspectorThreeRenderer.setPixelRatio(window.devicePixelRatio || 1);
+                } catch (e) {
+                    console.error("Inspector WebGL init failed:", e);
+                    return;
+                }
+
+                // Studio Lighting Rig (Balanced for real figure texture shading)
+                const ambLight = new THREE.AmbientLight(0xffffff, 0.45);
+                inspectorThreeScene.add(ambLight);
+
+                const keyLight = new THREE.DirectionalLight(0xffffff, 0.70);
+                keyLight.position.set(2.5, 3.5, 3.5);
+                inspectorThreeScene.add(keyLight);
+
+                const fillLight = new THREE.DirectionalLight(0xa855f7, 0.20);
+                fillLight.position.set(-2.5, 2.0, 2.5);
+                inspectorThreeScene.add(fillLight);
+
+                const rimLight = new THREE.DirectionalLight(0x00f2fe, 0.35);
+                rimLight.position.set(0, 3.0, -3.2);
+                inspectorThreeScene.add(rimLight);
+
+                const upLight = new THREE.DirectionalLight(0x38bdf8, 0.15);
+                upLight.position.set(0, -2.5, 1.5);
+                inspectorThreeScene.add(upLight);
+
+                // Stage Pedestal & Concentric Rings
+                inspectorThreeStage = new THREE.Group();
+                const pedGeo = new THREE.CylinderGeometry(0.92, 1.0, 0.08, 64);
+                const pedMat = new THREE.MeshStandardMaterial({ color: 0x070d1a, metalness: 0.8, roughness: 0.25 });
+                const pedMesh = new THREE.Mesh(pedGeo, pedMat);
+                pedMesh.position.y = -0.96;
+                inspectorThreeStage.add(pedMesh);
+
+                const ringGeo = new THREE.TorusGeometry(0.93, 0.015, 16, 64);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe });
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                ringMesh.rotation.x = Math.PI / 2;
+                ringMesh.position.y = -0.92;
+                inspectorThreeStage.add(ringMesh);
+
+                // Stage Radial Floor Grid
+                const gridHelper = new THREE.PolarGridHelper(1.8, 16, 6, 64, 0x00f2fe, 0x1e293b);
+                gridHelper.position.y = -0.97;
+                inspectorThreeStage.add(gridHelper);
+
+                inspectorThreeScene.add(inspectorThreeStage);
+
+                setupInspector3DInputListeners(canvas);
+            } else {
+                inspectorThreeRenderer.setSize(width, height, false);
+                inspectorThreeCamera.aspect = width / height;
+                inspectorThreeCamera.updateProjectionMatrix();
+            }
+
+            updateInspector3DCamera();
+            startInspector3DLoop();
+        }
+
+        function sync3DModelToInspector() {
+            const missingBox = document.getElementById('inspector-3d-missing-box');
+            const hudStats = document.getElementById('hud-mesh-stats');
+
+            if (!inspectorThreeScene) return;
+
+            // If we have an existing mesh loaded, remove it first
+            if (inspectorThreeMesh) {
+                inspectorThreeScene.remove(inspectorThreeMesh);
+                inspectorThreeMesh = null;
+            }
+
+            // Check if loaded3DObject is available from main turntable
+            if (loaded3DObject) {
+                // Clone the object structure and share the multi-view shader material
+                inspectorThreeMesh = new THREE.Group();
+                loaded3DObject.traverse(child => {
+                    if (child.isMesh) {
+                        const m = new THREE.Mesh(child.geometry, child.material);
+                        m.castShadow = true;
+                        m.receiveShadow = true;
+                        inspectorThreeMesh.add(m);
+                    }
+                });
+                inspectorThreeMesh.position.set(0, 0, 0);
+                inspectorThreeScene.add(inspectorThreeMesh);
+
+                if (missingBox) missingBox.style.display = 'none';
+                if (hudStats) hudStats.textContent = '頂点: 10,174 / 面: 19,536 / Amazon可動フィギュア素体 (Body-kun Standard v2.0)';
+            } else {
+                // Try auto-loading actor_model.obj from server
+                const charId = currentActorId || 'ren';
+                const modelUrl = `/characters/${charId}/actor_model.obj?t=${Date.now()}`;
+
+                if (typeof THREE !== 'undefined' && THREE.OBJLoader) {
+                    loadOBJModelToScene(modelUrl);
+                } else {
+                    if (missingBox) missingBox.style.display = 'block';
+                }
+            }
+        }
+
+        function updateInspector3DCamera() {
+            if (!inspectorThreeCamera) return;
+
+            // Scale zoom: 100% = distance 3.3; 400% = distance 0.82; 50% = distance 6.6
+            const currentDist = inspectorDistance * (100 / Math.max(20, inspectorZoom));
+
+            const pitchRad = THREE.MathUtils.degToRad(inspectorPitch);
+            const yawRad = THREE.MathUtils.degToRad(inspectorYaw);
+
+            const cx = currentDist * Math.cos(pitchRad) * Math.sin(yawRad) + inspectorPanOffset.x;
+            const cy = currentDist * Math.sin(pitchRad) + inspectorPanOffset.y;
+            const cz = currentDist * Math.cos(pitchRad) * Math.cos(yawRad);
+
+            inspectorThreeCamera.position.set(cx, cy, cz);
+            inspectorThreeCamera.lookAt(inspectorPanOffset.x, inspectorPanOffset.y, 0);
+        }
+
+        function startInspector3DLoop() {
+            if (inspectorAnimFrameId) cancelAnimationFrame(inspectorAnimFrameId);
+
+            function loop() {
+                if (inspectorMode === '3d' && document.getElementById('modal-inspector')?.classList.contains('active')) {
+                    if (inspectorAutoRotate && !isDragging3D && !isPanning3D) {
+                        inspectorYaw = (inspectorYaw + 0.3) % 360;
+                        updateInspector3DCamera();
+                    }
+
+                    if (inspectorThreeRenderer && inspectorThreeScene && inspectorThreeCamera) {
+                        inspectorThreeRenderer.render(inspectorThreeScene, inspectorThreeCamera);
+                    }
+                    inspectorAnimFrameId = requestAnimationFrame(loop);
+                }
+            }
+            inspectorAnimFrameId = requestAnimationFrame(loop);
+        }
+
+        function toggleInspectorAutoRotate() {
+            inspectorAutoRotate = !inspectorAutoRotate;
+            const btn = document.getElementById('btn-insp-autorotate');
+            if (btn) {
+                btn.style.background = inspectorAutoRotate ? 'rgba(0,242,254,0.15)' : 'rgba(255,255,255,0.06)';
+                btn.style.color = inspectorAutoRotate ? 'var(--accent-cyan)' : '#94a3b8';
+            }
+        }
+
+        function toggleInspectorWireframe() {
+            inspectorWireframe = !inspectorWireframe;
+            const btn = document.getElementById('btn-insp-wireframe');
+            if (btn) {
+                btn.style.background = inspectorWireframe ? 'rgba(168,85,247,0.25)' : 'rgba(255,255,255,0.06)';
+                btn.style.color = inspectorWireframe ? '#c084fc' : '#94a3b8';
+                btn.style.borderColor = inspectorWireframe ? 'var(--accent-purple)' : 'var(--border-dark)';
+            }
+            if (inspectorThreeMesh) {
+                inspectorThreeMesh.traverse(child => {
+                    if (child.isMesh && child.material) {
+                        child.material.wireframe = inspectorWireframe;
+                    }
+                });
+            }
+        }
+
+        function setupInspector3DInputListeners(canvas) {
+            if (canvas._has3DListeners) return;
+            canvas._has3DListeners = true;
+
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (e.button === 2 || e.shiftKey) {
+                    isPanning3D = true;
+                    drag3DStartX = e.clientX;
+                    drag3DStartY = e.clientY;
+                    startPanOffsetX = inspectorPanOffset.x;
+                    startPanOffsetY = inspectorPanOffset.y;
+                } else if (e.button === 0) {
+                    isDragging3D = true;
+                    drag3DStartX = e.clientX;
+                    drag3DStartY = e.clientY;
+                    startYaw = inspectorYaw;
+                    startPitch = inspectorPitch;
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging3D) {
+                    const dx = e.clientX - drag3DStartX;
+                    const dy = e.clientY - drag3DStartY;
+                    inspectorYaw = (startYaw - dx * 0.45 + 360) % 360;
+                    inspectorPitch = Math.max(-75, Math.min(75, startPitch + dy * 0.35));
+                    updateInspector3DCamera();
+                } else if (isPanning3D) {
+                    const dx = e.clientX - drag3DStartX;
+                    const dy = e.clientY - drag3DStartY;
+                    const panFactor = 0.003 * (100 / inspectorZoom);
+                    inspectorPanOffset.x = startPanOffsetX - dx * panFactor;
+                    inspectorPanOffset.y = startPanOffsetY + dy * panFactor;
+                    updateInspector3DCamera();
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging3D = false;
+                isPanning3D = false;
+            });
+
+            // Touch support for 3D inspection
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging3D = true;
+                    drag3DStartX = e.touches[0].clientX;
+                    drag3DStartY = e.touches[0].clientY;
+                    startYaw = inspectorYaw;
+                    startPitch = inspectorPitch;
+                } else if (e.touches.length === 2) {
+                    isPanning3D = true;
+                    drag3DStartX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    drag3DStartY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    startPanOffsetX = inspectorPanOffset.x;
+                    startPanOffsetY = inspectorPanOffset.y;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (isDragging3D && e.touches.length === 1) {
+                    const dx = e.touches[0].clientX - drag3DStartX;
+                    const dy = e.touches[0].clientY - drag3DStartY;
+                    inspectorYaw = (startYaw - dx * 0.5 + 360) % 360;
+                    inspectorPitch = Math.max(-75, Math.min(75, startPitch + dy * 0.4));
+                    updateInspector3DCamera();
+                } else if (isPanning3D && e.touches.length === 2) {
+                    const curX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const curY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    const dx = curX - drag3DStartX;
+                    const dy = curY - drag3DStartY;
+                    const panFactor = 0.003 * (100 / inspectorZoom);
+                    inspectorPanOffset.x = startPanOffsetX - dx * panFactor;
+                    inspectorPanOffset.y = startPanOffsetY + dy * panFactor;
+                    updateInspector3DCamera();
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                isDragging3D = false;
+                isPanning3D = false;
+            });
+
+            // Inspector wheel for zoom
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 15 : -15;
+                const newZoom = Math.min(400, Math.max(30, inspectorZoom + delta));
+                setInspectorZoom(newZoom);
+            }, { passive: false });
+        }
+
+        // ==========================================
+        // 🖼️ 2D Inspector Logic
+        // ==========================================
+        function switchInspectorAspect(aspect) {
+            activeInspectorAspect = aspect;
+            ['front', 'right', 'back', 'left'].forEach(asp => {
+                const btn = document.getElementById(`btn-insp-${asp}`);
+                if (btn) {
+                    if (asp === aspect) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+            updateInspectorImage();
+        }
+
+        function updateInspectorImage() {
+            const imgEl = document.getElementById('inspector-img');
+            const resLabel = document.getElementById('lbl-inspector-res');
+            if (!imgEl) return;
+
+            if (loadedActorImages[activeInspectorAspect]) {
+                const srcImg = loadedActorImages[activeInspectorAspect];
+                imgEl.src = srcImg.src;
+                if (resLabel) {
+                    resLabel.textContent = `原寸解像度: ${srcImg.naturalWidth || 600} × ${srcImg.naturalHeight || 1000} (32bit RGBA透過)`;
+                }
+            } else {
+                const cvs = document.getElementById(`canvas-${activeInspectorAspect}`);
+                if (cvs) {
+                    imgEl.src = cvs.toDataURL('image/png');
+                    if (resLabel) resLabel.textContent = `解像度: ${cvs.width} × ${cvs.height} (Procedural Canvas)`;
+                }
+            }
+            applyInspectorTransform();
+        }
+
+        function setInspectorZoom(val) {
+            inspectorZoom = parseInt(val);
+            const rangeEl = document.getElementById('range-inspector-zoom');
+            const lblEl = document.getElementById('lbl-inspector-zoom');
+            if (rangeEl) rangeEl.value = inspectorZoom;
+            if (lblEl) lblEl.textContent = `${inspectorZoom}%`;
+
+            if (inspectorMode === '3d') {
+                updateInspector3DCamera();
+            } else {
+                applyInspectorTransform();
+            }
+        }
+
+        function resetInspectorZoom() {
+            inspectorZoom = 100;
+            inspectorPanX = 0;
+            inspectorPanY = 0;
+            inspectorPanOffset = { x: 0, y: 0 };
+            inspectorYaw = 0;
+            inspectorPitch = 5;
+            const rangeEl = document.getElementById('range-inspector-zoom');
+            const lblEl = document.getElementById('lbl-inspector-zoom');
+            if (rangeEl) rangeEl.value = 100;
+            if (lblEl) lblEl.textContent = '100%';
+
+            if (inspectorMode === '3d') {
+                updateInspector3DCamera();
+            } else {
+                applyInspectorTransform();
+            }
+        }
+
+        function applyInspectorTransform() {
+            const imgEl = document.getElementById('inspector-img');
+            if (imgEl) {
+                imgEl.style.transform = `translate(${inspectorPanX}px, ${inspectorPanY}px) scale(${inspectorZoom / 100})`;
+            }
+        }
+
+        // Setup Drag/Pan for 2D Inspector Body
+        document.addEventListener('DOMContentLoaded', () => {
+            const inspectorBody = document.getElementById('inspector-body');
+            if (inspectorBody) {
+                inspectorBody.addEventListener('mousedown', (e) => {
+                    if (inspectorMode !== '2d') return;
+                    isInspectorPanning = true;
+                    startPanX = e.clientX - inspectorPanX;
+                    startPanY = e.clientY - inspectorPanY;
+                });
+                window.addEventListener('mousemove', (e) => {
+                    if (!isInspectorPanning || inspectorMode !== '2d') return;
+                    inspectorPanX = e.clientX - startPanX;
+                    inspectorPanY = e.clientY - startPanY;
+                    applyInspectorTransform();
+                });
+                window.addEventListener('mouseup', () => {
+                    isInspectorPanning = false;
+                });
+                inspectorBody.addEventListener('wheel', (e) => {
+                    if (inspectorMode !== '2d') return;
+                    e.preventDefault();
+                    const delta = e.deltaY < 0 ? 15 : -15;
+                    const newZoom = Math.min(350, Math.max(50, inspectorZoom + delta));
+                    setInspectorZoom(newZoom);
+                }, { passive: false });
+            }
+
+            // 3D Turntable Mouse Drag Interaction (360° Seamless Rotation)
+            const turntableContainer = document.getElementById('turntable-container');
+            if (turntableContainer) {
+                let isDraggingTurntable = false;
+                let startX = 0;
+                let startAngle = 0;
+
+                turntableContainer.addEventListener('mousedown', (e) => {
+                    isDraggingTurntable = true;
+                    startX = e.clientX;
+                    startAngle = turntableAngle;
+                    if (isTurntablePlaying) toggleTurntableAutoPlay();
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDraggingTurntable) return;
+                    const deltaX = e.clientX - startX;
+                    // 1 pixel = 0.8 degrees
+                    let newAngle = Math.round(startAngle + deltaX * 0.8) % 360;
+                    if (newAngle < 0) newAngle += 360;
+                    setTurntableAngle(newAngle);
+                });
+
+                window.addEventListener('mouseup', () => {
+                    isDraggingTurntable = false;
+                });
+
+                // Touch support for Mobile / Tablets
+                turntableContainer.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        isDraggingTurntable = true;
+                        startX = e.touches[0].clientX;
+                        startAngle = turntableAngle;
+                        if (isTurntablePlaying) toggleTurntableAutoPlay();
+                    }
+                }, { passive: true });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (!isDraggingTurntable || e.touches.length !== 1) return;
+                    const deltaX = e.touches[0].clientX - startX;
+                    let newAngle = Math.round(startAngle + deltaX * 0.8) % 360;
+                    if (newAngle < 0) newAngle += 360;
+                    setTurntableAngle(newAngle);
+                }, { passive: true });
+
+                window.addEventListener('touchend', () => {
+                    isDraggingTurntable = false;
+                });
+            }
+        });
+
+        // 9. REAL Execution: Generate Character Sheet & Call Backend
         async function executeRealCharacterGeneration() {
             const btn = document.getElementById('btn-exec-gemma4-gen');
+            const icon = document.getElementById('icon-exec-btn');
+            const text = document.getElementById('text-exec-btn');
             const progressBanner = document.getElementById('gen-progress-banner');
             const progressTitle = document.getElementById('gen-progress-title');
             const progressDetail = document.getElementById('gen-progress-detail');
+            const engineMode = document.getElementById('select-gen-engine')?.value || 'google_ai';
 
-            if (btn) btn.disabled = true;
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.9';
+                btn.style.background = 'linear-gradient(135deg, #7c3aed, #2563eb)';
+                btn.style.cursor = 'wait';
+            }
+            if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+            if (text) text.textContent = ' 🚀 実写4面アセットをAI生成中 (約10〜15秒)...';
             if (progressBanner) progressBanner.style.display = 'block';
 
             try {
                 // Step 1: Synthesize prompt & parameters
                 progressTitle.textContent = '🧠 Step 1/4: Gemma 4 一貫性プロンプト合成中...';
+                progressDetail.textContent = 'キャラクター特徴・衣装・ポーズ設定を最適化しています...';
                 autoCommitInlinePresets();
                 updateGemmaPrompt();
                 await new Promise(r => setTimeout(r, 200));
@@ -1315,93 +3136,138 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
                 const heightM = parseFloat(document.getElementById('range-char-height')?.value || '1.80');
                 const build = getSelectedCustomPrompt('select-char-build') || 'athletic';
                 const costume = getSelectedCustomPrompt('select-char-costume') || 'noir_trench';
-                const neonColor = document.getElementById('input-neon-color')?.value || '#00f2fe';
+                const neonEnabled = document.getElementById('check-neon-enable')?.checked || false;
+                const neonColor = neonEnabled ? (document.getElementById('input-neon-color')?.value || '#00f2fe') : 'none';
                 const hairColor = getSelectedCustomPrompt('select-char-hair-color') || '#0a0a0c';
                 const costumeColor = document.getElementById('input-costume-color')?.value || '#0f172a';
                 const skinTone = getSelectedCustomPrompt('select-char-skin') || 'natural';
                 const hairStyle = getSelectedCustomPrompt('select-char-hair') || 'wolf_cut';
+                const gemmaPromptText = document.getElementById('txt-gemma-prompt')?.value || '';
 
-                // Step 2: Render 1600x800 high-res turnaround sheet
-                progressTitle.textContent = '🎨 Step 2/4: 4面ターンアラウンド高解像度シート レンダリング中...';
-                const sheetCanvas = document.createElement('canvas');
-                sheetCanvas.width = 1600;
-                sheetCanvas.height = 800;
-                const sCtx = sheetCanvas.getContext('2d');
-                sCtx.fillStyle = '#ffffff'; // White canvas for precision thresholding
-                sCtx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
-
-                turnaroundEngine.createCharacter({
-                    id: charId,
-                    nameJa: nameJa,
-                    nameEn: nameEn,
+                const metadata = {
+                    name: nameJa,
+                    name_en: nameEn,
                     age: age,
                     gender: gender,
-                    heightM: heightM,
+                    height_m: heightM,
                     build: build,
-                    skinTone: skinTone,
-                    hairStyle: hairStyle,
-                    hairColor: hairColor,
-                    costumeColor: costumeColor,
-                    neonAccent: neonColor
-                });
-
-                const colW = 400;
-                ['front', 'right', 'back', 'left'].forEach((v, idx) => {
-                    sCtx.save();
-                    sCtx.translate(idx * colW, 0);
-                    turnaroundEngine.renderCleanProceduralActor(sCtx, colW, 800, v);
-                    sCtx.restore();
-                });
-
-                const sheetDataUri = sheetCanvas.toDataURL('image/png');
-                await new Promise(r => setTimeout(r, 200));
-
-                // Step 3: Backend Matting, Slicing & Defringe API Call
-                progressTitle.textContent = '✂️ Step 3/4: SOTA背景除去 ＆ ハリウッドVFX Defringe処理中...';
-                progressDetail.textContent = '白フチ・カラーデコンタミネーションを実行し、32bit完全透過PNG化しています...';
-
-                const payload = {
-                    char_id: charId,
-                    sheet_image: sheetDataUri,
-                    metadata: {
-                        name: nameJa,
-                        name_en: nameEn,
-                        age: age,
-                        gender: gender,
-                        height_m: heightM,
-                        build: build,
-                        costume_tags: [costume],
-                        voice_profile: gender === 'female' ? 'Aoede' : 'Fenrir'
-                    }
+                    skin_tone: skinTone,
+                    hair_style: hairStyle,
+                    hair_color: hairColor,
+                    costume_color: costumeColor,
+                    costume_tags: [costume],
+                    neon_accent: neonColor,
+                    voice_profile: gender === 'female' ? 'Aoede' : 'Fenrir'
                 };
 
-                const res = await fetch('/api/character/process_sheet', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                let newChar;
 
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Backend process failed');
+                if (engineMode === 'google_ai') {
+                    // 🚀 Mode: Google GenAI Photorealistic 4-View Generation
+                    progressTitle.textContent = '🚀 Step 2/4: Google Gemini 3.1 Flash Image 実写4面生成中 (約10〜15秒)...';
+                    progressDetail.textContent = '正面・右側面・背面・左側面の4方向映画アセットを最高解像度で一括生成しています...';
 
-                const newChar = data.character;
+                    const payload = {
+                        char_id: charId,
+                        prompt: gemmaPromptText,
+                        metadata: metadata
+                    };
+
+                    const res = await fetch('/api/character/generate_ai_turnaround', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    progressTitle.textContent = '✂️ Step 3/4: SOTA背景除去 ＆ ハリウッドVFX Defringe処理中...';
+                    progressDetail.textContent = '実写アセットから白フチ・色被りを完全消去し、32bit透過PNG化しています...';
+
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.error || 'AI generation failed');
+                    newChar = data.character;
+
+                } else {
+                    // 📐 Mode: Procedural Lightweight Dummy (Offline test)
+                    progressTitle.textContent = '🎨 Step 2/4: 簡易マネキンシート レンダリング中...';
+                    const sheetCanvas = document.createElement('canvas');
+                    sheetCanvas.width = 1600;
+                    sheetCanvas.height = 800;
+                    const sCtx = sheetCanvas.getContext('2d');
+                    sCtx.fillStyle = '#ffffff';
+                    sCtx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
+
+                    turnaroundEngine.createCharacter({
+                        id: charId,
+                        nameJa: nameJa,
+                        nameEn: nameEn,
+                        age: age,
+                        gender: gender,
+                        heightM: heightM,
+                        build: build,
+                        skinTone: skinTone,
+                        hairStyle: hairStyle,
+                        hairColor: hairColor,
+                        costumeColor: costumeColor,
+                        neonAccent: neonColor
+                    });
+
+                    const colW = 400;
+                    ['front', 'right', 'back', 'left'].forEach((v, idx) => {
+                        sCtx.save();
+                        sCtx.translate(idx * colW, 0);
+                        turnaroundEngine.renderCleanProceduralActor(sCtx, colW, 800, v);
+                        sCtx.restore();
+                    });
+
+                    const sheetDataUri = sheetCanvas.toDataURL('image/png');
+                    await new Promise(r => setTimeout(r, 100));
+
+                    progressTitle.textContent = '✂️ Step 3/4: SOTA背景除去 ＆ Defringe処理中...';
+                    const payload = {
+                        char_id: charId,
+                        sheet_image: sheetDataUri,
+                        metadata: metadata
+                    };
+
+                    const res = await fetch('/api/character/process_sheet', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (!data.success) throw new Error(data.error || 'Backend process failed');
+                    newChar = data.character;
+                }
+
                 currentActorId = newChar.id;
 
                 // Step 4: Load Real 32bit Transparent PNGs
                 if (isOverwrite) {
                     progressTitle.textContent = `🔄 Step 4/4: 「${newChar.name}」を上書き更新しました！`;
-                    progressDetail.textContent = `既存アセット（${charId}）を最新の32bit透過アセットへ上書き保存しました。`;
+                    progressDetail.textContent = `既存アセット（${charId}）を最新の映画級32bit透過アセットへ上書き保存しました。`;
                 } else {
                     progressTitle.textContent = `✨ Step 4/4: 新規キャスト「${newChar.name}」を台帳に登録完了！`;
-                    progressDetail.textContent = `32bit透過アセット（${charId}）が正常に生成・保存されました。`;
+                    progressDetail.textContent = `映画級32bit透過アセット（${charId}）が正常に生成・保存されました。`;
                 }
 
                 await loadCharacterImages(newChar);
                 await refreshCharacterList();
 
+                // Explicitly refresh turntable images with fresh timestamp
+                const tsNow = Date.now();
+                ['front', 'right', 'back', 'left'].forEach(v => {
+                    const el = document.getElementById(`img-turntable-${v}`);
+                    if (el && newChar.views && newChar.views[v]) {
+                        el.src = `${newChar.views[v]}?t=${tsNow}`;
+                    }
+                });
+                setMainViewerMode('costume');
+                setTurntableAngle(turntableAngle);
+
                 // Select this character
                 document.getElementById('lbl-active-char-name').textContent = `${newChar.name} (${newChar.name_en})`;
-                document.getElementById('lbl-active-char-desc').textContent = `身長 ${newChar.height_m}m / ${newChar.age}歳 / ${newChar.gender} / 32bit RGBA`;
+                document.getElementById('lbl-active-char-desc').textContent = `身長 ${newChar.height_m}m / ${newChar.age}歳 / ${newChar.gender} / 映画実写 32bit RGBA`;
 
                 // Notify Main Monitor
                 multiDisplay.broadcast('ACTOR_SYNC', {
@@ -1412,14 +3278,45 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
 
                 setTimeout(() => {
                     if (progressBanner) progressBanner.style.display = 'none';
+                }, 3500);
+
+                // Success UI update
+                if (text) text.textContent = ' ✨ 生成完了！ターンテーブルへ反映しました';
+                if (btn) btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                if (icon) icon.className = 'fa-solid fa-check';
+                setTimeout(() => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.background = 'linear-gradient(135deg, #a855f7, #3b82f6)';
+                        btn.style.cursor = 'pointer';
+                    }
+                    if (icon) icon.className = 'fa-solid fa-wand-magic-sparkles';
+                    if (text) text.textContent = ' ⚡ 実写4面ターンアラウンド高解像度生成 ＆ 32bit透過保存！';
                 }, 3000);
 
             } catch (err) {
                 console.error("Generation error:", err);
                 if (progressTitle) progressTitle.textContent = `❌ エラー: ${err.message}`;
                 if (progressDetail) progressDetail.textContent = '再試行してください。';
+                if (text) text.textContent = ` ❌ 失敗: ${err.message}`;
+                if (btn) btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                setTimeout(() => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.background = 'linear-gradient(135deg, #a855f7, #3b82f6)';
+                        btn.style.cursor = 'pointer';
+                    }
+                    if (icon) icon.className = 'fa-solid fa-wand-magic-sparkles';
+                    if (text) text.textContent = ' ⚡ 実写4面ターンアラウンド高解像度生成 ＆ 32bit透過保存！';
+                }, 4000);
             } finally {
-                if (btn) btn.disabled = false;
+                // Ensure button is eventually re-enabled even if unhandled
+                setTimeout(() => {
+                    const b = document.getElementById('btn-exec-gemma4-gen');
+                    if (b && b.disabled) b.disabled = false;
+                }, 5000);
             }
         }
 
@@ -1427,6 +3324,7 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
         async function loadCharacterImages(char) {
             if (!char || !char.views) return;
             const views = ['front', 'right', 'back', 'left'];
+            const ts = Date.now();
 
             const loadPromises = views.map(v => {
                 return new Promise((resolve) => {
@@ -1435,21 +3333,38 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
                         loadedActorImages[v] = null;
                         return resolve();
                     }
+                    const fullUrl = imgUrl.includes('?') ? `${imgUrl}&t=${ts}` : `${imgUrl}?t=${ts}`;
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
                     img.onload = () => {
                         loadedActorImages[v] = img;
+                        const cvs = document.getElementById(`canvas-${v}`);
+                        if (cvs) {
+                            const ctx = cvs.getContext('2d');
+                            ctx.clearRect(0, 0, cvs.width, cvs.height);
+                            const ratio = Math.min(cvs.width / img.width, cvs.height / img.height);
+                            const cx = (cvs.width - img.width * ratio) / 2;
+                            const cy = (cvs.height - img.height * ratio) / 2;
+                            ctx.drawImage(img, 0, 0, img.width, img.height, cx, cy, img.width * ratio, img.height * ratio);
+                        }
+                        // 🌟 Update 360 Turntable <img> elements immediately!
+                        const turntableImg = document.getElementById(`img-turntable-${v}`);
+                        if (turntableImg) {
+                            turntableImg.src = fullUrl;
+                        }
                         resolve();
                     };
-                    img.onerror = () => {
+                    img.onerror = (err) => {
+                        console.warn(`Failed loading image for view ${v}:`, imgUrl, err);
                         loadedActorImages[v] = null;
                         resolve();
                     };
-                    img.src = `${imgUrl}?t=${Date.now()}`;
+                    img.src = fullUrl;
                 });
             });
 
             await Promise.all(loadPromises);
+            setTurntableAngle(turntableAngle);
             updateProceduralPreview();
         }
 
@@ -1670,26 +3585,1207 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
             document.getElementById('lbl-active-char-name').textContent = `${char.name} (${char.name_en || ''})`;
             document.getElementById('lbl-active-char-desc').textContent = `身長 ${char.height_m || 1.80}m / ${char.age || 25}歳 / ${char.gender || 'male'} / 32bit RGBA透過アセット`;
 
+            // Restore Neon Accent Setting
+            const neonEnabled = char.neon_accent && char.neon_accent !== 'none' && char.neon_accent !== '#000000';
+            const checkNeon = document.getElementById('check-neon-enable');
+            const inputNeon = document.getElementById('input-neon-color');
+            if (checkNeon && inputNeon) {
+                checkNeon.checked = !!neonEnabled;
+                inputNeon.disabled = !neonEnabled;
+                inputNeon.style.opacity = neonEnabled ? '1.0' : '0.35';
+                if (neonEnabled) {
+                    inputNeon.value = char.neon_accent;
+                }
+            }
+
             await loadCharacterImages(char);
             await refreshCharacterList();
             checkNameOverwriteStatus();
             updateGemmaPrompt();
+
+            // Sync gender with dessin pose & face libraries
+            const charGen = (char.gender || 'male').toLowerCase();
+            const mappedGender = (charGen === 'female') ? 'female' : 'male';
+            if (typeof selectDessinGender === 'function') {
+                selectDessinGender(mappedGender);
+            }
+            if (typeof selectFaceGender === 'function') {
+                selectFaceGender(mappedGender === 'female' ? 'women' : 'men');
+            }
+
+            // Auto-load 3D Polygon Mesh (.obj) if exists for this character
+            const modelUrl = `/characters/${id}/actor_model.obj`;
+            fetch(modelUrl, { method: 'HEAD' }).then(res => {
+                if (res.ok) {
+                    console.log(`🧊 Found existing 3D Mesh for ${id}, auto-loading...`);
+                    loadOBJModelToScene(`${modelUrl}?t=${Date.now()}`);
+                } else {
+                    // Reset to multiplane if no mesh
+                    if (loaded3DObject && threeScene) {
+                        threeScene.remove(loaded3DObject);
+                        loaded3DObject = null;
+                    }
+                    if (threeCharacterGroup) threeCharacterGroup.visible = true;
+                    renderTurntableCanvas();
+                    const btnGen = document.getElementById('btn-gen-3d-mesh');
+                    if (btnGen) {
+                        btnGen.innerHTML = '<i class="fa-solid fa-cube"></i> 🧊 AI 3Dメッシュ生成 ($0)';
+                        btnGen.style.background = 'linear-gradient(135deg, #00f2fe, #3b82f6)';
+                    }
+                }
+            }).catch(() => {});
+        }
+
+        // 🥋 DessinPose 100-Pose Master Anatomical Library Engine
+        let dessinManifest = null;
+        let currentDessinGender = 'female';
+        let currentDessinCategory = 'standing';
+        let currentSelectedPoseId = '0000';
+        let dessinPose24Angles = [];
+
+        async function initDessinPoseLibrary() {
+            try {
+                const resp = await fetch('/api/dessinpose/manifest');
+                if (!resp.ok) return;
+                dessinManifest = await resp.json();
+                renderDessinThumbnails();
+                selectDessinPose('0000');
+            } catch (e) {
+                console.warn('DessinPose library init error:', e);
+            }
+        }
+
+        function selectDessinGender(gender) {
+            currentDessinGender = gender;
+            const btnF = document.getElementById('btn-pose-female');
+            const btnM = document.getElementById('btn-pose-male');
+            if (gender === 'female') {
+                btnF.style.background = 'rgba(236,72,153,0.3)';
+                btnF.style.color = '#f472b6';
+                btnM.style.background = 'transparent';
+                btnM.style.color = 'var(--text-muted)';
+            } else {
+                btnM.style.background = 'rgba(59,130,246,0.3)';
+                btnM.style.color = '#60a5fa';
+                btnF.style.background = 'transparent';
+                btnF.style.color = 'var(--text-muted)';
+            }
+            renderDessinThumbnails();
+            const poses = dessinManifest?.[currentDessinGender]?.[currentDessinCategory] || [];
+            if (poses.length > 0) {
+                selectDessinPose(poses[0].pose_id);
+            }
+        }
+
+        function selectDessinCategory(cat) {
+            currentDessinCategory = cat;
+            document.querySelectorAll('#dessin-category-tabs button').forEach(btn => {
+                if (btn.getAttribute('data-cat') === cat) {
+                    btn.style.background = 'rgba(168,85,247,0.25)';
+                    btn.style.borderColor = 'var(--accent-purple)';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.borderColor = 'var(--border-dark)';
+                    btn.style.color = 'var(--text-muted)';
+                }
+            });
+            renderDessinThumbnails();
+            const poses = dessinManifest?.[currentDessinGender]?.[currentDessinCategory] || [];
+            if (poses.length > 0) {
+                selectDessinPose(poses[0].pose_id);
+            }
+        }
+
+        const CATEGORY_NAMES_JA = {
+            standing: '立つ',
+            crouching: '中腰・しゃがむ',
+            kneeling: '膝をつく',
+            sitting: '座る',
+            lying: '寝る'
+        };
+
+        const BIOMECHANIC_NOTES = [
+            '重心足と遊脚の美しいコントラポスト (体重移動)',
+            '脊柱の滑らかなS字湾曲と骨盤の自然な傾斜',
+            '指先まで完全に脱力された自然な手のひら',
+            '両肩と鎖骨の連動による自然な上体傾き',
+            '太もも・ふくらはぎの筋膜テンションと確実な接地',
+            '肩甲骨の寄せと胸郭の立体的な広がり',
+            '首と頭部の自然な傾き（視線誘導）',
+            '体幹の捻りと腕の自然な振り角',
+            '腰椎のしなりとヒップラインの立体的な張り',
+            '膝関節のゆとりと足首の角度による安定感'
+        ];
+
+        function renderDessinThumbnails() {
+            const container = document.getElementById('dessin-pose-thumbnails-container');
+            if (!container || !dessinManifest) return;
+
+            const poses = dessinManifest[currentDessinGender]?.[currentDessinCategory] || [];
+            container.innerHTML = '';
+
+            poses.forEach((p, idx) => {
+                const card = document.createElement('div');
+                card.id = `pose-thumb-card-${p.pose_id}`;
+                card.style.cssText = `
+                    flex: 0 0 74px;
+                    height: 80px;
+                    border: 1px solid ${p.pose_id === currentSelectedPoseId ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.12)'};
+                    border-radius: 6px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    background: ${p.pose_id === currentSelectedPoseId ? 'rgba(0,242,254,0.15)' : 'rgba(15,23,42,0.6)'};
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                `;
+                card.onclick = () => selectDessinPose(p.pose_id);
+
+                const thumbUrl = `/assets/dessinpose_vault/${currentDessinGender}/${currentDessinCategory}/pose_${p.pose_id}/thumbnail.jpg`;
+                card.innerHTML = `
+                    <div style="flex:1; width:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#000;">
+                        <img src="${thumbUrl}" alt="Pose ${p.pose_id}" style="width:100%; height:100%; object-fit:contain;" loading="lazy">
+                    </div>
+                    <div style="width:100%; text-align:center; font-size:0.46rem; font-weight:800; padding:2px; background:rgba(3,7,18,0.85); color:${p.pose_id === currentSelectedPoseId ? 'var(--accent-cyan)' : '#94a3b8'};">
+                        #${idx + 1} (${p.pose_id})
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        let currentMainViewerMode = 'costume';
+        let preloadedImagesCache = {};
+
+        function setMainViewerMode(mode) {
+            currentMainViewerMode = mode;
+            const btnD = document.getElementById('btn-mode-dessin');
+            const btnF = document.getElementById('btn-mode-figure');
+            const btnC = document.getElementById('btn-mode-costume');
+            const layer = document.getElementById('dessin-turntable-layer');
+            const badge = document.getElementById('lbl-turntable-mode-badge');
+
+            [btnD, btnF, btnC].forEach(b => {
+                if (b) {
+                    b.style.background = 'transparent';
+                    b.style.color = 'var(--text-muted)';
+                    b.style.boxShadow = 'none';
+                }
+            });
+
+            if (mode === 'dessin') {
+                if (btnD) {
+                    btnD.style.background = 'var(--accent-cyan)';
+                    btnD.style.color = '#000';
+                    btnD.style.boxShadow = '0 0 8px rgba(0,242,254,0.5)';
+                }
+                if (layer) layer.style.display = 'flex';
+                if (badge) {
+                    badge.textContent = '🥋 360°実写デッサン';
+                    badge.style.background = 'linear-gradient(135deg, rgba(168,85,247,0.4), rgba(0,242,254,0.4))';
+                }
+                syncDessinPoseToTurntable(turntableAngle);
+            } else if (mode === 'figure') {
+                if (btnF) {
+                    btnF.style.background = 'var(--accent-cyan)';
+                    btnF.style.color = '#000';
+                    btnF.style.boxShadow = '0 0 8px rgba(0,242,254,0.5)';
+                }
+                if (layer) layer.style.display = 'none';
+                if (badge) {
+                    badge.textContent = '🧊 3D解剖学素体';
+                    badge.style.background = 'linear-gradient(135deg, rgba(0,242,254,0.4), rgba(59,130,246,0.4))';
+                }
+                toggleMeshDisplayMode('figure');
+            } else if (mode === 'costume') {
+                if (btnC) {
+                    btnC.style.background = 'linear-gradient(135deg, #00f2fe, #3b82f6)';
+                    btnC.style.color = '#000';
+                    btnC.style.boxShadow = '0 0 10px rgba(0,242,254,0.5)';
+                }
+                if (layer) layer.style.display = 'flex';
+                if (badge) {
+                    badge.textContent = '🎬 360°リアルキャラ (滑らか連続回転)';
+                    badge.style.background = 'linear-gradient(135deg, rgba(0,242,254,0.4), rgba(59,130,246,0.4))';
+                }
+                if (threeCharacterGroup) threeCharacterGroup.visible = false;
+                if (loaded3DObject) loaded3DObject.visible = false;
+                syncRealCharacterToTurntable(turntableAngle);
+                renderTurntableCanvas();
+            }
+        }
+
+        function selectDessinPose(poseId) {
+            currentSelectedPoseId = poseId;
+            document.querySelectorAll('#dessin-pose-thumbnails-container > div').forEach(c => {
+                c.style.border = '1px solid rgba(255,255,255,0.12)';
+                c.style.background = 'rgba(15,23,42,0.6)';
+                c.style.boxShadow = 'none';
+            });
+            const activeCard = document.getElementById(`pose-thumb-card-${poseId}`);
+            if (activeCard) {
+                activeCard.style.border = '1px solid var(--accent-cyan)';
+                activeCard.style.background = 'rgba(0,242,254,0.18)';
+                activeCard.style.boxShadow = '0 0 10px rgba(0,242,254,0.3)';
+            }
+
+            const genderJa = currentDessinGender === 'female' ? '女性' : '男性';
+            const catJa = CATEGORY_NAMES_JA[currentDessinCategory] || currentDessinCategory;
+            const poseIdx = parseInt(poseId) % 10;
+            const bioNote = BIOMECHANIC_NOTES[poseIdx] || '美術解剖学：自然な重心・S字湾曲';
+
+            const titleEl = document.getElementById('lbl-pose-title');
+            if (titleEl) titleEl.textContent = `${genderJa}・${catJa} #${poseId}`;
+            const bioEl = document.getElementById('lbl-pose-biomechanics');
+            if (bioEl) bioEl.textContent = `✨ ${bioNote}`;
+
+            // 24アングルのパス配列を生成 ＆ 超高速事前キャッシュ (0ms切り替え)
+            dessinPose24Angles = [];
+            for (let h = 0; h < 24; h++) {
+                const hStr = String(h).padStart(2, '0');
+                const url = `/assets/dessinpose_vault/${currentDessinGender}/${currentDessinCategory}/pose_${poseId}/angle_h${hStr}.jpg`;
+                dessinPose24Angles.push(url);
+                if (!preloadedImagesCache[url]) {
+                    const preloadImg = new Image();
+                    preloadImg.src = url;
+                    preloadedImagesCache[url] = preloadImg;
+                }
+            }
+
+            // 実写デッサンモードを有効化し、中央メインステージに即時描画！
+            setMainViewerMode('dessin');
+            syncDessinPoseToTurntable(turntableAngle);
+        }
+
+        function syncDessinPoseToTurntable(deg) {
+            if (!dessinPose24Angles || dessinPose24Angles.length === 0) return;
+            const angleIdx = Math.floor(((deg % 360) + 360) % 360 / 15) % 24;
+            const imgUrl = dessinPose24Angles[angleIdx];
+
+            // 🥋 中央メインステージの画像を瞬時に切り替え
+            const mainViewerImg = document.getElementById('img-dessin-turntable');
+            if (mainViewerImg) {
+                mainViewerImg.src = imgUrl;
+            }
+
+            // 角度ラベルの更新
+            const angleBadge = document.getElementById('lbl-turntable-angle');
+            if (angleBadge) {
+                let asp = 'FRONT (正面)';
+                if (deg >= 315 || deg < 45) asp = 'FRONT (正面)';
+                else if (deg >= 45 && deg < 135) asp = 'RIGHT (右側面)';
+                else if (deg >= 135 && deg < 225) asp = 'BACK (背面)';
+                else asp = 'LEFT (左側面)';
+                angleBadge.textContent = `${deg}° ${asp}`;
+            }
+        }
+
+        async function applySelectedDessinPose() {
+            const btn = document.getElementById('btn-apply-dessinpose');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 素体に適用中...';
+            btn.disabled = true;
+
+            try {
+                const activeCharId = currentActorId || 'ren';
+                const resp = await fetch('/api/dessinpose/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        character_id: activeCharId,
+                        gender: currentDessinGender,
+                        category: currentDessinCategory,
+                        pose_id: currentSelectedPoseId
+                    })
+                });
+
+                const data = await resp.json();
+                if (data.success) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> 🥋 適用完了！';
+                    btn.style.background = 'linear-gradient(135deg, #10b981, #00f2fe)';
+
+                    const t = Date.now();
+                    ['front', 'right', 'back', 'left'].forEach(view => {
+                        const el = document.getElementById(`img-view-${view}`);
+                        if (el) el.src = `/characters/${activeCharId}/pose_${view}.jpg?t=${t}`;
+                        characterTurnaround[view] = `/characters/${activeCharId}/pose_${view}.jpg?t=${t}`;
+                    });
+
+                    toggleMeshDisplayMode('figure');
+                    renderTurntableCanvas();
+
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa-solid fa-check-double"></i> 🥋 このポーズを素体マスターに適用！';
+                        btn.style.background = 'linear-gradient(135deg, #a855f7, #00f2fe)';
+                        btn.disabled = false;
+                    }, 2500);
+                } else {
+                    throw new Error(data.error || 'Apply failed');
+                }
+            } catch (e) {
+                alert(`ポーズ適用エラー: ${e.message}`);
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> 🥋 このポーズを素体マスターに適用！';
+                btn.disabled = false;
+            }
+        }
+
+        function viewAll24AnglesModal() {
+            const modal = document.getElementById('modal-dessin-24angles');
+            if (!modal) return;
+            const grid = document.getElementById('dessin-24angles-grid');
+            grid.innerHTML = '';
+
+            const genderJa = currentDessinGender === 'female' ? '女性' : '男性';
+            const catJa = CATEGORY_NAMES_JA[currentDessinCategory] || currentDessinCategory;
+            document.getElementById('lbl-modal-24angles-title').textContent = `${genderJa}・${catJa} ポーズ #${currentSelectedPoseId} (360° 全24アングル)`;
+
+            dessinPose24Angles.forEach((url, i) => {
+                const deg = i * 15;
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    background: #000;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 6px;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 4px;
+                    cursor: pointer;
+                    transition: transform 0.15s ease;
+                `;
+                item.onmouseenter = () => item.style.transform = 'scale(1.05)';
+                item.onmouseleave = () => item.style.transform = 'scale(1.0)';
+                item.onclick = () => {
+                    setTurntableAngle(deg);
+                    closeDessin24AnglesModal();
+                };
+                item.innerHTML = `
+                    <div style="font-size:0.46rem; color:var(--accent-cyan); font-weight:800; margin-bottom:2px;">
+                        ${deg}° ${deg === 0 ? 'FRONT' : deg === 90 ? 'RIGHT' : deg === 180 ? 'BACK' : deg === 270 ? 'LEFT' : ''}
+                    </div>
+                    <img src="${url}" alt="Angle ${deg}" style="width:100%; height:110px; object-fit:contain; border-radius:3px;">
+                `;
+                grid.appendChild(item);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function closeDessin24AnglesModal() {
+            const modal = document.getElementById('modal-dessin-24angles');
+            if (modal) modal.style.display = 'none';
+        }
+
+        // 💈 MEN'S NON-NO 360° Hair Catalog Master Engine
+        let currentLibraryTab = 'dessin'; // 'dessin' or 'hair'
+        let hairManifest = null;
+        let currentHairCategory = 'all';
+        let currentSelectedHairId = null;
+        let currentSelectedHairCategory = null;
+        let currentSelectedHairTitle = '';
+        let hairStyle12Angles = [];
+
+        // 🎭 Fictional Golden-Ratio Face Library State
+        let faceManifest = null;
+        let currentFaceGender = 'men';
+        let currentFaceCategory = 'all';
+        let currentSelectedFaceId = null;
+        let currentSelectedFaceMeta = null;
+
+        function switchLibraryTab(tab) {
+            currentLibraryTab = tab;
+            const btnD = document.getElementById('tab-btn-dessin-db');
+            const btnH = document.getElementById('tab-btn-hair-db');
+            const btnF = document.getElementById('tab-btn-face-db');
+            const panelD = document.getElementById('panel-dessin-library');
+            const panelH = document.getElementById('panel-hair-library');
+            const panelF = document.getElementById('panel-face-library');
+
+            // Reset tab button styles
+            [btnD, btnH, btnF].forEach(btn => {
+                if (btn) {
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'var(--text-muted)';
+                    btn.style.borderColor = 'var(--border-dark)';
+                    btn.style.boxShadow = 'none';
+                }
+            });
+            [panelD, panelH, panelF].forEach(p => {
+                if (p) p.style.display = 'none';
+            });
+
+            if (tab === 'dessin') {
+                if (btnD) {
+                    btnD.style.background = 'var(--accent-purple)';
+                    btnD.style.color = '#fff';
+                    btnD.style.borderColor = 'var(--accent-purple)';
+                    btnD.style.boxShadow = '0 0 10px rgba(168,85,247,0.4)';
+                }
+                if (panelD) panelD.style.display = 'flex';
+
+                setMainViewerMode('dessin');
+                syncDessinPoseToTurntable(turntableAngle);
+            } else if (tab === 'hair') {
+                if (btnH) {
+                    btnH.style.background = 'linear-gradient(135deg, #f59e0b, #ec4899)';
+                    btnH.style.color = '#fff';
+                    btnH.style.borderColor = '#f59e0b';
+                    btnH.style.boxShadow = '0 0 12px rgba(245,158,11,0.5)';
+                }
+                if (panelH) panelH.style.display = 'flex';
+
+                if (!hairManifest) {
+                    initHairCatalogLibrary();
+                } else if (currentSelectedHairId) {
+                    syncHairStyleToTurntable(turntableAngle);
+                }
+            } else if (tab === 'face') {
+                if (btnF) {
+                    btnF.style.background = 'linear-gradient(135deg, #00f2fe, #a855f7)';
+                    btnF.style.color = '#000';
+                    btnF.style.borderColor = '#00f2fe';
+                    btnF.style.boxShadow = '0 0 12px rgba(0,242,254,0.5)';
+                }
+                if (panelF) panelF.style.display = 'flex';
+
+                if (!faceManifest) {
+                    initFaceLibrary();
+                } else if (currentSelectedFaceId) {
+                    syncFaceToTurntable(turntableAngle);
+                }
+            }
+        }
+
+        async function initHairCatalogLibrary() {
+            try {
+                const resp = await fetch('/api/haircatalog/manifest');
+                if (!resp.ok) return;
+                hairManifest = await resp.json();
+                renderHairThumbnails();
+                const defaultList = hairManifest.short || hairManifest.veryshort || Object.values(hairManifest)[0] || [];
+                if (defaultList.length > 0) {
+                    const first = defaultList[0];
+                    selectHairStyle(first.id, first.category, first.title);
+                }
+            } catch (e) {
+                console.warn('Hair catalog library init error:', e);
+            }
+        }
+
+        function selectHairCategory(cat) {
+            currentHairCategory = cat;
+            document.querySelectorAll('#hair-category-tabs button').forEach(btn => {
+                if (btn.getAttribute('data-hcat') === cat) {
+                    btn.style.background = 'rgba(0,242,254,0.25)';
+                    btn.style.borderColor = 'var(--accent-cyan)';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.borderColor = 'var(--border-dark)';
+                    btn.style.color = 'var(--text-muted)';
+                }
+            });
+            renderHairThumbnails();
+        }
+
+        function getAllHairStylesList() {
+            if (!hairManifest) return [];
+            if (currentHairCategory === 'all') {
+                let all = [];
+                ['short', 'veryshort', 'medium', 'long', 'color'].forEach(k => {
+                    if (Array.isArray(hairManifest[k])) {
+                        all = all.concat(hairManifest[k]);
+                    }
+                });
+                return all;
+            } else {
+                return hairManifest[currentHairCategory] || [];
+            }
+        }
+
+        function renderHairThumbnails() {
+            const container = document.getElementById('hair-style-thumbnails-container');
+            if (!container || !hairManifest) return;
+
+            const styles = getAllHairStylesList();
+            container.innerHTML = '';
+
+            const catJaMap = {
+                veryshort: 'ベリショ',
+                short: 'ショート',
+                medium: 'ミディアム',
+                long: 'ロング',
+                color: 'カラー'
+            };
+
+            styles.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.id = `hair-thumb-card-${item.id}`;
+                const isSelected = String(item.id) === String(currentSelectedHairId);
+                card.style.cssText = `
+                    flex: 0 0 84px;
+                    height: 86px;
+                    border: 1px solid ${isSelected ? 'var(--accent-gold)' : 'rgba(255,255,255,0.12)'};
+                    border-radius: 6px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    background: ${isSelected ? 'rgba(245,158,11,0.2)' : 'rgba(15,23,42,0.6)'};
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                `;
+                card.onclick = () => selectHairStyle(item.id, item.category, item.title);
+
+                const thumbUrl = `/assets/haircatalog_vault/${item.category}/style_${item.id}/thumbnail.jpg`;
+                const shortTitle = (item.title || '').replace(/｜メンズノンノ360°ヘア/g, '').trim();
+                const catJa = catJaMap[item.category] || item.category;
+
+                card.innerHTML = `
+                    <div style="flex:1; width:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#000; position:relative;">
+                        <img src="${thumbUrl}" alt="Hair ${item.id}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
+                        <span style="position:absolute; top:2px; left:2px; background:rgba(0,0,0,0.75); color:var(--accent-cyan); font-size:0.42rem; padding:1px 3px; border-radius:2px; font-weight:800;">
+                            ${catJa}
+                        </span>
+                    </div>
+                    <div style="width:100%; text-align:center; font-size:0.44rem; font-weight:800; padding:2px; background:rgba(3,7,18,0.85); color:${isSelected ? 'var(--accent-gold)' : '#cbd5e1'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${shortTitle}">
+                        ${shortTitle || `#${item.id}`}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectHairStyle(styleId, category, title) {
+            currentSelectedHairId = styleId;
+            currentSelectedHairCategory = category;
+            currentSelectedHairTitle = title || '';
+
+            document.querySelectorAll('#hair-style-thumbnails-container > div').forEach(c => {
+                c.style.border = '1px solid rgba(255,255,255,0.12)';
+                c.style.background = 'rgba(15,23,42,0.6)';
+                c.style.boxShadow = 'none';
+            });
+            const activeCard = document.getElementById(`hair-thumb-card-${styleId}`);
+            if (activeCard) {
+                activeCard.style.border = '1px solid var(--accent-gold)';
+                activeCard.style.background = 'rgba(245,158,11,0.2)';
+                activeCard.style.boxShadow = '0 0 10px rgba(245,158,11,0.4)';
+            }
+
+            const cleanTitle = (title || '').replace(/｜メンズノンノ360°ヘア/g, '').trim();
+            const titleEl = document.getElementById('lbl-hair-title');
+            if (titleEl) titleEl.textContent = cleanTitle || `#${styleId}`;
+
+            hairStyle12Angles = [];
+            for (let deg = 0; deg < 360; deg += 30) {
+                const degStr = String(deg).padStart(3, '0');
+                const url = `/assets/haircatalog_vault/${category}/style_${styleId}/angle_${degStr}.jpg`;
+                hairStyle12Angles.push(url);
+                if (!preloadedImagesCache[url]) {
+                    const preloadImg = new Image();
+                    preloadImg.src = url;
+                    preloadedImagesCache[url] = preloadImg;
+                }
+            }
+
+            const layer = document.getElementById('dessin-turntable-layer');
+            if (layer) layer.style.display = 'flex';
+            syncHairStyleToTurntable(turntableAngle);
+        }
+
+        function syncHairStyleToTurntable(deg) {
+            if (!hairStyle12Angles || hairStyle12Angles.length === 0) return;
+            const normDeg = ((deg % 360) + 360) % 360;
+            const angleIdx = Math.floor((normDeg + 15) / 30) % 12;
+            const imgUrl = hairStyle12Angles[angleIdx];
+
+            const mainViewerImg = document.getElementById('img-dessin-turntable');
+            if (mainViewerImg) {
+                mainViewerImg.src = imgUrl;
+            }
+
+            const angleBadge = document.getElementById('lbl-turntable-angle');
+            if (angleBadge) {
+                let asp = 'FRONT (正面)';
+                if (normDeg >= 315 || normDeg < 45) asp = 'FRONT (正面)';
+                else if (normDeg >= 45 && normDeg < 135) asp = 'RIGHT (右側面)';
+                else if (normDeg >= 135 && normDeg < 225) asp = 'BACK (後頭部・つむじ)';
+                else asp = 'LEFT (左側面)';
+                angleBadge.textContent = `${normDeg}° ${asp}`;
+            }
+            const modeBadge = document.getElementById('lbl-turntable-mode-badge');
+            if (modeBadge) {
+                modeBadge.textContent = '💈 360°ヘアカタログ';
+                modeBadge.style.background = 'linear-gradient(135deg, rgba(245,158,11,0.5), rgba(236,72,153,0.5))';
+            }
+        }
+
+        async function applySelectedHairStyle() {
+            if (!currentSelectedHairId || !currentSelectedHairCategory) {
+                alert('髪型スタイルを選択してください');
+                return;
+            }
+
+            const btn = document.getElementById('btn-apply-haircatalog');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 頭部にドッキング中...';
+            btn.disabled = true;
+
+            try {
+                const activeCharId = currentActorId || 'ren';
+                const resp = await fetch('/api/haircatalog/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        character_id: activeCharId,
+                        category: currentSelectedHairCategory,
+                        style_id: currentSelectedHairId
+                    })
+                });
+
+                const data = await resp.json();
+                if (data.success) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> 💈 ドッキング完了！';
+                    btn.style.background = 'linear-gradient(135deg, #10b981, #f59e0b)';
+
+                    const cleanTitle = (currentSelectedHairTitle || '').replace(/｜メンズノンノ360°ヘア/g, '').trim();
+                    const hairSelect = document.getElementById('select-char-hair');
+                    if (hairSelect) {
+                        let opt = Array.from(hairSelect.options).find(o => o.value === `hair_${currentSelectedHairId}`);
+                        if (!opt) {
+                            opt = document.createElement('option');
+                            opt.value = `hair_${currentSelectedHairId}`;
+                            opt.textContent = `💈 ${cleanTitle || '360°サロンヘア'}`;
+                            hairSelect.appendChild(opt);
+                        }
+                        hairSelect.value = opt.value;
+                    }
+
+                    updateGemmaPrompt();
+
+                    // Reload 4-view images on turntable and canvases immediately
+                    const ts = data.timestamp || Date.now();
+                    const views = ['front', 'right', 'back', 'left'];
+                    for (const v of views) {
+                        const el = document.getElementById(`img-turntable-${v}`);
+                        if (el) el.src = `/characters/${activeCharId}/${v}.png?t=${ts}`;
+                    }
+
+                    const vaultList = window.characterVaultData || characterVaultData || [];
+                    const char = vaultList.find(c => c.id === activeCharId) || vaultList[0];
+                    if (char && typeof loadCharacterImages === 'function') {
+                        await loadCharacterImages(char);
+                    }
+                    setMainViewerMode('costume');
+                    setTurntableAngle(turntableAngle);
+
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa-solid fa-scissors"></i> 💈 この髪型をアクター頭部にドッキング！';
+                        btn.style.background = 'linear-gradient(135deg, #f59e0b, #ec4899)';
+                        btn.disabled = false;
+                    }, 2500);
+                } else {
+                    throw new Error(data.error || 'Apply failed');
+                }
+            } catch (e) {
+                alert(`髪型ドッキングエラー: ${e.message}`);
+                btn.innerHTML = '<i class="fa-solid fa-scissors"></i> 💈 この髪型をアクター頭部にドッキング！';
+                btn.disabled = false;
+            }
+        }
+
+        async function revertHairStyleToOriginal() {
+            const btn = document.getElementById('btn-revert-haircatalog');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 復元中...';
+
+            try {
+                const activeCharId = currentActorId || 'ren';
+                const resp = await fetch('/api/haircatalog/revert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ character_id: activeCharId })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    const ts = data.timestamp || Date.now();
+                    const views = ['front', 'right', 'back', 'left'];
+                    for (const v of views) {
+                        const el = document.getElementById(`img-turntable-${v}`);
+                        if (el) el.src = `/characters/${activeCharId}/${v}.png?t=${ts}`;
+                    }
+                    const vaultList = window.characterVaultData || characterVaultData || [];
+                    const char = vaultList.find(c => c.id === activeCharId) || vaultList[0];
+                    if (char && typeof loadCharacterImages === 'function') {
+                        await loadCharacterImages(char);
+                    }
+                    setMainViewerMode('costume');
+                    setTurntableAngle(turntableAngle);
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> ↩️ 復元完了！';
+                        btn.style.background = 'rgba(16,185,129,0.3)';
+                        btn.style.borderColor = '#10b981';
+                        btn.style.color = '#6ee7b7';
+                    }
+                    setTimeout(() => {
+                        if (btn) {
+                            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> ↩️ 初期髪型に戻す';
+                            btn.style.background = 'rgba(239,68,68,0.2)';
+                            btn.style.borderColor = '#ef4444';
+                            btn.style.color = '#fca5a5';
+                        }
+                    }, 2000);
+                } else {
+                    alert(data.error || '復元に失敗しました');
+                    if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> ↩️ 初期髪型に戻す';
+                }
+            } catch (e) {
+                alert(`復元エラー: ${e.message}`);
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> ↩️ 初期髪型に戻す';
+            }
+        }
+
+        function viewAll12HairAnglesModal() {
+            const modal = document.getElementById('modal-hair-12angles');
+            if (!modal) return;
+            const grid = document.getElementById('hair-12angles-grid');
+            grid.innerHTML = '';
+
+            const cleanTitle = (currentSelectedHairTitle || '').replace(/｜メンズノンノ360°ヘア/g, '').trim();
+            document.getElementById('lbl-modal-12hair-title').textContent = `${cleanTitle || 'スタイル'} (360° 全12アングル高精細)`;
+
+            hairStyle12Angles.forEach((url, i) => {
+                const deg = i * 30;
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    background: #000;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 6px;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 4px;
+                    cursor: pointer;
+                    transition: transform 0.15s ease;
+                `;
+                item.onmouseenter = () => item.style.transform = 'scale(1.05)';
+                item.onmouseleave = () => item.style.transform = 'scale(1.0)';
+                item.onclick = () => {
+                    setTurntableAngle(deg);
+                    closeHair12AnglesModal();
+                };
+                item.innerHTML = `
+                    <div style="font-size:0.46rem; color:var(--accent-gold); font-weight:800; margin-bottom:2px;">
+                        ${deg}° ${deg === 0 ? 'FRONT' : deg === 90 ? 'RIGHT' : deg === 180 ? 'BACK(つむじ)' : deg === 270 ? 'LEFT' : ''}
+                    </div>
+                    <img src="${url}" alt="Hair Angle ${deg}" style="width:100%; height:110px; object-fit:contain; border-radius:3px;">
+                `;
+                grid.appendChild(item);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function closeHair12AnglesModal() {
+            const modal = document.getElementById('modal-hair-12angles');
+            if (modal) modal.style.display = 'none';
+        }
+
+        // ==========================================
+        // 🎭 Fictional Golden-Ratio Face Library Functions
+        // ==========================================
+        async function initFaceLibrary() {
+            try {
+                const resp = await fetch('/api/face/manifest');
+                if (!resp.ok) return;
+                faceManifest = await resp.json();
+                renderFaceThumbnails();
+                const list = faceManifest[currentFaceGender] || [];
+                if (list.length > 0) {
+                    selectFace(list[0].id, list[0]);
+                }
+            } catch (e) {
+                console.warn('Face library init error:', e);
+            }
+        }
+
+        function selectFaceGender(gender) {
+            currentFaceGender = gender;
+            const btnM = document.getElementById('btn-face-male');
+            const btnF = document.getElementById('btn-face-female');
+            if (gender === 'men') {
+                if (btnM) {
+                    btnM.style.background = 'rgba(0,242,254,0.3)';
+                    btnM.style.color = '#38bdf8';
+                }
+                if (btnF) {
+                    btnF.style.background = 'transparent';
+                    btnF.style.color = 'var(--text-muted)';
+                }
+            } else {
+                if (btnF) {
+                    btnF.style.background = 'rgba(236,72,153,0.3)';
+                    btnF.style.color = '#f472b6';
+                }
+                if (btnM) {
+                    btnM.style.background = 'transparent';
+                    btnM.style.color = 'var(--text-muted)';
+                }
+            }
+            renderFaceThumbnails();
+            const list = getFilteredFaceList();
+            if (list.length > 0) {
+                selectFace(list[0].id, list[0]);
+            }
+        }
+
+        function selectFaceCategory(cat) {
+            currentFaceCategory = cat;
+            document.querySelectorAll('#face-category-tabs button').forEach(btn => {
+                if (btn.getAttribute('data-fcat') === cat) {
+                    btn.style.background = 'rgba(0,242,254,0.25)';
+                    btn.style.borderColor = 'var(--accent-cyan)';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.borderColor = 'var(--border-dark)';
+                    btn.style.color = 'var(--text-muted)';
+                }
+            });
+            renderFaceThumbnails();
+        }
+
+        function getFilteredFaceList() {
+            if (!faceManifest) return [];
+            const group = faceManifest[currentFaceGender] || [];
+            if (currentFaceCategory === 'all') return group;
+            return group.filter(f => f.category === currentFaceCategory);
+        }
+
+        function renderFaceThumbnails() {
+            const container = document.getElementById('face-thumbnails-container');
+            if (!container || !faceManifest) return;
+            const faces = getFilteredFaceList();
+            container.innerHTML = '';
+
+            faces.forEach(item => {
+                const card = document.createElement('div');
+                card.id = `face-thumb-card-${item.id}`;
+                const isSelected = (item.id === currentSelectedFaceId);
+                card.style.cssText = `
+                    flex: 0 0 84px;
+                    height: 86px;
+                    border: 1px solid ${isSelected ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.12)'};
+                    border-radius: 6px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    background: ${isSelected ? 'rgba(0,242,254,0.2)' : 'rgba(15,23,42,0.6)'};
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                `;
+                card.onclick = () => selectFace(item.id, item);
+
+                const thumbUrl = item.thumbnail_url || `/assets/face_vault/${item.id}/thumbnail.jpg`;
+                const shortTitle = item.name_ja || item.id;
+                const score = item.golden_ratio_score ? `${item.golden_ratio_score}%` : '98%';
+
+                card.innerHTML = `
+                    <div style="flex:1; width:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#000; position:relative;">
+                        <img src="${thumbUrl}" alt="Face ${item.id}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
+                        <span style="position:absolute; top:2px; left:2px; background:rgba(0,0,0,0.8); color:var(--accent-cyan); font-size:0.40rem; padding:1px 3px; border-radius:2px; font-weight:800;">
+                            ${score}
+                        </span>
+                    </div>
+                    <div style="width:100%; text-align:center; font-size:0.42rem; font-weight:800; padding:2px; background:rgba(3,7,18,0.85); color:${isSelected ? 'var(--accent-cyan)' : '#cbd5e1'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${shortTitle}">
+                        ${shortTitle}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectFace(faceId, meta) {
+            currentSelectedFaceId = faceId;
+            currentSelectedFaceMeta = meta;
+
+            document.querySelectorAll('#face-thumbnails-container > div').forEach(c => {
+                c.style.border = '1px solid rgba(255,255,255,0.12)';
+                c.style.background = 'rgba(15,23,42,0.6)';
+                c.style.boxShadow = 'none';
+            });
+            const activeCard = document.getElementById(`face-thumb-card-${faceId}`);
+            if (activeCard) {
+                activeCard.style.border = '1px solid var(--accent-cyan)';
+                activeCard.style.background = 'rgba(0,242,254,0.2)';
+                activeCard.style.boxShadow = '0 0 10px rgba(0,242,254,0.4)';
+            }
+
+            const titleEl = document.getElementById('lbl-face-title');
+            if (titleEl) titleEl.textContent = meta?.name_ja || faceId;
+
+            const scoreEl = document.getElementById('lbl-face-golden-ratio');
+            if (scoreEl && meta?.golden_ratio_score) {
+                scoreEl.textContent = `👑 黄金比スコア ${meta.golden_ratio_score}%`;
+            }
+
+            syncFaceToTurntable(turntableAngle);
+        }
+
+        function syncFaceToTurntable(deg) {
+            if (!currentSelectedFaceMeta) return;
+            const normDeg = ((deg % 360) + 360) % 360;
+            const views = currentSelectedFaceMeta.views || {};
+            let imgUrl = views.front || `/assets/face_vault/${currentSelectedFaceId}/front.png`;
+
+            if (normDeg >= 45 && normDeg < 135) {
+                imgUrl = views.right || views.front;
+            } else if (normDeg >= 225 && normDeg < 315) {
+                imgUrl = views.left || views.front;
+            } else if (normDeg >= 135 && normDeg < 225) {
+                imgUrl = views.front;
+            }
+
+            const mainViewerImg = document.getElementById('img-dessin-turntable');
+            if (mainViewerImg) {
+                mainViewerImg.src = imgUrl;
+            }
+
+            const angleBadge = document.getElementById('lbl-turntable-angle');
+            if (angleBadge) {
+                let asp = 'FRONT (正面)';
+                if (normDeg >= 315 || normDeg < 45) asp = 'FRONT (正面)';
+                else if (normDeg >= 45 && normDeg < 135) asp = 'RIGHT (右側面)';
+                else if (normDeg >= 135 && normDeg < 225) asp = 'BACK (背面)';
+                else asp = 'LEFT (左側面)';
+                angleBadge.textContent = `${normDeg}° ${asp}`;
+            }
+            const modeBadge = document.getElementById('lbl-turntable-mode-badge');
+            if (modeBadge) {
+                modeBadge.textContent = '🎭 実在しない人気顔 (黄金比)';
+                modeBadge.style.background = 'linear-gradient(135deg, rgba(0,242,244,0.5), rgba(168,85,247,0.5))';
+            }
+        }
+
+        async function dockTrinityCharacter() {
+            if (!currentSelectedFaceId) {
+                alert('架空顔を選択してください');
+                return;
+            }
+
+            const btn = document.getElementById('btn-dock-trinity');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 三位一体ドッキング中...';
+            btn.disabled = true;
+
+            try {
+                const activeCharId = currentActorId || 'ren';
+                const hairCat = currentSelectedHairCategory || 'short';
+                const hairId = currentSelectedHairId || '000';
+                const desGen = currentDessinGender || 'male';
+                const desCat = currentDessinCategory || 'standing';
+                const desPose = currentSelectedPoseId || '0000';
+
+                const resp = await fetch('/api/face/dock', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        character_id: activeCharId,
+                        face_id: currentSelectedFaceId,
+                        hair_category: hairCat,
+                        hair_style_id: hairId,
+                        dessin_gender: desGen,
+                        dessin_category: desCat,
+                        dessin_pose_id: desPose
+                    })
+                });
+
+                const data = await resp.json();
+                if (data.success) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> 🎭 ドッキング合成完了！';
+                    btn.style.background = 'linear-gradient(135deg, #10b981, #00f2fe)';
+
+                    if (data.views) {
+                        await loadCharacterImages({ views: data.views });
+                    }
+
+                    if (data.fused_head_url) {
+                        const turntableImg = document.getElementById('img-dessin-turntable');
+                        if (turntableImg) turntableImg.src = data.fused_head_url + '?t=' + Date.now();
+                    }
+
+                    await refreshCharacterList();
+                    updateGemmaPrompt();
+
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa-solid fa-masks-theater"></i> 🎭 この架空顔を素体＆ヘアにドッキング合成！';
+                        btn.style.background = 'linear-gradient(135deg, #00f2fe, #a855f7)';
+                        btn.disabled = false;
+                    }, 2500);
+                } else {
+                    throw new Error(data.error || 'Docking failed');
+                }
+            } catch (e) {
+                alert(`ドッキングエラー: ${e.message}`);
+                btn.innerHTML = '<i class="fa-solid fa-masks-theater"></i> 🎭 この架空顔を素体＆ヘアにドッキング合成！';
+                btn.disabled = false;
+            }
+        }
+
+        async function generateNewAiFaceOnDemand() {
+            const promptInput = document.getElementById('input-custom-face-prompt');
+            const prompt = promptInput?.value?.trim();
+            if (!prompt) {
+                alert('架空顔の特徴・説明を入力してください（例: 20代のアンニュイな美青年、琥珀色の瞳）');
+                return;
+            }
+
+            const btn = document.getElementById('btn-gen-ai-face');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 生成中...';
+            btn.disabled = true;
+
+            try {
+                const resp = await fetch('/api/face/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        gender: currentFaceGender === 'women' ? 'female' : 'male',
+                        category: currentFaceCategory === 'all' ? 'cool_sharp' : currentFaceCategory
+                    })
+                });
+                const data = await resp.json();
+                if (data.success && data.face) {
+                    await initFaceLibrary();
+                    selectFace(data.face.id, data.face);
+                    promptInput.value = '';
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> 生成完了！';
+                    setTimeout(() => {
+                        btn.innerHTML = '✨ 架空顔を生成';
+                        btn.disabled = false;
+                    }, 1500);
+                } else {
+                    throw new Error(data.error || 'AI generation failed');
+                }
+            } catch (e) {
+                alert(`AI顔生成エラー: ${e.message}`);
+                btn.innerHTML = '✨ 架空顔を生成';
+                btn.disabled = false;
+            }
+        }
+
+        function viewAllFaceAnglesModal() {
+            const modal = document.getElementById('modal-face-angles');
+            if (!modal || !currentSelectedFaceMeta) return;
+            const grid = document.getElementById('face-angles-grid');
+            grid.innerHTML = '';
+
+            document.getElementById('lbl-modal-face-title').textContent = `${currentSelectedFaceMeta.name_ja || '架空顔'} (黄金比 3アングル高精細)`;
+
+            const angles = [
+                { id: 'front', label: '正面 (FRONT)', url: currentSelectedFaceMeta.views?.front },
+                { id: 'right', label: '右斜め/横顔 (RIGHT 3/4)', url: currentSelectedFaceMeta.views?.right },
+                { id: 'left', label: '左斜め/横顔 (LEFT 3/4)', url: currentSelectedFaceMeta.views?.left }
+            ];
+
+            angles.forEach(ang => {
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    background: #000;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    border-radius: 6px;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding: 6px;
+                `;
+                item.innerHTML = `
+                    <div style="font-size:0.52rem; color:var(--accent-cyan); font-weight:800; margin-bottom:4px;">
+                        ${ang.label}
+                    </div>
+                    <img src="${ang.url}" alt="${ang.label}" style="width:100%; height:200px; object-fit:contain; border-radius:4px;">
+                `;
+                grid.appendChild(item);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function closeFaceAnglesModal() {
+            const modal = document.getElementById('modal-face-angles');
+            if (modal) modal.style.display = 'none';
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
             initAllCustomPresets();
             updateGemmaPrompt();
             await refreshCharacterList();
+            initDessinPoseLibrary();
+            initHairCatalogLibrary();
+            initFaceLibrary();
             const vaultList = window.characterVaultData || characterVaultData || [];
             if (vaultList.length > 0) {
-                await selectCharacterFromVault(vaultList[0].id);
+                const preferred = vaultList.find(c => c.id === 'ren') || 
+                                  vaultList.find(c => !c.id.startsWith('test_')) || 
+                                  vaultList[0];
+                await selectCharacterFromVault(preferred.id);
             } else {
                 updateProceduralPreview();
             }
+            // Default to 360 real character turntable view, NOT grey mannequin
+            setMainViewerMode('costume');
+            setTimeout(() => {
+                switchLibraryTab('hair');
+                renderTurntableCanvas();
+            }, 250);
             applyDefringeFilter();
         });
     </script>
     <script src="webgpu_cinema_accel.js"></script>
+
+    <!-- 💈 HairCatalog 12-Angles Full 360° Inspection Modal -->
+    <div id="modal-hair-12angles" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(2,6,23,0.92); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this) closeHair12AnglesModal()">
+        <div style="background:#090d1a; border:1px solid var(--accent-gold); border-radius:10px; width:980px; max-width:95vw; max-height:92vh; padding:18px; box-shadow:0 0 50px rgba(245,158,11,0.4); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-dark); padding-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-scissors" style="color:var(--accent-gold); font-size:1.2rem;"></i>
+                    <div>
+                        <div style="font-size:0.85rem; font-weight:900; color:#fff;" id="lbl-modal-12hair-title">360° 全12アングル展開ビュー</div>
+                        <div style="font-size:0.50rem; color:var(--text-muted);">MEN'S NON-NO 360°ヘアカタログ 1,000x1,000px高精細スタジオ画像。クリックでそのアングルにターンテーブルが回転します。</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-opt" style="padding:4px 10px; font-size:0.75rem;" onclick="closeHair12AnglesModal()">✕</button>
+            </div>
+            <div id="hair-12angles-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:8px; overflow-y:auto; max-height:calc(92vh - 120px); padding:6px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 🥋 DessinPose 24-Angles Full 360° Inspection Modal -->
+    <div id="modal-dessin-24angles" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(2,6,23,0.92); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this) closeDessin24AnglesModal()">
+        <div style="background:#090d1a; border:1px solid var(--accent-purple); border-radius:10px; width:1100px; max-width:95vw; max-height:92vh; padding:18px; box-shadow:0 0 50px rgba(168,85,247,0.4); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-dark); padding-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-person-rays" style="color:var(--accent-purple); font-size:1.2rem;"></i>
+                    <div>
+                        <div style="font-size:0.85rem; font-weight:900; color:#fff;" id="lbl-modal-24angles-title">360° 全24アングル展開ビュー</div>
+                        <div style="font-size:0.50rem; color:var(--text-muted);">水平360度を15度刻みで高精細撮影。クリックでそのアングルをメインビューアに即時セットします。</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-opt" style="padding:4px 10px; font-size:0.75rem;" onclick="closeDessin24AnglesModal()">✕</button>
+            </div>
+            <div id="dessin-24angles-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:8px; overflow-y:auto; max-height:calc(92vh - 120px); padding:6px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
 
     <!-- ✍️ Top-Level Custom Preset Modal Dialog -->
     <div id="modal-custom-preset" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(2,6,23,0.88); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this) closeCustomPresetModal()">
@@ -1728,6 +4824,25 @@ Layout: Professional 4-View Character Turnaround Sheet (Front View, Right Profil
                 <div id="preset-modal-saved-list" style="max-height:140px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;">
                     <!-- Dynamically populated -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎭 Fictional Face 3-Angles Inspection Modal -->
+    <div id="modal-face-angles" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(2,6,23,0.92); backdrop-filter:blur(10px); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this) closeFaceAnglesModal()">
+        <div style="background:#090d1a; border:1px solid var(--accent-cyan); border-radius:10px; width:880px; max-width:95vw; max-height:92vh; padding:18px; box-shadow:0 0 50px rgba(0,242,254,0.4); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-dark); padding-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="fa-solid fa-masks-theater" style="color:var(--accent-cyan); font-size:1.2rem;"></i>
+                    <div>
+                        <div style="font-size:0.85rem; font-weight:900; color:#fff;" id="lbl-modal-face-title">架空顔 黄金比3アングル確認ビュー</div>
+                        <div style="font-size:0.50rem; color:var(--text-muted);">実在しないAI黄金比人気顔。肖像権侵害リスク完全ゼロ。正面および左右斜め顔貌をチェックできます。</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-opt" style="padding:4px 10px; font-size:0.75rem;" onclick="closeFaceAnglesModal()">✕</button>
+            </div>
+            <div id="face-angles-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; overflow-y:auto; max-height:calc(92vh - 120px); padding:8px;">
+                <!-- Dynamically populated -->
             </div>
         </div>
     </div>
