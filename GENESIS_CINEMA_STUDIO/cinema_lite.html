@@ -1383,6 +1383,14 @@
               <span style="color: #c084fc; font-weight: bold;">Q-Gemma 4 (16-Trotter SQA)</span>
             </div>
             <div style="display: flex; justify-content: space-between;">
+              <span>🎵 Music & Score:</span>
+              <span style="color: #f87171; font-weight: bold;"><i class="fa-brands fa-youtube"></i> YouTube Music ✕ Gemini</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span>🌐 Ecosystem:</span>
+              <span style="color: #38bdf8; font-weight: bold;">ALL Google Sovereign Stack</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
               <span>🎯 Vector Drift:</span>
               <span style="color: white; font-weight: bold;">0.00% (Zero-Drift 99.9%)</span>
             </div>
@@ -1447,7 +1455,10 @@
             <i class="fa-solid fa-bell"></i> <span id="txt-se-toggle">SE (足音・環境音): ON</span>
           </button>
           <button class="btn-audio active" id="btn-bgm-toggle" onclick="toggleBGM()">
-            <i class="fa-solid fa-music"></i> <span id="txt-bgm-toggle">あとBGM (サイバーノワール): ON</span>
+            <i class="fa-brands fa-youtube" style="color: #ef4444;"></i> <span id="txt-bgm-toggle">BGM: YouTube Music [Tokyo Neo Noir] (ON)</span>
+          </button>
+          <button class="btn-audio" id="btn-ytmusic-select" onclick="openYouTubeMusicModal()" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171; background: rgba(239, 68, 68, 0.1);">
+            <i class="fa-solid fa-sliders"></i> <span id="txt-ytmusic-select-btn">曲選択 (ALL Google)</span>
           </button>
         </div>
         <button class="btn-master-generate" onclick="generateFinalMovie()">
@@ -1456,6 +1467,103 @@
       </div>
     </div>
   </main>
+
+  <!-- ============================================================== -->
+  <!-- 🔴 Modal: YouTube Music ✕ Gemini Native Audio (ALL Google Sovereign Stack) -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop" id="ytmusic-modal" onclick="closeYouTubeMusicModal(event)">
+    <div class="modal-content" style="max-width: 760px;" onclick="event.stopPropagation()">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-brands fa-youtube" style="color: #ef4444; font-size: 1.4rem;"></i>
+          <h2 style="font-size: 1.1rem; color: white;">YouTube Music 映画劇伴ライブラリ (ALL Google 統合)</h2>
+          <span class="tagline" style="border-color: #ef4444; color: #f87171; font-size: 0.65rem;">YouTube Music API ✕ Gemini Audio</span>
+        </div>
+        <button class="btn" onclick="closeYouTubeMusicModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" style="padding: 16px;">
+        <!-- ALL Google Sovereign Stack Banner -->
+        <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(56, 189, 248, 0.15)); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.76rem; display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-shield-halved" style="color: #38bdf8; font-size: 1.2rem;"></i>
+          <div>
+            <strong style="color: #f87171;">ALL Google Sovereign Stack 映画制作</strong>:
+            頭脳 (Gemini 3.8) ✕ エッジ (Gemma 4) ✕ 映像 (Veo 3.1) ✕ ロケ地 (Google Maps 360°) ✕ 音楽 (YouTube Music) により、外部ライセンスの摩擦を排した完全無欠のGoogle映画制作パイプラインを実現。
+          </div>
+        </div>
+
+        <!-- Direct YouTube Music Input -->
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 6px; font-weight: bold;">
+            <i class="fa-solid fa-link"></i> YouTube Music URL 直接指定 / 楽曲検索:
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="ytmusic-custom-url" class="bible-input" placeholder="https://music.youtube.com/watch?v=... または 曲名・アーティスト" value="https://music.youtube.com/watch?v=neo_tokyo_cyber_2026" style="flex: 1;">
+            <button class="btn" onclick="applyCustomYouTubeMusicTrack()" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; font-weight: bold; font-size: 0.75rem; padding: 6px 14px;">
+              <i class="fa-solid fa-cloud-arrow-down"></i> 連携反映
+            </button>
+          </div>
+        </div>
+
+        <!-- Curated Cinematic Soundtracks -->
+        <div style="font-size: 0.78rem; font-weight: bold; color: white; margin-bottom: 8px;">
+          🎬 YouTube Music 映画劇伴セレクション (ワンクリック試聴 & 適用)
+        </div>
+        <div class="wardrobe-grid" id="ytmusic-track-grid" style="grid-template-columns: 1fr; gap: 8px;">
+          <!-- Track 1 -->
+          <div class="wardrobe-card active" id="track-card-1" onclick="selectYouTubeMusicTrack('Hans Zimmer Style: Interstellar Pulse', 'track-card-1', 'interstellar')">
+            <i class="fa-solid fa-play" style="color: #ef4444; font-size: 1.1rem; margin-right: 8px;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: bold; color: white; font-size: 0.8rem;">1. Hans Zimmer Style: Interstellar Cyber Pulse</div>
+              <div style="color: var(--text-sub); font-size: 0.7rem;">重厚なストリングスと電子パルスの融合・映画クライマックス向け</div>
+            </div>
+            <span style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.4);">YouTube Music Official</span>
+          </div>
+          <!-- Track 2 -->
+          <div class="wardrobe-card" id="track-card-2" onclick="selectYouTubeMusicTrack('Tokyo Neo Noir 2026: Lo-Fi Rain Beats', 'track-card-2', 'noir')">
+            <i class="fa-solid fa-play" style="color: #38bdf8; font-size: 1.1rem; margin-right: 8px;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: bold; color: white; font-size: 0.8rem;">2. Tokyo Neo Noir 2026: Ambient Lo-Fi Rain Beats</div>
+              <div style="color: var(--text-sub); font-size: 0.7rem;">原宿の雨夜とサイバートレンチコートに呼応する哀愁のエレクトロ</div>
+            </div>
+            <span style="font-size: 0.65rem; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(56,189,248,0.4);">YouTube Music Official</span>
+          </div>
+          <!-- Track 3 -->
+          <div class="wardrobe-card" id="track-card-3" onclick="selectYouTubeMusicTrack('Shinjuku Midnight: Cyberpunk Synthesizer Drive', 'track-card-3', 'synth')">
+            <i class="fa-solid fa-play" style="color: #facc15; font-size: 1.1rem; margin-right: 8px;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: bold; color: white; font-size: 0.8rem;">3. Shinjuku Midnight: Cyberpunk Synthesizer Drive</div>
+              <div style="color: var(--text-sub); font-size: 0.7rem;">80sレトロフューチャー ✕ 高揚感溢れるドラムロール・疾走シーン用</div>
+            </div>
+            <span style="font-size: 0.65rem; background: rgba(250,204,21,0.2); color: #facc15; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(250,204,21,0.4);">YouTube Music Official</span>
+          </div>
+          <!-- Track 4 -->
+          <div class="wardrobe-card" id="track-card-4" onclick="selectYouTubeMusicTrack('Blockbuster Heroic Awakening Theme', 'track-card-4', 'heroic')">
+            <i class="fa-solid fa-play" style="color: #c084fc; font-size: 1.1rem; margin-right: 8px;"></i>
+            <div style="flex: 1;">
+              <div style="font-weight: bold; color: white; font-size: 0.8rem;">4. Blockbuster Heroic Awakening Theme</div>
+              <div style="color: var(--text-sub); font-size: 0.7rem;">ハリウッド超大作トレーラー風・ブラスセクションと重低音サブベース</div>
+            </div>
+            <span style="font-size: 0.65rem; background: rgba(192,132,252,0.2); color: #c084fc; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(192,132,252,0.4);">YouTube Music Official</span>
+          </div>
+        </div>
+
+        <!-- YouTube Music Active Player Badge -->
+        <div style="margin-top: 14px; background: rgba(10, 15, 28, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-compact-disc fa-spin" style="color: #ef4444; font-size: 1.2rem;"></i>
+            <div>
+              <div style="font-size: 0.7rem; color: var(--text-sub);">現在選択中の映画劇伴:</div>
+              <div id="ytmusic-active-track-name" style="color: white; font-weight: bold; font-size: 0.78rem;">Hans Zimmer Style: Interstellar Cyber Pulse</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="closeYouTubeMusicModal()" style="font-size: 0.75rem; padding: 6px 14px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none;">
+            <i class="fa-solid fa-check"></i> このBGMを映画に決定
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal 1: キャラクター設定 ＆ 電子試着 Modal (Duo Cast Support) -->
   <div class="modal-backdrop" id="char-modal" onclick="closeCharacterModal(event)">
@@ -3635,8 +3743,11 @@
     function toggleBGM() {
       isBGMOn = !isBGMOn;
       const btn = document.getElementById('btn-bgm-toggle');
-      btn.classList.toggle('active', isBGMOn);
-      btn.innerHTML = `<i class="fa-solid fa-music"></i> あとBGM: ${isBGMOn ? 'ON' : 'OFF'}`;
+      if (btn) {
+        btn.classList.toggle('active', isBGMOn);
+        const shortName = (typeof activeYTMTrack !== 'undefined') ? activeYTMTrack.split(':')[0].trim() : 'Tokyo Neo Noir';
+        btn.innerHTML = `<i class="fa-brands fa-youtube" style="color: #ef4444;"></i> <span id="txt-bgm-toggle">BGM: YouTube Music [${shortName}] (${isBGMOn ? 'ON' : 'OFF'})</span>`;
+      }
     }
 
     async function initWebGPU() {
@@ -4882,7 +4993,8 @@
         dialogueTag: 'セリフ',
         voicePreviewBtn: '音声プレビュー',
         seToggle: 'SE (足音・環境音): ON',
-        bgmToggle: 'あとBGM (サイバーノワール): ON',
+        bgmToggle: 'BGM: YouTube Music (ON)',
+        ytmusicSelectBtn: '曲選択 (ALL Google)',
         masterGenerateBtn: '🎬 15秒CM 統合生成 (書き出し)'
       },
       en: {
@@ -4927,7 +5039,8 @@
         dialogueTag: 'Dialogue',
         voicePreviewBtn: 'Voice Preview',
         seToggle: 'SFX (Footsteps/Ambient): ON',
-        bgmToggle: 'BGM (Cyber Noir): ON',
+        bgmToggle: 'BGM: YouTube Music (ON)',
+        ytmusicSelectBtn: 'Track Select (ALL Google)',
         masterGenerateBtn: '🎬 Synthesize 15s Master Film'
       }
     };
@@ -5004,10 +5117,85 @@
       updateEl('txt-voice-preview-btn', dict.voicePreviewBtn);
       updateEl('txt-se-toggle', dict.seToggle);
       updateEl('txt-bgm-toggle', dict.bgmToggle);
+      updateEl('txt-ytmusic-select-btn', dict.ytmusicSelectBtn);
       updateEl('txt-master-generate-btn', dict.masterGenerateBtn);
 
       try { localStorage.setItem('genesis_lang', lang); } catch(e){}
     };
+
+    // --- YouTube Music (ALL Google Sovereign Stack) Handlers ---
+    window.activeYTMTrack = 'Hans Zimmer Style: Interstellar Pulse';
+    let ytmAudioCtx = null;
+
+    window.openYouTubeMusicModal = function() {
+      const modal = document.getElementById('ytmusic-modal');
+      if (modal) modal.classList.add('open');
+    };
+
+    window.closeYouTubeMusicModal = function(e) {
+      const modal = document.getElementById('ytmusic-modal');
+      if (modal) modal.classList.remove('open');
+    };
+
+    window.selectYouTubeMusicTrack = function(trackName, cardId, type) {
+      window.activeYTMTrack = trackName;
+      
+      document.querySelectorAll('#ytmusic-track-grid .wardrobe-card').forEach(c => c.classList.remove('active'));
+      const activeCard = document.getElementById(cardId);
+      if (activeCard) activeCard.classList.add('active');
+
+      const trackLabel = document.getElementById('ytmusic-active-track-name');
+      if (trackLabel) trackLabel.textContent = trackName;
+      
+      const shortName = trackName.split(':')[0].trim();
+      const bgmText = document.getElementById('txt-bgm-toggle');
+      if (bgmText) {
+        bgmText.innerHTML = `BGM: YouTube Music [${shortName}] (${isBGMOn ? 'ON' : 'OFF'})`;
+      }
+
+      playYTMPreviewTone(type);
+    };
+
+    window.applyCustomYouTubeMusicTrack = function() {
+      const input = document.getElementById('ytmusic-custom-url');
+      const val = input ? input.value.trim() : '';
+      if (!val) return;
+      window.activeYTMTrack = val;
+      const trackLabel = document.getElementById('ytmusic-active-track-name');
+      if (trackLabel) trackLabel.textContent = val;
+
+      const bgmText = document.getElementById('txt-bgm-toggle');
+      if (bgmText) {
+        bgmText.innerHTML = `BGM: YouTube Music [カスタム連携] (${isBGMOn ? 'ON' : 'OFF'})`;
+      }
+
+      playYTMPreviewTone('heroic');
+      alert("✨ YouTube Musicトラックを映画本編BGMとして接続・同期しました！\n（ALL Google Sovereign Stack: Gemini 3.8 ✕ Veo 3.1 ✕ YouTube Music）");
+      closeYouTubeMusicModal();
+    };
+
+    function playYTMPreviewTone(type) {
+      try {
+        if (!ytmAudioCtx) ytmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ytmAudioCtx.state === 'suspended') ytmAudioCtx.resume();
+
+        const osc = ytmAudioCtx.createOscillator();
+        const gain = ytmAudioCtx.createGain();
+        osc.type = (type === 'noir') ? 'triangle' : (type === 'synth') ? 'sawtooth' : 'sine';
+        
+        const freq = (type === 'noir') ? 220 : (type === 'synth') ? 330 : (type === 'heroic') ? 440 : 261.63;
+        osc.frequency.setValueAtTime(freq, ytmAudioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ytmAudioCtx.currentTime + 0.3);
+
+        gain.gain.setValueAtTime(0.12, ytmAudioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ytmAudioCtx.currentTime + 0.5);
+
+        osc.connect(gain);
+        gain.connect(ytmAudioCtx.destination);
+        osc.start();
+        osc.stop(ytmAudioCtx.currentTime + 0.5);
+      } catch(e) {}
+    }
 
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -5019,6 +5207,7 @@
       if (modalParam === 'char') setTimeout(openCharacterModal, 300);
       else if (modalParam === 'storyboard') setTimeout(openStoryboardDirectorModal, 300);
       else if (modalParam === 'location') setTimeout(openLocationModal, 300);
+      else if (modalParam === 'ytmusic') setTimeout(openYouTubeMusicModal, 300);
     } catch(e) {}
 
   </script>

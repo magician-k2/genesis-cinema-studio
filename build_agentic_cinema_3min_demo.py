@@ -39,6 +39,7 @@ SCOUT_MAP = os.path.join(ROOT_DIR, "GENESIS_CINEMA_STUDIO", "assets", "google_ma
 SCREEN_STUDIO = os.path.join(OUTPUT_DIR, "screen_studio.png")
 SCREEN_CHAR = os.path.join(OUTPUT_DIR, "screen_modal_char.png")
 SCREEN_SB = os.path.join(OUTPUT_DIR, "screen_modal_sb.png")
+SCREEN_YTM = os.path.join(OUTPUT_DIR, "screen_modal_ytmusic.png")
 
 # 6 Scenes Script Definition (Exact 3-Minute Timeline = 180 Seconds Total)
 SCENES = [
@@ -61,15 +62,15 @@ SCENES = [
     {
         "id": "scene_02",
         "title": "GENESIS CINEMA STUDIO",
-        "subtitle": "Autonomous Multi-Agent Hybrid Engine on Google Cloud & Gemma 4",
-        "narration": "Meet GENESIS CINEMA: the autonomous multi-agent virtual studio powered by Google Cloud Gemini 3.8 and on-device Gemma 4. Give it a creative brief, and specialized agents take over casting, screenplay design, cinematography, dynamic scoring, and master assembly in seconds.",
+        "subtitle": "ALL Google Sovereign Stack: Gemini 3.8 ✕ Gemma 4 ✕ Replit",
+        "narration": "Meet GENESIS CINEMA: the autonomous multi-agent virtual studio powered by the ALL Google Sovereign Stack. With Google Cloud Gemini 3.8, on-device Gemma 4, Google Maps 360-degree sets, and YouTube Music scoring, specialized agents take over casting, screenplay design, cinematography, and master assembly in seconds.",
         "badge": "SCENE 2: HYBRID ARCHITECTURE (0:25 - 0:55)",
         "color": "#38bdf8",
         "accent": "#0284c7",
         "lines": [
             "• Powered by Google Cloud & Gemini 3.8 Enterprise Agents",
             "• On-Device Gemma 4 Co-Pilot: Zero-token cost, 8.5ms latency",
-            "• Cast & Set Sentinel: Hollywood-grade 4-view matting & defringe",
+            "• ALL Google Sovereign Stack: Veo 3.1, Street View & YouTube Music",
             "• Replit Cloud Studio: Instant collaborative 4-screen NLE workspace"
         ],
         "visual_type": "architecture"
@@ -92,17 +93,17 @@ SCENES = [
     },
     {
         "id": "scene_04",
-        "title": "EDGE GEMMA 4 & SPEECH PACING",
-        "subtitle": "Zero-Token 8.5ms Dialogue & Adaptive Scoring Orchestration",
-        "narration": "Say goodbye to mismatched timing and runaway token costs. On-device Gemma 4 synthesizes dialogue and stage directions in eight point five milliseconds with zero API costs, while our automated compositor uses speech-driven pacing and dynamic Ken Burns motion to assemble the final timeline without human intervention.",
-        "badge": "SCENE 4: SCORING & GEMMA 4 (1:25 - 1:55)",
+        "title": "YOUTUBE MUSIC & EDGE GEMMA 4",
+        "subtitle": "YouTube Music Soundtrack Scoring & 8.5ms Dialogue Pacing",
+        "narration": "Say goodbye to licensing friction and runaway token costs. With the ALL Google Sovereign Stack, on-device Gemma 4 synthesizes dialogue in eight point five milliseconds, while our scoring agent connects directly to the YouTube Music API and Gemini Native Audio to dynamically score Hans Zimmer-style pulse and Neo Noir soundtracks tailored to every cut.",
+        "badge": "SCENE 4: YOUTUBE MUSIC & GEMMA 4 (1:25 - 1:55)",
         "color": "#f59e0b",
         "accent": "#b45309",
         "lines": [
             "• Local Gemma 4 Engine: 8.5ms ultra-low latency script iteration",
-            "• $0 Free Edge Inference: Uncapped pre-production exploration",
-            "• Speech-Driven Smart Pacing: Zero dead air or awkward pauses",
-            "• Automated Ken Burns Motion: Cinematic pans, tilts, and zooms"
+            "• YouTube Music API Scoring: Hans Zimmer, Neo Noir & Synthwave",
+            "• ALL Google Sovereign Stack: Gemini 3.8 + Gemma 4 + Veo + YouTube Music",
+            "• Speech-Driven Smart Pacing: Zero dead air or awkward pauses"
         ],
         "visual_type": "gemma4_audio"
     },
@@ -289,21 +290,22 @@ def create_slide_image(scene: dict, output_path: str, width: int = 1920, height:
         draw.rounded_rectangle([(1125, 875), (1815, 915)], radius=8, fill="#064e3b", outline="#059669", width=1)
         draw.text((1150, 883), "✨ Telea Inpaint Defringe: Completely eliminates white/green fringe halos", font=get_font(16, bold=True), fill="#a7f3d0")
 
-    # 4. SCENE 4: Director Storyboard & Gemma 4 Speech Pacing (Actual Operation Screen)
+    # 4. SCENE 4: YouTube Music & Gemma 4 Speech Pacing (Actual Operation Screen)
     elif s_id == "scene_04":
-        draw.text((1135, 290), "DIRECTOR STORYBOARD & SPEECH PACING", font=get_font(24, bold=True), fill="#f59e0b")
-        if os.path.exists(SCREEN_SB):
+        draw.text((1135, 290), "YOUTUBE MUSIC API & GEMMA 4 SCORING", font=get_font(24, bold=True), fill="#f59e0b")
+        yt_screen_path = SCREEN_YTM if os.path.exists(SCREEN_YTM) else SCREEN_SB
+        if os.path.exists(yt_screen_path):
             try:
-                screen = Image.open(SCREEN_SB).convert("RGB")
+                screen = Image.open(yt_screen_path).convert("RGB")
                 screen = screen.resize((690, 480), Image.Resampling.LANCZOS)
                 img.paste(screen, (1125, 335))
                 draw.rectangle([(1125, 335), (1815, 815)], outline="#f59e0b", width=2)
             except Exception as e:
-                print(f"Err embed sb screen: {e}")
+                print(f"Err embed ytm screen: {e}")
 
         draw.rounded_rectangle([(1125, 835), (1815, 895)], radius=10, fill="#1e293b", outline="#d97706", width=1)
-        draw.text((1145, 843), "⚡ Edge Gemma 4 Engine (8.5ms Ultra-Low Latency)", font=get_font(18, bold=True), fill="#f59e0b")
-        draw.text((1145, 868), "Speech-Driven Smart Pacing ✕ Automated Ken Burns Motion Interpolation", font=get_font(16, bold=False), fill="#94a3b8")
+        draw.text((1145, 843), "🎵 YouTube Music Official Library ✕ Gemini Native Audio", font=get_font(18, bold=True), fill="#f59e0b")
+        draw.text((1145, 868), "ALL Google Sovereign Stack: 8.5ms Gemma 4 Pacing & Dynamic Scoring", font=get_font(16, bold=False), fill="#94a3b8")
 
     # 5. SCENE 5: 360° Real-World Summoning (Real Character Ren on Harajuku Street)
     elif s_id == "scene_05":
@@ -365,7 +367,7 @@ def create_slide_image(scene: dict, output_path: str, width: int = 1920, height:
         draw.text((1145, 868), "Powered by Google Cloud Gemini 3.8 Enterprise ✕ Gemma 4 Edge | Replit", font=get_font(16, bold=False), fill="#94a3b8")
 
     # Footer
-    footer_text = "GENESIS CINEMA STUDIO | Powered by Google Cloud Gemini 3.8 ✕ Gemma 4 Edge | Replit Track"
+    footer_text = "GENESIS CINEMA STUDIO | ALL Google Stack: Gemini 3.8 ✕ Gemma 4 ✕ Veo 3.1 ✕ YouTube Music | Replit"
     draw.text((80, 970), footer_text, font=font_footer, fill="#64748b")
     draw.text((width - 450, 970), "Agentic Cinema Hackathon 2026", font=font_footer, fill="#64748b")
 

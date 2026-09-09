@@ -2,7 +2,7 @@
 > **Competition**: Agentic Cinema: The Blockbuster Hackathon (Google Cloud & Replit)  
 > **Project Title**: **GENESIS CINEMA: Autonomous Multi-Agent Virtual Production & Studio Suite**  
 > **Target Track**: Replit / Developer Platform Track  
-> **Tagline**: The first autonomous virtual studio platform eliminating character and set consistency drift across cuts, powered by Google Cloud Gemini 3.8 and on-device Gemma 4.
+> **Tagline**: The first autonomous virtual studio platform eliminating character and set consistency drift across cuts, powered by the ALL Google Sovereign Stack: Google Cloud Gemini 3.8, Gemma 4, Veo 3.1, and YouTube Music.
 
 ---
 
@@ -13,11 +13,12 @@ Generative AI video models can produce breathtaking 5-second shots. However, the
 1. **Character & Wardrobe Drift**: Faces morph, clothes shift, and hair colors mutate across cuts.
 2. **Edge Fringe Halos & "Sticker" Effects**: Cutout characters superimposed onto backgrounds exhibit harsh white/green fringing and appear floating without physical contact with the ground.
 3. **Runaway Token Costs & Latency**: Iterating dialogue in cloud-only pipelines incurs expensive API calls and noticeable latency.
+4. **Disconnected Audio & Licensing Friction**: Sourcing background scores and synchronizing lipsync across third-party tools breaks filmmaking flow.
 
-**GENESIS CINEMA** was born to democratize blockbuster filmmaking. We asked: *Can we create an autonomous multi-agent studio where directors drop phone videos or 4-angle photos, extract real human performances via on-device pose estimation, and summon zero-drift characters into 360° real-world Google Street View sets with physical contact shadows—all running seamlessly on Replit?*
+**GENESIS CINEMA** was born to democratize blockbuster filmmaking through an **ALL Google Sovereign Stack**. We asked: *Can we create an autonomous multi-agent studio where directors drop phone videos or 4-angle photos, extract real human performances via on-device pose estimation, summon zero-drift characters into 360° real-world Google Street View sets with physical contact shadows, score cinematic soundtracks via YouTube Music & Gemini Native Audio, and export Google Veo 3.1 production packages—all running seamlessly on Replit?*
 
 ### [日本語要約]
-生成AI動画は美しい5秒クリップを作れますが、映画を作ろうとするとカットごとに顔や衣装が変わり、切り抜き人物は白フチで貼り絵のように浮き、クラウドのトークンコストが跳ね上がります。GENESIS CINEMAは、Google Cloud Gemini 3.8とオンデバイスGemma 4を融合し、スマホ写真や動画から100%一貫したキャラクターと実在の演技を360°実写空間に召喚する「映画制作の完全民主化」を目指して開発されました。
+生成AI動画は美しい5秒クリップを作れますが、映画を作ろうとするとカットごとに顔や衣装が変わり、切り抜き人物は白フチで貼り絵のように浮き、クラウドのトークンコストが跳ね上がります。GENESIS CINEMAは、Google Cloud Gemini 3.8とオンデバイスGemma 4、Google Maps 360°ストリートビュー、YouTube Music、Google Veo 3.1を完全融合した「ALL Google Sovereign Stack」により、スマホ写真や動画から100%一貫したキャラクターと実在の演技・音楽を360°実写空間に召喚する「映画制作の完全民主化」を目指して開発されました。
 
 ---
 
@@ -27,9 +28,11 @@ Generative AI video models can produce breathtaking 5-second shots. However, the
 GENESIS CINEMA is a complete, multi-agent virtual production suite featuring:
 - **Zero-Drift 4-View Cast Vault**: Automatically slices 4-view sheets or normalizes 4 smartphone photos (Front/Right/Back/Left) of real actors or idols, applying **Telea Inpaint Bleed Defringing** to produce 32-bit transparent PNGs free of white fringe halos.
 - **On-Device Motion Capture & Acting Transfer**: Ingests smartphone dance/acting clips or YouTube excerpts, extracts **33-point 3D body landmarks using Google MediaPipe Pose**, and uses **on-device Gemma 4 (8.5ms latency, $0 token cost)** to interpret dynamics into director stage directions and Google Veo 3.1 action prompts.
+- **ALL Google Sovereign Audio & Scoring**: Directly integrates the **YouTube Music API & Library** alongside **Gemini Native Audio** for movie scoring (Hans Zimmer-style pulse, Tokyo Neo Noir Lo-Fi, and cyberpunk synthesizers), eliminating third-party music licensing friction.
 - **GENESIS CINEMA LITE (15-Second Commercial & Virtual Motion Try-On Console)**:
   - Intuitive 4-cut timeline (3-5s clips ✕ 4) designed for instant TikTok/Reels/CM creation.
   - **World-First Virtual Motion Try-On**: Direct e-commerce (EC) wardrobe dressing—actors or user selfies don real brand apparel, enabling users to verify 360° cloth draping and walking silhouettes in a 15-second video, bypassing heavy metaverse 3D avatars.
+  - **Bilingual Japanese/English Switch**: Instant locale toggling for international co-production.
 - **Collaborative 4-Screen Replit NLE**: Provides an instant, zero-setup web workspace featuring Director Cockpit, 4K Screening Theater, Asset Studio, and Storyboard Studio.
 
 ---
@@ -44,6 +47,8 @@ GENESIS CINEMA is a complete, multi-agent virtual production suite featuring:
   - Extracts 33 3D skeletal landmarks at 30fps completely on edge, calculating joint flexion angles (elbows, knees, hips).
 - **Google Gemma 4 On-Device Edge Co-Pilot (`gemma4:e2b-it-qat`)**:
   - Synthesizes rapid dialogue, film stage directions, and self-governing code audits locally via Ollama with **zero token costs and 8.5ms latency**.
+- **YouTube Music & Gemini Native Audio Scoring Engine**:
+  - Connects official YouTube Music soundtracks with algorithmic mood scoring, syncing audio dynamics directly with weather, speech pacing, and camera movements.
 - **Autonomous Self-Evolution & Night Synaptic Consolidation Engine (`core/night_synaptic_consolidator.py`)**:
   - Leverages bio-inspired hippocampal replay and Spike-Timing-Dependent Plasticity (STDP) alongside AST self-healing test synthesis (Gemini Code Assist). Enables GENESIS to autonomously synthesize lightweight client apps, repair code, and reinforce domain mastery while human developers are offline.
 - **Hollywood Telea Defringe Engine (`core/character_matting_engine.py`)**:
@@ -94,13 +99,12 @@ GENESIS CINEMA is a complete, multi-agent virtual production suite featuring:
 ---
 
 ## 🏷️ Built With (使用技術タグ)
-`google-cloud`, `gemini-3.8-pro`, `gemini-3.8-flash`, `gemma-4`, `mediapipe`, `replit`, `python`, `fastapi`, `opencv`, `ffmpeg`, `edge-tts`, `webgpu`, `pillow`, `javascript`, `html5`, `stdp-consolidation`
+`youtube-music`, `google-cloud`, `gemini-3.8-pro`, `gemini-3.8-flash`, `gemma-4`, `google-veo-3.1`, `mediapipe`, `replit`, `python`, `fastapi`, `opencv`, `ffmpeg`, `edge-tts`, `webgpu`, `pillow`, `javascript`, `html5`, `stdp-consolidation`
 
 ---
 
 ## 🔗 Try It Out (リンク・再現手順)
 - **GENESIS CINEMA LITE (Zero-Setup 1-Click Studio)**: [http://localhost:8080/cinema_lite.html](http://localhost:8080/cinema_lite.html)
-- **Replit Web App**: [https://replit.com/@genesis-cinema/genesis-cinema-studio](https://replit.com/@genesis-cinema/genesis-cinema-studio)
-- **GitHub Repository**: [https://github.com/genesis-agent/genesis-cinema-studio](https://github.com/genesis-agent/genesis-cinema-studio)
+- **GitHub Repository**: [https://github.com/magician-k2/genesis-cinema-studio](https://github.com/magician-k2/genesis-cinema-studio)
 - **3-Minute Master Demo Video**: `outputs/GENESIS_Agentic_Cinema_3Min_Demo.mp4`
 - **Autonomous Evolution Chronicle**: `AUTONOMOUS_EVOLUTION_CHRONICLE_4H.md`
