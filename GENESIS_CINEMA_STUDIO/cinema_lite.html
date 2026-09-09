@@ -108,6 +108,37 @@
       padding: 4px 10px;
       border-radius: 9999px;
     }
+    .lang-switch-group {
+      display: inline-flex;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .btn-lang {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-lang:hover {
+      color: #fff;
+    }
+    .btn-lang.active {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #0b1120;
+      font-weight: 800;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
 
     /* Main Grid: User Hand-Drawn Layout */
     main {
@@ -1183,14 +1214,19 @@
       <div>
         <h1>GENESIS CINEMA LITE</h1>
       </div>
-      <span class="tagline">手のひらの15秒映画スタジオ ✕ 電子試着</span>
+      <span class="tagline" id="header-tagline">手のひらの15秒映画スタジオ ✕ 電子試着</span>
     </div>
     <div class="header-actions">
+      <!-- 🇯🇵 / 🇺🇸 Language Switcher -->
+      <div class="lang-switch-group">
+        <button class="btn-lang active" id="btn-lang-ja" onclick="setLanguage('ja')">🇯🇵 JP</button>
+        <button class="btn-lang" id="btn-lang-en" onclick="setLanguage('en')">🇺🇸 EN</button>
+      </div>
       <button class="btn btn-badge-autonomous" onclick="openChronicleModal()">
-        <i class="fa-solid fa-brain"></i> 4h自律開発エピソード
+        <i class="fa-solid fa-brain"></i> <span id="txt-header-chronicle">4h自律開発エピソード</span>
       </button>
       <a href="/character_studio.html" class="btn" title="Open Full Studio">
-        <i class="fa-solid fa-up-right-from-square"></i> Pro版へ移行
+        <i class="fa-solid fa-up-right-from-square"></i> <span id="txt-header-pro">Pro版へ移行</span>
       </a>
     </div>
   </header>
@@ -1203,24 +1239,24 @@
       <div class="monitor-card">
         <div class="monitor-header">
           <div class="monitor-title">
-            <i class="fa-solid fa-clapperboard"></i> メインモニター (ARRI Alexa LF 35mm リアルタイムプレビュー)
+            <i class="fa-solid fa-clapperboard"></i> <span id="txt-monitor-title">メインモニター (ARRI Alexa LF 35mm リアルタイムプレビュー)</span>
           </div>
           <!-- Aspect Switch Toggle (16:9 / 9:16) -->
           <div class="aspect-switch-group">
             <button class="btn-aspect active" id="btn-aspect-16-9" onclick="setAspect('16-9')">
-              <i class="fa-solid fa-desktop"></i> 16:9 横 (映画)
+              <i class="fa-solid fa-desktop"></i> <span id="txt-aspect-16-9">16:9 横 (映画)</span>
             </button>
             <button class="btn-aspect" id="btn-aspect-9-16" onclick="setAspect('9-16')">
-              <i class="fa-solid fa-mobile-screen"></i> 9:16 縦 (TikTok/リール)
+              <i class="fa-solid fa-mobile-screen"></i> <span id="txt-aspect-9-16">9:16 縦 (TikTok/リール)</span>
             </button>
           </div>
         </div>
 
         <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
           <div>
-            Cast: <span id="current-actor-name" style="color: white; font-weight: bold;">如月 蓮 (Ren)</span>
+            <span id="lbl-header-cast">Cast:</span> <span id="current-actor-name" style="color: white; font-weight: bold;">如月 蓮 (Ren)</span>
             <span id="cast2-header-badge" style="display: none; color: #c084fc;"> ✕ 涼宮 まゆ (Mayu)</span> | 
-            衣装: <span id="current-wardrobe-name" style="color: #f43f5e; font-weight: bold;">ノワール・トレンチコート</span>
+            <span id="lbl-header-wardrobe">衣装:</span> <span id="current-wardrobe-name" style="color: #f43f5e; font-weight: bold;">ノワール・トレンチコート</span>
             <span id="awaken-status-badge" style="display: none; background: #eab308; color: #000; font-weight: bold; padding: 1px 6px; border-radius: 4px; margin-left: 6px; font-size: 0.65rem;">⚡ 覚醒中</span>
           </div>
           <!-- Cast Layout & Awakening Selector -->
@@ -1266,14 +1302,14 @@
         <!-- Quick 360 Turntable Slider bar -->
         <div class="monitor-controls-bar">
           <i class="fa-solid fa-arrows-rotate" style="color: var(--accent-cyan); font-size: 0.85rem;"></i>
-          <span style="font-size: 0.75rem; color: var(--text-sub); white-space: nowrap;">360°カメラ回転:</span>
+          <span style="font-size: 0.75rem; color: var(--text-sub); white-space: nowrap;" id="txt-turntable-label">360°カメラ回転:</span>
           <input type="range" id="turntable-slider" min="0" max="360" value="0" step="5">
           <div class="angle-badge" id="angle-text">0°</div>
           <button class="btn" onclick="toggleTurntableAutoSpin()" id="btn-autospin" style="padding: 3px 10px; font-size: 0.75rem;">
             <i class="fa-solid fa-play"></i> Auto Spin
           </button>
           <button class="btn" onclick="cycleCrowdExtrasMode()" id="btn-crowd-extras" style="padding: 3px 10px; font-size: 0.75rem; border-color: rgba(245, 158, 11, 0.4); margin-left: auto;">
-            <i class="fa-solid fa-person-walking" style="color: #facc15;"></i> エキストラ: <span id="crowd-extras-mode-text" style="color: #facc15; font-weight: bold;">歩行中 (4名)</span>
+            <i class="fa-solid fa-person-walking" style="color: #facc15;"></i> <span id="txt-extras-title">エキストラ:</span> <span id="crowd-extras-mode-text" style="color: #facc15; font-weight: bold;">歩行中 (4名)</span>
           </button>
         </div>
       </div>
@@ -1284,17 +1320,17 @@
         <div class="setting-card" onclick="openCharacterModal()">
           <div class="setting-card-header">
             <div class="setting-card-title">
-              <i class="fa-solid fa-user-astronaut" style="color: #c084fc;"></i> キャラクター設定 ＆ 電子試着
+              <i class="fa-solid fa-user-astronaut" style="color: #c084fc;"></i> <span id="txt-card1-title">キャラクター設定 ＆ 電子試着</span>
             </div>
-            <span class="setting-card-badge" style="background: rgba(192,132,252,0.15); color: #c084fc;">
+            <span class="setting-card-badge" id="txt-card1-badge" style="background: rgba(192,132,252,0.15); color: #c084fc;">
               2名まで (Lite版)
             </span>
           </div>
           <div class="setting-card-body" id="setting-card-char-summary">
-            ・メインキャスト: <strong id="summary-cast-name">如月 蓮 (Ren)</strong><br>
-            ・👗 <strong>試着中衣装</strong>: <span id="summary-wardrobe-name" style="color: #f43f5e; font-weight: bold;">ノワール・トレンチコート</span><br>
-            ・モード: <span id="summary-cast-mode" style="color: var(--accent-cyan);">通常モード</span><br>
-            <span style="color: var(--accent-cyan); font-size: 0.7rem;">👉 クリックしてキャスト選択 ＆ 試着チェンジ</span>
+            ・<span id="txt-card1-lead">メインキャスト:</span> <strong id="summary-cast-name">如月 蓮 (Ren)</strong><br>
+            ・👗 <strong id="txt-card1-tryon">試着中衣装</strong>: <span id="summary-wardrobe-name" style="color: #f43f5e; font-weight: bold;">ノワール・トレンチコート</span><br>
+            ・<span id="txt-card1-mode">モード:</span> <span id="summary-cast-mode" style="color: var(--accent-cyan);">通常モード</span><br>
+            <span style="color: var(--accent-cyan); font-size: 0.7rem;" id="txt-card1-hint">👉 クリックしてキャスト選択 ＆ 試着チェンジ</span>
           </div>
         </div>
 
@@ -1302,18 +1338,18 @@
         <div class="setting-card" id="storyboard-studio-card" onclick="openStoryboardDirectorModal()" style="border-color: rgba(245, 158, 11, 0.35); background: linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(245, 158, 11, 0.08) 100%);">
           <div class="setting-card-header">
             <div class="setting-card-title">
-              <i class="fa-solid fa-clapperboard" style="color: #f59e0b;"></i> 🎬 絵コンテ＆演出台本
+              <i class="fa-solid fa-clapperboard" style="color: #f59e0b;"></i> <span id="txt-card2-title">🎬 絵コンテ＆演出台本</span>
             </div>
-            <span class="setting-card-badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.3);">
+            <span class="setting-card-badge" id="txt-card2-badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.3);">
               監督モード (4カット制御)
             </span>
           </div>
-          <div class="setting-card-body">
+          <div class="setting-card-body" id="txt-card2-body">
             ・<strong>ロケ地＆天候</strong>: 夕焼け / 雨 / 台風 / 宇宙 / 月面<br>
             ・<strong>カメラ</strong>: ドリーイン / パン / 手ブレ臨場感<br>
             ・<strong>光と影</strong>: 逆光リムライト / 影の向き / F1.4被写界深度<br>
             ・<strong>演技</strong>: 表情 / リップシンク / セリフの呼吸・間<br>
-            <span style="color: #f59e0b; font-size: 0.7rem; font-weight: bold;">👉 クリックして絵コンテ＆台本をディレクション</span>
+            <span style="color: #f59e0b; font-size: 0.7rem; font-weight: bold;" id="txt-card2-hint">👉 クリックして絵コンテ＆台本をディレクション</span>
           </div>
         </div>
 
@@ -1321,17 +1357,17 @@
         <div class="setting-card" onclick="openLocationModal()">
           <div class="setting-card-header">
             <div class="setting-card-title">
-              <i class="fa-solid fa-mountain-sun" style="color: var(--accent-cyan);"></i> ロケ地設定 (3大ソース)
+              <i class="fa-solid fa-mountain-sun" style="color: var(--accent-cyan);"></i> <span id="txt-card3-title">ロケ地設定 (3大ソース)</span>
             </div>
-            <span class="setting-card-badge" style="background: rgba(56,189,248,0.15); color: var(--accent-cyan);">
+            <span class="setting-card-badge" id="txt-card3-badge" style="background: rgba(56,189,248,0.15); color: var(--accent-cyan);">
               360°実写/3D
             </span>
           </div>
-          <div class="setting-card-body">
+          <div class="setting-card-body" id="txt-card3-body">
             <strong>1. ストリートビュー</strong> (ロンドン ビッグベン / 浅草 / 鈴鹿)<br>
             <strong>2. 手持ち画像・写真</strong> (スマホ写真を2D➔3D深度化)<br>
             <strong>3. プロンプト生成</strong> (ありえないカオス設定 / 1000人阿波踊り)<br>
-            <span style="color: var(--accent-cyan); font-size: 0.7rem;">👉 クリックしてロケ地を選択・召喚</span>
+            <span style="color: var(--accent-cyan); font-size: 0.7rem;" id="txt-card3-hint">👉 クリックしてロケ地を選択・召喚</span>
           </div>
         </div>
 
@@ -1359,14 +1395,14 @@
     <div class="timeline-console-card">
       <div class="timeline-header">
         <div class="timeline-title">
-          <i class="fa-solid fa-film"></i> 15秒CM 4カット・タイムライン (3〜5秒 ✕ 4本)
+          <i class="fa-solid fa-film"></i> <span id="txt-timeline-title">15秒CM 4カット・タイムライン (3〜5秒 ✕ 4本)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
           <div style="font-size: 0.72rem; color: var(--text-sub);">
-            合計尺: <span id="sb-total-runtime" style="color: #f59e0b; font-weight: bold;">15.0秒</span> (TikTok / リール最適化)
+            <span id="txt-timeline-total-lbl">合計尺:</span> <span id="sb-total-runtime" style="color: #f59e0b; font-weight: bold;">15.0秒</span> <span id="txt-timeline-opt">(TikTok / リール最適化)</span>
           </div>
           <button class="btn btn-primary" id="btn-play-all-cuts" onclick="playFull15SecondCinema()" style="font-size: 0.72rem; padding: 4px 12px; background: linear-gradient(135deg, #f59e0b, #ea580c); border: none; border-radius: 6px; color: white; cursor: pointer; display: flex; align-items: center; gap: 5px; font-weight: bold;">
-            <i class="fa-solid fa-play"></i> ▶️ 4カット通し上映 (15秒CMプレビュー)
+            <i class="fa-solid fa-play"></i> <span id="txt-play-all-label">▶️ 4カット通し上映 (15秒CMプレビュー)</span>
           </button>
         </div>
       </div>
@@ -1374,33 +1410,33 @@
       <!-- 4-Cut Clips (動 動 動 動) -->
       <div class="clips-grid">
         <div class="clip-box active" onclick="selectCut(0)">
-          <div class="clip-label"><i class="fa-solid fa-play"></i> カット1 (動)</div>
+          <div class="clip-label"><i class="fa-solid fa-play"></i> <span id="txt-clip-1-lbl">カット1 (動)</span></div>
           <img class="clip-thumb" src="/characters/ren/front.png" alt="Cut 1">
-          <div class="clip-duration">3.5秒 | 正面アプローチ</div>
+          <div class="clip-duration" id="txt-clip-1-dur">3.5秒 | 正面アプローチ</div>
         </div>
         <div class="clip-box" onclick="selectCut(1)">
-          <div class="clip-label"><i class="fa-solid fa-play"></i> カット2 (動)</div>
+          <div class="clip-label"><i class="fa-solid fa-play"></i> <span id="txt-clip-2-lbl">カット2 (動)</span></div>
           <img class="clip-thumb" src="/characters/ren/right.png" alt="Cut 2">
-          <div class="clip-duration">4.0秒 | 右側面ウォーキング</div>
+          <div class="clip-duration" id="txt-clip-2-dur">4.0秒 | 右側面ウォーキング</div>
         </div>
         <div class="clip-box" onclick="selectCut(2)">
-          <div class="clip-label"><i class="fa-solid fa-play"></i> カット3 (動)</div>
+          <div class="clip-label"><i class="fa-solid fa-play"></i> <span id="txt-clip-3-lbl">カット3 (動)</span></div>
           <img class="clip-thumb" src="/characters/ren/back.png" alt="Cut 3">
-          <div class="clip-duration">3.5秒 | 背面ターン & 裾揺れ</div>
+          <div class="clip-duration" id="txt-clip-3-dur">3.5秒 | 背面ターン & 裾揺れ</div>
         </div>
         <div class="clip-box" onclick="selectCut(3)">
-          <div class="clip-label"><i class="fa-solid fa-play"></i> カット4 (動)</div>
+          <div class="clip-label"><i class="fa-solid fa-play"></i> <span id="txt-clip-4-lbl">カット4 (動)</span></div>
           <img class="clip-thumb" src="/characters/ren/left.png" alt="Cut 4">
-          <div class="clip-duration">4.0秒 | 決め台詞 & タイトル</div>
+          <div class="clip-duration" id="txt-clip-4-dur">4.0秒 | 決め台詞 & タイトル</div>
         </div>
       </div>
 
       <!-- Dialogue Input Bar (セリフ) -->
       <div class="dialogue-bar">
-        <span class="dialogue-tag"><i class="fa-solid fa-comment-dots"></i> セリフ (Cut <span id="current-cut-idx">1</span>):</span>
+        <span class="dialogue-tag"><i class="fa-solid fa-comment-dots"></i> <span id="txt-dialogue-tag">セリフ</span> (Cut <span id="current-cut-idx">1</span>):</span>
         <input type="text" class="dialogue-input" id="cut-dialogue-input" value="『予定通りだ。全神経回路、同期完了。』">
         <button class="btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="speakCurrentDialogue()">
-          <i class="fa-solid fa-volume-high"></i> 音声プレビュー
+          <i class="fa-solid fa-volume-high"></i> <span id="txt-voice-preview-btn">音声プレビュー</span>
         </button>
       </div>
 
@@ -1408,14 +1444,14 @@
       <div class="timeline-footer">
         <div class="audio-controls">
           <button class="btn-audio active" id="btn-se-toggle" onclick="toggleSE()">
-            <i class="fa-solid fa-bell"></i> SE (足音・環境音): ON
+            <i class="fa-solid fa-bell"></i> <span id="txt-se-toggle">SE (足音・環境音): ON</span>
           </button>
           <button class="btn-audio active" id="btn-bgm-toggle" onclick="toggleBGM()">
-            <i class="fa-solid fa-music"></i> あとBGM (サイバーノワール): ON
+            <i class="fa-solid fa-music"></i> <span id="txt-bgm-toggle">あとBGM (サイバーノワール): ON</span>
           </button>
         </div>
         <button class="btn-master-generate" onclick="generateFinalMovie()">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> 🎬 15秒CM 統合生成 (書き出し)
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="txt-master-generate-btn">🎬 15秒CM 統合生成 (書き出し)</span>
         </button>
       </div>
     </div>
@@ -4799,6 +4835,191 @@
         alert("SNS共有テキストをコピーしました！");
       });
     };
+
+    // --- Internationalization (JA / EN) Switcher ---
+    window.currentAppLang = 'ja';
+
+    const I18N_DICT = {
+      ja: {
+        tagline: '手のひらの15秒映画スタジオ ✕ 電子試着',
+        chronicleBtn: '4h自律開発エピソード',
+        proBtn: 'Pro版へ移行',
+        monitorTitle: 'メインモニター (ARRI Alexa LF 35mm リアルタイムプレビュー)',
+        aspect169: '16:9 横 (映画)',
+        aspect916: '9:16 縦 (TikTok/リール)',
+        castLbl: 'Cast:',
+        wardrobeLbl: '衣装:',
+        awakenBtn: '⚡ 覚醒スイッチ',
+        solo1Btn: '👤 キャスト1',
+        duoBtn: '👥 2人並び (掛け合い)',
+        solo2Btn: '👤 キャスト2',
+        turntableLbl: '360°カメラ回転:',
+        extrasTitle: 'エキストラ:',
+        card1Title: 'キャラクター設定 ＆ 電子試着',
+        card1Badge: '2名まで (Lite版)',
+        card1Lead: 'メインキャスト:',
+        card1Tryon: '試着中衣装',
+        card1Mode: 'モード:',
+        card1Hint: '👉 クリックしてキャスト選択 ＆ 試着チェンジ',
+        card2Title: '🎬 絵コンテ＆演出台本',
+        card2Badge: '監督モード (4カット制御)',
+        card2Body: '・<strong>ロケ地＆天候</strong>: 夕焼け / 雨 / 台風 / 宇宙 / 月面<br>・<strong>カメラ</strong>: ドリーイン / パン / 手ブレ臨場感<br>・<strong>光と影</strong>: 逆光リムライト / 影の向き / F1.4被写界深度<br>・<strong>演技</strong>: 表情 / リップシンク / セリフの呼吸・間<br><span style="color: #f59e0b; font-size: 0.7rem; font-weight: bold;">👉 クリックして絵コンテ＆台本をディレクション</span>',
+        card3Title: 'ロケ地設定 (3大ソース)',
+        card3Badge: '360°実写/3D',
+        card3Body: '<strong>1. ストリートビュー</strong> (ロンドン ビッグベン / 浅草 / 鈴鹿)<br><strong>2. 手持ち画像・写真</strong> (スマホ写真を2D➔3D深度化)<br><strong>3. プロンプト生成</strong> (ありえないカオス設定 / 1000人阿波踊り)<br><span style="color: var(--accent-cyan); font-size: 0.7rem;">👉 クリックしてロケ地を選択・召喚</span>',
+        timelineTitle: '15秒CM 4カット・タイムライン (3〜5秒 ✕ 4本)',
+        timelineTotalLbl: '合計尺:',
+        timelineOpt: '(TikTok / リール最適化)',
+        playAllLabel: '▶️ 4カット通し上映 (15秒CMプレビュー)',
+        clip1Lbl: 'カット1 (動)',
+        clip1Dur: '3.5秒 | 正面アプローチ',
+        clip2Lbl: 'カット2 (動)',
+        clip2Dur: '4.0秒 | 右側面ウォーキング',
+        clip3Lbl: 'カット3 (動)',
+        clip3Dur: '3.5秒 | 背面ターン & 裾揺れ',
+        clip4Lbl: 'カット4 (動)',
+        clip4Dur: '4.0秒 | 決め台詞 & タイトル',
+        dialogueTag: 'セリフ',
+        voicePreviewBtn: '音声プレビュー',
+        seToggle: 'SE (足音・環境音): ON',
+        bgmToggle: 'あとBGM (サイバーノワール): ON',
+        masterGenerateBtn: '🎬 15秒CM 統合生成 (書き出し)'
+      },
+      en: {
+        tagline: 'Pocket 15s AI Cinema Studio ✕ Virtual Try-On',
+        chronicleBtn: '4h Autonomous Log',
+        proBtn: 'Switch to Pro',
+        monitorTitle: 'Main Monitor (ARRI Alexa LF 35mm Real-Time Preview)',
+        aspect169: '16:9 Wide (Cinema)',
+        aspect916: '9:16 Vertical (Reels/TikTok)',
+        castLbl: 'Cast:',
+        wardrobeLbl: 'Wardrobe:',
+        awakenBtn: '⚡ Awakening Mode',
+        solo1Btn: '👤 Cast 1',
+        duoBtn: '👥 Duo (Dialog)',
+        solo2Btn: '👤 Cast 2',
+        turntableLbl: '360° Camera Turntable:',
+        extrasTitle: 'Crowd Extras:',
+        card1Title: 'Cast Profile & Virtual Try-On',
+        card1Badge: 'Up to 2 Actors (Lite)',
+        card1Lead: 'Lead Cast:',
+        card1Tryon: 'Fitted Wardrobe',
+        card1Mode: 'Mode:',
+        card1Hint: '👉 Click to Select Cast & Change Wardrobe',
+        card2Title: '🎬 Storyboard & Directing Script',
+        card2Badge: 'Director Mode (4 Cuts)',
+        card2Body: '・<strong>Location & Weather</strong>: Sunset / Rain / Storm / Space / Moon<br>・<strong>Camera Rig</strong>: Dolly In / Pan / Organic Shake<br>・<strong>Lighting & Shadow</strong>: Rim Backlight / Direction / F1.4 Bokeh<br>・<strong>Acting</strong>: Expression / Lip-sync / Pacing & Breaths<br><span style="color: #f59e0b; font-size: 0.7rem; font-weight: bold;">👉 Click to Direct Storyboard & Lines</span>',
+        card3Title: 'Location Scout (3 Prime Sources)',
+        card3Badge: '360° Live / 3D',
+        card3Body: '<strong>1. Street View</strong> (London Big Ben / Asakusa / Suzuka)<br><strong>2. Photo Uplink</strong> (Phone snap transformed to 3D depth)<br><strong>3. AI Prompt</strong> (Surreal chaos / 1000 dancer festival)<br><span style="color: var(--accent-cyan); font-size: 0.7rem;">👉 Click to Scout & Summon Sets</span>',
+        timelineTitle: '15-Second Commercial 4-Cut Timeline (3~4s ✕ 4 Cuts)',
+        timelineTotalLbl: 'Total Runtime:',
+        timelineOpt: '(TikTok / Reels Optimized)',
+        playAllLabel: '▶️ Play All 4 Cuts (15s Cinema Preview)',
+        clip1Lbl: 'Cut 1 (Action)',
+        clip1Dur: '3.5s | Front Approach',
+        clip2Lbl: 'Cut 2 (Action)',
+        clip2Dur: '4.0s | Profile Walking',
+        clip3Lbl: 'Cut 3 (Action)',
+        clip3Dur: '3.5s | Back Turn & Coat Flare',
+        clip4Lbl: 'Cut 4 (Action)',
+        clip4Dur: '4.0s | Key Line & Title',
+        dialogueTag: 'Dialogue',
+        voicePreviewBtn: 'Voice Preview',
+        seToggle: 'SFX (Footsteps/Ambient): ON',
+        bgmToggle: 'BGM (Cyber Noir): ON',
+        masterGenerateBtn: '🎬 Synthesize 15s Master Film'
+      }
+    };
+
+    window.setLanguage = function(lang) {
+      window.currentAppLang = lang;
+      const dict = I18N_DICT[lang] || I18N_DICT.ja;
+
+      const btnJa = document.getElementById('btn-lang-ja');
+      const btnEn = document.getElementById('btn-lang-en');
+      if (btnJa && btnEn) {
+        if (lang === 'en') {
+          btnEn.classList.add('active');
+          btnJa.classList.remove('active');
+        } else {
+          btnJa.classList.add('active');
+          btnEn.classList.remove('active');
+        }
+      }
+
+      const updateEl = (id, val, isHtml=false) => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (isHtml) el.innerHTML = val;
+          else el.textContent = val;
+        }
+      };
+
+      updateEl('header-tagline', dict.tagline);
+      updateEl('txt-header-chronicle', dict.chronicleBtn);
+      updateEl('txt-header-pro', dict.proBtn);
+      updateEl('txt-monitor-title', dict.monitorTitle);
+      updateEl('txt-aspect-16-9', dict.aspect169);
+      updateEl('txt-aspect-9-16', dict.aspect916);
+      updateEl('lbl-header-cast', dict.castLbl);
+      updateEl('lbl-header-wardrobe', dict.wardrobeLbl);
+      updateEl('btn-awaken-toggle', dict.awakenBtn);
+      updateEl('btn-mode-solo1', dict.solo1Btn);
+      updateEl('btn-mode-duo', dict.duoBtn);
+      updateEl('btn-mode-solo2', dict.solo2Btn);
+      updateEl('txt-turntable-label', dict.turntableLbl);
+      updateEl('txt-extras-title', dict.extrasTitle);
+
+      updateEl('txt-card1-title', dict.card1Title);
+      updateEl('txt-card1-badge', dict.card1Badge);
+      updateEl('txt-card1-lead', dict.card1Lead);
+      updateEl('txt-card1-tryon', dict.card1Tryon);
+      updateEl('txt-card1-mode', dict.card1Mode);
+      updateEl('txt-card1-hint', dict.card1Hint);
+
+      updateEl('txt-card2-title', dict.card2Title);
+      updateEl('txt-card2-badge', dict.card2Badge);
+      updateEl('txt-card2-body', dict.card2Body, true);
+
+      updateEl('txt-card3-title', dict.card3Title);
+      updateEl('txt-card3-badge', dict.card3Badge);
+      updateEl('txt-card3-body', dict.card3Body, true);
+
+      updateEl('txt-timeline-title', dict.timelineTitle);
+      updateEl('txt-timeline-total-lbl', dict.timelineTotalLbl);
+      updateEl('txt-timeline-opt', dict.timelineOpt);
+      updateEl('txt-play-all-label', dict.playAllLabel);
+
+      updateEl('txt-clip-1-lbl', dict.clip1Lbl);
+      updateEl('txt-clip-1-dur', dict.clip1Dur);
+      updateEl('txt-clip-2-lbl', dict.clip2Lbl);
+      updateEl('txt-clip-2-dur', dict.clip2Dur);
+      updateEl('txt-clip-3-lbl', dict.clip3Lbl);
+      updateEl('txt-clip-3-dur', dict.clip3Dur);
+      updateEl('txt-clip-4-lbl', dict.clip4Lbl);
+      updateEl('txt-clip-4-dur', dict.clip4Dur);
+
+      updateEl('txt-dialogue-tag', dict.dialogueTag);
+      updateEl('txt-voice-preview-btn', dict.voicePreviewBtn);
+      updateEl('txt-se-toggle', dict.seToggle);
+      updateEl('txt-bgm-toggle', dict.bgmToggle);
+      updateEl('txt-master-generate-btn', dict.masterGenerateBtn);
+
+      try { localStorage.setItem('genesis_lang', lang); } catch(e){}
+    };
+
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramLang = urlParams.get('lang');
+      const savedLang = paramLang || localStorage.getItem('genesis_lang');
+      if (savedLang) window.setLanguage(savedLang);
+
+      const modalParam = urlParams.get('modal');
+      if (modalParam === 'char') setTimeout(openCharacterModal, 300);
+      else if (modalParam === 'storyboard') setTimeout(openStoryboardDirectorModal, 300);
+      else if (modalParam === 'location') setTimeout(openLocationModal, 300);
+    } catch(e) {}
 
   </script>
 </body>
