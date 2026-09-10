@@ -251,8 +251,26 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
 
+        if parsed.path == '/api/music/vault/list_samples':
+            vault_file = os.path.join(os.path.dirname(__file__), "..", "knowledge_bank", "sample_vault", "sample_vault.json")
+            samples = []
+            if os.path.exists(vault_file):
+                try:
+                    with open(vault_file, 'r', encoding='utf-8') as f:
+                        samples = json.load(f)
+                except Exception:
+                    samples = []
+            resp_bytes = json.dumps({"success": True, "samples": samples}, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
         # ⚛️ Quantum Nervous Orchestrator (Q-NO) Status Endpoint
-        if parsed.path == '/api/qno/status':
+        elif parsed.path == '/api/qno/status':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -1990,6 +2008,99 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 result = generate_music_with_lyria(prompt, features, duration)
                 resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
 
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/music/vault/save_sample':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                vault_dir = os.path.join(os.path.dirname(__file__), "..", "knowledge_bank", "sample_vault")
+                os.makedirs(vault_dir, exist_ok=True)
+                vault_file = os.path.join(vault_dir, "sample_vault.json")
+                samples = []
+                if os.path.exists(vault_file):
+                    try:
+                        with open(vault_file, 'r', encoding='utf-8') as f:
+                            samples = json.load(f)
+                    except Exception:
+                        samples = []
+
+                import time
+                sample_id = payload.get('id') or f"sample_{int(time.time()*1000)}"
+                new_sample = {
+                    "id": sample_id,
+                    "name": payload.get('name', 'Custom Slice'),
+                    "stem": payload.get('stem', 'custom'),
+                    "bpm": payload.get('bpm', 120.0),
+                    "key": payload.get('key', 'C Major'),
+                    "duration": payload.get('duration', 0.8),
+                    "source_track": payload.get('source_track', 'YouTube Music Ingestion'),
+                    "created_at": payload.get('created_at', time.strftime('%Y-%m-%d %H:%M:%S')),
+                    "data": payload.get('data', '')
+                }
+
+                idx = next((i for i, s in enumerate(samples) if s.get('id') == sample_id), None)
+                if idx is not None:
+                    samples[idx] = new_sample
+                else:
+                    samples.insert(0, new_sample)
+
+                with open(vault_file, 'w', encoding='utf-8') as f:
+                    json.dump(samples, f, ensure_ascii=False, indent=2)
+
+                resp_bytes = json.dumps({"success": True, "sample": new_sample, "total_samples": len(samples)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/music/vault/delete_sample':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                sample_id = payload.get('id')
+                vault_file = os.path.join(os.path.dirname(__file__), "..", "knowledge_bank", "sample_vault", "sample_vault.json")
+                samples = []
+                if os.path.exists(vault_file):
+                    try:
+                        with open(vault_file, 'r', encoding='utf-8') as f:
+                            samples = json.load(f)
+                    except Exception:
+                        samples = []
+                samples = [s for s in samples if s.get('id') != sample_id]
+                with open(vault_file, 'w', encoding='utf-8') as f:
+                    json.dump(samples, f, ensure_ascii=False, indent=2)
+
+                resp_bytes = json.dumps({"success": True, "deleted_id": sample_id, "remaining": len(samples)}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp_bytes)))

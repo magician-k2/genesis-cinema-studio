@@ -668,6 +668,61 @@
       border: 1px solid rgba(255,255,255,0.08);
       display: block;
     }
+  
+    /* Dynamic Stem Mixer & Merge Styling */
+    .badge-custom { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .btn-merge-header {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(139, 92, 246, 0.3));
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      color: #38bdf8;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-merge-header:hover {
+      background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+      color: white;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    .btn-vault-header {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      color: #facc15;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .btn-vault-header:hover {
+      background: #eab308;
+      color: black;
+      box-shadow: 0 0 12px rgba(234, 179, 8, 0.4);
+    }
+    .pad-save-icon {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 0.7rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: all 0.15s ease;
+    }
+    .pad-save-icon:hover {
+      color: #facc15;
+      transform: scale(1.2);
+    }
+
   </style>
 </head>
 <body>
@@ -780,9 +835,14 @@
         <div class="panel-header">
           <div class="panel-title">
             <i class="fa-solid fa-sliders" style="color: #38bdf8;"></i>
-            <span>4-Track ステムミキサー (RipX / Serato Stems スタイル)</span>
+            <span>ダイナミック・ステムミキサー ＆ トラック統合コンソール</span>
           </div>
-          <span style="font-size: 0.72rem; color: var(--text-sub);">独立ソロ・ミュート・個別ダウンロード</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn-merge-header" onclick="openTrackMergeModal()">
+              <i class="fa-solid fa-layer-group"></i> トラック統合 (Merge / Bounce)
+            </button>
+            <span style="font-size: 0.7rem; color: var(--text-sub);">自由統合＆Pad即時登録</span>
+          </div>
         </div>
 
         <!-- Track 1: Drums -->
@@ -841,6 +901,9 @@
           <canvas class="stem-waveform-canvas" id="canvas-melody"></canvas>
         </div>
 
+        <!-- Dynamic Merged / Custom Tracks Container -->
+        <div id="custom-stems-container"></div>
+
         <!-- Master Transport Strip -->
         <div class="master-transport">
           <div class="transport-controls">
@@ -881,6 +944,9 @@
           <div class="mpc-brand-strip">
             <div class="mpc-logo"><i class="fa-solid fa-fingerprint"></i> GENESIS MPC-16 PRO</div>
             <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="btn-vault-header" onclick="openSampleVaultModal()">
+                <i class="fa-solid fa-folder-open"></i> サンプルライブラリ (<span id="vault-count-badge">0</span>)
+              </button>
               <button class="stem-btn" id="btn-live-jam-rec" onclick="toggleLiveJamRecording()" style="background: rgba(239,68,68,0.2); color: #f87171; border-color: rgba(239,68,68,0.4); font-size: 0.72rem; padding: 4px 10px; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-circle" id="icon-rec-dot" style="color: #ef4444; font-size: 0.6rem;"></i>
                 <span id="txt-live-rec">LIVE 演奏録音</span>
@@ -1104,7 +1170,12 @@
         el.innerHTML = `
           <div class="pad-header">
             <span class="pad-num">${pad.id < 10 ? '0' + pad.id : pad.id}</span>
-            <span class="pad-key">${pad.key}</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button class="pad-save-icon" title="名前を付けてライブラリに保存" onclick="event.stopPropagation(); openSavePadModal(${pad.id})">
+                <i class="fa-solid fa-bookmark"></i>
+              </button>
+              <span class="pad-key">${pad.key}</span>
+            </div>
           </div>
           <div class="pad-name">${pad.name}</div>
           <div class="pad-stem-tag">${pad.stem}</div>
@@ -2039,6 +2110,470 @@
       }
     }
 
+  
+
+    // ================================================================
+    // 🎛️ Dynamic Track Merge & Bouncing Engine (OfflineAudioContext)
+    // ================================================================
+    window.customTracks = {};
+    window.customTrackCount = 0;
+
+    function openTrackMergeModal() {
+      const modal = document.getElementById('track-merge-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+    function closeTrackMergeModal() {
+      const modal = document.getElementById('track-merge-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function applyMergePreset(type) {
+      const chkDrums = document.getElementById('merge-chk-drums');
+      const chkBass = document.getElementById('merge-chk-bass');
+      const chkVocals = document.getElementById('merge-chk-vocals');
+      const chkMelody = document.getElementById('merge-chk-melody');
+      const nameInput = document.getElementById('merge-track-name');
+
+      if (type === 'instrumental') {
+        chkDrums.checked = true; chkBass.checked = true; chkVocals.checked = false; chkMelody.checked = true;
+        if (nameInput) nameInput.value = 'Instrumental (No Vocals)';
+      } else if (type === 'rhythm') {
+        chkDrums.checked = true; chkBass.checked = true; chkVocals.checked = false; chkMelody.checked = false;
+        if (nameInput) nameInput.value = 'Rhythm Section (Drums+Bass)';
+      } else if (type === 'backing') {
+        chkDrums.checked = false; chkBass.checked = true; chkVocals.checked = false; chkMelody.checked = true;
+        if (nameInput) nameInput.value = 'Backing Track (Bass+Melody)';
+      } else if (type === 'acapella') {
+        chkDrums.checked = false; chkBass.checked = false; chkVocals.checked = true; chkMelody.checked = false;
+        if (nameInput) nameInput.value = 'Acapella Solo';
+      }
+    }
+
+    async function executeTrackMerge(destination) {
+      const chkDrums = document.getElementById('merge-chk-drums').checked;
+      const chkBass = document.getElementById('merge-chk-bass').checked;
+      const chkVocals = document.getElementById('merge-chk-vocals').checked;
+      const chkMelody = document.getElementById('merge-chk-melody').checked;
+      const trackName = document.getElementById('merge-track-name').value.trim() || 'Merged Stem';
+
+      const selectedStems = [];
+      if (chkDrums && window.stemAudioBuffers.drums) selectedStems.push(window.stemAudioBuffers.drums);
+      if (chkBass && window.stemAudioBuffers.bass) selectedStems.push(window.stemAudioBuffers.bass);
+      if (chkVocals && window.stemAudioBuffers.vocals) selectedStems.push(window.stemAudioBuffers.vocals);
+      if (chkMelody && window.stemAudioBuffers.melody) selectedStems.push(window.stemAudioBuffers.melody);
+
+      if (selectedStems.length === 0) {
+        alert('統合するステムトラックを1つ以上選択してください（該当ステムが読み込まれている必要があります）。');
+        return;
+      }
+
+      // Render mix using OfflineAudioContext
+      const maxLen = Math.max(...selectedStems.map(s => s.length));
+      const sr = selectedStems[0].sampleRate;
+      const channels = 2;
+      const offlineCtx = new OfflineAudioContext(channels, maxLen, sr);
+
+      selectedStems.forEach(buf => {
+        const src = offlineCtx.createBufferSource();
+        src.buffer = buf;
+        src.connect(offlineCtx.destination);
+        src.start(0);
+      });
+
+      const renderedBuffer = await offlineCtx.startRendering();
+      closeTrackMergeModal();
+
+      if (destination === 'mixer') {
+        window.customTrackCount++;
+        const customId = `custom_${window.customTrackCount}`;
+        window.stemAudioBuffers[customId] = renderedBuffer;
+        window.stemVolumes[customId] = 0.9;
+        window.stemMutes[customId] = false;
+        window.stemSolos[customId] = false;
+
+        renderCustomTrackStrip(customId, trackName, renderedBuffer);
+        alert(`🎛️ 「${trackName}」を新規トラックとしてミキサーに追加しました！`);
+      } else if (destination === 'pad') {
+        const targetPad = prompt(`🎯 「${trackName}」をどのPad (1〜16) にアサインしますか？`, '1');
+        const padId = parseInt(targetPad);
+        if (padId >= 1 && padId <= 16) {
+          assignBufferToPad(renderedBuffer, padId, trackName);
+          alert(`🎯 Pad ${padId} に「${trackName}」をアサインしました！`);
+        }
+      }
+    }
+
+    function renderCustomTrackStrip(trackId, title, buffer) {
+      const container = document.getElementById('custom-stems-container');
+      if (!container) return;
+
+      const div = document.createElement('div');
+      div.className = 'stem-strip';
+      div.id = `stem-strip-${trackId}`;
+      div.innerHTML = `
+        <div class="stem-meta-row">
+          <span class="stem-badge badge-custom"><i class="fa-solid fa-layer-group"></i> ${title}</span>
+          <div class="stem-controls">
+            <button class="stem-btn" onclick="assignStemToPad('${trackId}')" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16,185,129,0.4);">
+              <i class="fa-solid fa-fingerprint"></i> Padへ
+            </button>
+            <input type="range" class="stem-volume" id="vol-${trackId}" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('${trackId}', this.value)">
+            <button class="stem-btn" id="mute-${trackId}" onclick="toggleMute('${trackId}')">MUTE</button>
+            <button class="stem-btn" id="solo-${trackId}" onclick="toggleSolo('${trackId}')">SOLO</button>
+            <button class="stem-btn" onclick="downloadCustomStem('${trackId}', '${title}')"><i class="fa-solid fa-download"></i></button>
+            <button class="stem-btn" onclick="removeCustomTrack('${trackId}')" style="color: #ef4444;">✕</button>
+          </div>
+        </div>
+        <canvas class="stem-waveform-canvas" id="canvas-${trackId}"></canvas>
+      `;
+      container.appendChild(div);
+
+      setTimeout(() => {
+        drawWaveformFromBuffer(`canvas-${trackId}`, buffer, '#10b981');
+        const canvas = document.getElementById(`canvas-${trackId}`);
+        if (canvas) {
+          canvas.style.cursor = 'crosshair';
+          canvas.onclick = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const ratio = (e.clientX - rect.left) / rect.width;
+            const clickTime = ratio * buffer.duration;
+            playStemFromTime(trackId, clickTime);
+            const targetPad = prompt(`✂️ [${title}] の位置 ${clickTime.toFixed(2)}秒 からスライスを切り出しました！\nどのPad (1〜16) に割り当てますか？`, '1');
+            if (targetPad && parseInt(targetPad) >= 1 && parseInt(targetPad) <= 16) {
+              assignSliceToPad(trackId, clickTime, parseInt(targetPad));
+            }
+          };
+        }
+      }, 50);
+    }
+
+    function removeCustomTrack(trackId) {
+      delete window.stemAudioBuffers[trackId];
+      const el = document.getElementById(`stem-strip-${trackId}`);
+      if (el) el.remove();
+    }
+
+    function assignStemToPad(stemName) {
+      const buf = window.stemAudioBuffers[stemName];
+      if (!buf) return;
+      const targetPad = prompt(`🎯 [${stemName}] の冒頭スライスをどのPad (1〜16) にアサインしますか？`, '1');
+      const padId = parseInt(targetPad);
+      if (padId >= 1 && padId <= 16) {
+        assignBufferToPad(buf, padId, stemName.toUpperCase());
+      }
+    }
+
+    function assignBufferToPad(buf, padId, name) {
+      const ctx = getAudioContext();
+      const sliceLen = 1.0;
+      const sr = buf.sampleRate;
+      const endSample = Math.min(buf.length, Math.floor(sliceLen * sr));
+      const sliceBuf = ctx.createBuffer(buf.numberOfChannels, endSample, sr);
+      for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+        sliceBuf.getChannelData(ch).set(buf.getChannelData(ch).subarray(0, endSample));
+      }
+      window.loadedAudioBuffers[padId] = sliceBuf;
+      const padObj = window.currentSlices.find(p => p.id === padId);
+      if (padObj) {
+        padObj.name = name.slice(0, 10);
+        const padNameEl = document.querySelector(`#pad-btn-${padId} .pad-name`);
+        if (padNameEl) padNameEl.textContent = padObj.name;
+      }
+      triggerPad(padId);
+    }
+
+    // ================================================================
+    // 💾 Sample Vault & Sound Bank Engine (Persistent Storage & Library)
+    // ================================================================
+    window.sampleVaultList = [];
+
+    function openSavePadModal(padId) {
+      const pad = window.currentSlices.find(p => p.id === padId) || { id: padId, name: `Pad ${padId}`, stem: 'custom' };
+      const bpm = document.getElementById('val-bpm')?.textContent || '120';
+      const key = document.getElementById('val-key')?.textContent || 'C Maj';
+
+      document.getElementById('save-modal-pad-id').value = padId;
+      document.getElementById('save-sample-name').value = pad.name;
+      document.getElementById('save-sample-stem').value = pad.stem || 'custom';
+      document.getElementById('save-sample-bpm-key').value = `${bpm} BPM • ${key}`;
+      document.getElementById('save-sample-preview-desc').textContent = `Pad ${padId < 10 ? '0' + padId : padId} (${pad.name})`;
+
+      const modal = document.getElementById('pad-save-modal');
+      if (modal) modal.style.display = 'flex';
+    }
+    function closeSavePadModal() {
+      const modal = document.getElementById('pad-save-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function previewCurrentModalPadAudio() {
+      const padId = parseInt(document.getElementById('save-modal-pad-id').value);
+      if (padId) triggerPad(padId);
+    }
+
+    async function submitSaveSampleToVault() {
+      const padId = parseInt(document.getElementById('save-modal-pad-id').value);
+      const name = document.getElementById('save-sample-name').value.trim() || `Pad ${padId}`;
+      const stem = document.getElementById('save-sample-stem').value;
+      const bpmKey = document.getElementById('save-sample-bpm-key').value;
+      const sourceTrack = document.getElementById('track-name-display')?.textContent || 'GENESIS Track';
+
+      // Convert audio buffer to base64 wav
+      const buf = window.loadedAudioBuffers[padId];
+      let b64Data = '';
+      if (buf) {
+        b64Data = audioBufferToBase64Wav(buf);
+      }
+
+      const sampleObj = {
+        id: `sample_${Date.now()}`,
+        name: name,
+        stem: stem,
+        bpm: parseFloat(bpmKey.split(' ')[0]) || 120.0,
+        key: bpmKey.split('•')[1]?.trim() || 'C Major',
+        duration: buf ? round(buf.duration, 2) : 0.8,
+        source_track: sourceTrack,
+        created_at: new Date().toLocaleString(),
+        data: b64Data
+      };
+
+      try {
+        const res = await fetch('/api/music/vault/save_sample', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sampleObj)
+        });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || 'Failed to save');
+
+        // Update Pad name
+        const padObj = window.currentSlices.find(p => p.id === padId);
+        if (padObj) {
+          padObj.name = name;
+          const padNameEl = document.querySelector(`#pad-btn-${padId} .pad-name`);
+          if (padNameEl) padNameEl.textContent = name;
+        }
+
+        closeSavePadModal();
+        updateVaultCountBadge();
+        alert(`💾 「${name}」を Sample Vault ライブラリに永続保存しました！`);
+      } catch (e) {
+        alert(`保存エラー: ${e.message}`);
+      }
+    }
+
+    async function openSampleVaultModal() {
+      const modal = document.getElementById('sample-vault-modal');
+      if (modal) modal.style.display = 'flex';
+      await loadSampleVaultList();
+    }
+    function closeSampleVaultModal() {
+      const modal = document.getElementById('sample-vault-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function loadSampleVaultList() {
+      try {
+        const res = await fetch('/api/music/vault/list_samples');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.samples)) {
+          window.sampleVaultList = json.samples;
+          renderSampleVaultItems();
+          updateVaultCountBadge();
+        }
+      } catch (e) {
+        console.error('Vault fetch error:', e);
+      }
+    }
+
+    function updateVaultCountBadge() {
+      const badge = document.getElementById('vault-count-badge');
+      if (badge) badge.textContent = window.sampleVaultList.length;
+    }
+
+    function renderSampleVaultItems() {
+      const container = document.getElementById('sample-vault-items');
+      const summary = document.getElementById('vault-list-summary');
+      if (!container) return;
+
+      if (summary) summary.textContent = `保存済み音源: ${window.sampleVaultList.length} 件`;
+      if (window.sampleVaultList.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; color: var(--text-sub); padding: 40px; font-size: 0.85rem;">
+            <i class="fa-solid fa-box-open" style="font-size: 2rem; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
+            登録済みの音源がまだありません。<br>Pad上の <i class="fa-solid fa-bookmark" style="color: #facc15;"></i> アイコンを押して保存してください。
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      window.sampleVaultList.forEach(item => {
+        const row = document.createElement('div');
+        row.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: all 0.15s ease;';
+        row.onmouseenter = () => row.style.borderColor = 'rgba(234, 179, 8, 0.5)';
+        row.onmouseleave = () => row.style.borderColor = 'rgba(255,255,255,0.08)';
+
+        const stemColors = { drums: '#ef4444', bass: '#eab308', vocals: '#06b6d4', melody: '#a855f7', custom: '#10b981' };
+        const color = stemColors[item.stem] || '#10b981';
+
+        row.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
+            <button class="stem-btn" onclick="playVaultSampleAudio('${item.id}')" style="background: #10b981; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;">
+              <i class="fa-solid fa-play"></i>
+            </button>
+            <div style="min-width: 0;">
+              <div style="font-weight: 800; font-size: 0.85rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</div>
+              <div style="font-size: 0.7rem; color: var(--text-sub); display: flex; gap: 8px; align-items: center;">
+                <span style="color: ${color}; font-weight: 700;">[${item.stem.toUpperCase()}]</span>
+                <span>${item.bpm} BPM</span>
+                <span>${item.key}</span>
+                <span>⏱️ ${item.duration}s</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <select id="sel-target-pad-${item.id}" class="search-input" style="height: 28px; padding: 0 8px; font-size: 0.72rem; width: 90px;">
+              ${Array.from({length: 16}, (_, i) => `<option value="${i+1}">Pad ${i+1 < 10 ? '0' + (i+1) : i+1}</option>`).join('')}
+            </select>
+            <button class="stem-btn" onclick="assignVaultSampleToPad('${item.id}')" style="background: rgba(234, 179, 8, 0.2); color: #facc15; border-color: rgba(234, 179, 8, 0.4);">
+              <i class="fa-solid fa-fingerprint"></i> Padへ
+            </button>
+            <button class="stem-btn" onclick="downloadVaultSampleWav('${item.id}')" title="WAVダウンロード">
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button class="stem-btn" onclick="deleteVaultSample('${item.id}')" style="color: #ef4444;" title="削除">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function playVaultSampleAudio(sampleId) {
+      const item = window.sampleVaultList.find(s => s.id === sampleId);
+      if (!item || !item.data) return;
+      const ctx = getAudioContext();
+      const arrBuf = base64ToArrayBuffer(item.data);
+      ctx.decodeAudioData(arrBuf, (decoded) => {
+        const src = ctx.createBufferSource();
+        src.buffer = decoded;
+        src.connect(ctx.destination);
+        src.start(0);
+      });
+    }
+
+    function assignVaultSampleToPad(sampleId) {
+      const item = window.sampleVaultList.find(s => s.id === sampleId);
+      if (!item || !item.data) return;
+      const select = document.getElementById(`sel-target-pad-${sampleId}`);
+      const padId = select ? parseInt(select.value) : 1;
+
+      const ctx = getAudioContext();
+      const arrBuf = base64ToArrayBuffer(item.data);
+      ctx.decodeAudioData(arrBuf, (decoded) => {
+        window.loadedAudioBuffers[padId] = decoded;
+        const padObj = window.currentSlices.find(p => p.id === padId);
+        if (padObj) {
+          padObj.name = item.name;
+          const padNameEl = document.querySelector(`#pad-btn-${padId} .pad-name`);
+          if (padNameEl) padNameEl.textContent = item.name;
+        }
+        triggerPad(padId);
+        closeSampleVaultModal();
+        alert(`🎯 Pad ${padId} に「${item.name}」をロードしました！`);
+      });
+    }
+
+    function downloadVaultSampleWav(sampleId) {
+      const item = window.sampleVaultList.find(s => s.id === sampleId);
+      if (!item || !item.data) return;
+      const a = document.createElement('a');
+      a.href = `data:audio/wav;base64,${item.data}`;
+      a.download = `${item.name.replace(/[^a-zA-Z0-9_\u3040-\u30ff\u4e00-\u9faf]/g, '_')}.wav`;
+      a.click();
+    }
+
+    async function deleteVaultSample(sampleId) {
+      if (!confirm('この音源をライブラリから削除しますか？')) return;
+      try {
+        const res = await fetch('/api/music/vault/delete_sample', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: sampleId })
+        });
+        const json = await res.json();
+        if (json.success) {
+          window.sampleVaultList = window.sampleVaultList.filter(s => s.id !== sampleId);
+          renderSampleVaultItems();
+          updateVaultCountBadge();
+        }
+      } catch (e) {
+        alert(`削除エラー: ${e.message}`);
+      }
+    }
+
+    function audioBufferToBase64Wav(buffer) {
+      const numChannels = buffer.numberOfChannels;
+      const sampleRate = buffer.sampleRate;
+      const format = 1; // PCM
+      const bitDepth = 16;
+      const bytesPerSample = bitDepth / 8;
+      const blockAlign = numChannels * bytesPerSample;
+      const length = buffer.length;
+      const dataSize = length * blockAlign;
+      const bufferSize = 44 + dataSize;
+      const arrayBuffer = new ArrayBuffer(bufferSize);
+      const view = new DataView(arrayBuffer);
+
+      // Write WAV header
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + dataSize, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, format, true);
+      view.setUint16(22, numChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * blockAlign, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, bitDepth, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, dataSize, true);
+
+      // Interleave channels and write PCM
+      let offset = 44;
+      for (let i = 0; i < length; i++) {
+        for (let ch = 0; ch < numChannels; ch++) {
+          let sample = buffer.getChannelData(ch)[i];
+          sample = Math.max(-1, Math.min(1, sample));
+          view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+          offset += 2;
+        }
+      }
+
+      // Convert array buffer to base64
+      let binary = '';
+      const bytes = new Uint8Array(arrayBuffer);
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    function writeString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+
+    // Auto-load sample vault list on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(loadSampleVaultList, 600);
+    });
+
   </script>
 
   <!-- ============================================================== -->
@@ -2099,6 +2634,158 @@
           <button class="btn-action-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 8px 18px; font-size: 0.82rem;" onclick="submitYouTubeMusicPublish()">
             <i class="fa-brands fa-youtube"></i> YouTube Music 登録＆配信
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================== -->
+  <!-- 🎛️ Modal: トラック統合 ＆ バウンス (Track Merge / Bouncing) -->
+  <!-- ============================================================== -->
+  <div id="track-merge-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 210; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 16px; max-width: 620px; width: 100%; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-layer-group" style="color: #38bdf8; font-size: 1.4rem;"></i>
+          <div>
+            <h3 style="color: white; font-size: 1.1rem; font-weight: 800;">トラック統合 ＆ ステム・バウンス</h3>
+            <span style="font-size: 0.68rem; color: var(--text-sub);">選択したステムを高速ミックスして新規トラックまたはPadへ出力</span>
+          </div>
+        </div>
+        <button class="stem-btn" onclick="closeTrackMergeModal()" style="font-size: 1rem; padding: 4px 10px;">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 0.78rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px;">クイック・プリセット統合:</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="preset-chip" onclick="applyMergePreset('instrumental')">🎸 Instrumental (Drums+Bass+Melody)</button>
+            <button class="preset-chip" onclick="applyMergePreset('rhythm')">🥁 Rhythm Section (Drums+Bass)</button>
+            <button class="preset-chip" onclick="applyMergePreset('backing')">🎹 Backing (Bass+Melody)</button>
+            <button class="preset-chip" onclick="applyMergePreset('acapella')">🎤 Acapella (Vocals Solo)</button>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 0.78rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px;">合成するトラックを選択:</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #f87171; cursor: pointer;">
+              <input type="checkbox" id="merge-chk-drums" checked> <i class="fa-solid fa-drum"></i> Drums (ドラム)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #facc15; cursor: pointer;">
+              <input type="checkbox" id="merge-chk-bass" checked> <i class="fa-solid fa-guitar"></i> Bass (ベース)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #38bdf8; cursor: pointer;">
+              <input type="checkbox" id="merge-chk-vocals"> <i class="fa-solid fa-microphone"></i> Vocals (ボーカル)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #c084fc; cursor: pointer;">
+              <input type="checkbox" id="merge-chk-melody" checked> <i class="fa-solid fa-wave-square"></i> Melody (メロディ)
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size: 0.78rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 6px;">統合トラック名:</label>
+          <input type="text" id="merge-track-name" class="search-input" value="Instrumental Mix" style="width: 100%;">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <button class="btn-action-primary" style="flex: 1; justify-content: center;" onclick="executeTrackMerge('mixer')">
+            <i class="fa-solid fa-plus"></i> 新規トラックとしてミキサーに追加
+          </button>
+          <button class="btn-action-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, #eab308, #ca8a04);" onclick="executeTrackMerge('pad')">
+            <i class="fa-solid fa-fingerprint"></i> Padへ直接アサイン
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 💾 Modal: パッド音源の登録・保存 (Save Pad Sample to Vault) -->
+  <!-- ============================================================== -->
+  <div id="pad-save-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 220; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #0f172a; border: 1px solid rgba(234, 179, 8, 0.5); border-radius: 16px; max-width: 520px; width: 100%; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-bookmark" style="color: #facc15; font-size: 1.4rem;"></i>
+          <div>
+            <h3 style="color: white; font-size: 1.1rem; font-weight: 800;">お気に入りPad音源の登録・保存</h3>
+            <span style="font-size: 0.68rem; color: var(--text-sub);">名前を付けてSample Vaultライブラリに永続保存</span>
+          </div>
+        </div>
+        <button class="stem-btn" onclick="closeSavePadModal()" style="font-size: 1rem; padding: 4px 10px;">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <input type="hidden" id="save-modal-pad-id" value="1">
+        
+        <div>
+          <label style="font-size: 0.78rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 4px;">音源名 (Sample Name):</label>
+          <input type="text" id="save-sample-name" class="search-input" value="Epic Tokyo Sub Punch" style="width: 100%;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 4px;">カテゴリ / ステム:</label>
+            <select id="save-sample-stem" class="search-input" style="width: 100%; height: 38px;">
+              <option value="drums">Drums (打楽器・キック・スネア)</option>
+              <option value="bass">Bass (808・サブベース)</option>
+              <option value="vocals">Vocals (ボーカル・フック)</option>
+              <option value="melody">Melody (シンセ・リード・コード)</option>
+              <option value="custom">Custom / Mixed (統合・FX)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 4px;">BPM / Key:</label>
+            <input type="text" id="save-sample-bpm-key" class="search-input" value="123 BPM • G Maj" style="width: 100%;" readonly>
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="stem-btn" onclick="previewCurrentModalPadAudio()" style="background: #10b981; color: white;">
+              <i class="fa-solid fa-play"></i> 試聴
+            </button>
+            <span style="font-size: 0.76rem; color: #cbd5e1;" id="save-sample-preview-desc">Pad 01 (0.8秒)</span>
+          </div>
+          <span style="font-size: 0.7rem; color: #38bdf8;">💾 永続保存・全プロジェクト横断利用可能</span>
+        </div>
+
+        <button class="btn-action-primary" style="margin-top: 8px; justify-content: center; background: linear-gradient(135deg, #eab308, #ca8a04); color: black; font-weight: 800;" onclick="submitSaveSampleToVault()">
+          <i class="fa-solid fa-floppy-disk"></i> Sample Vault ライブラリへ保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 📁 Modal: サンプルライブラリ (Sample Vault Drawer) -->
+  <!-- ============================================================== -->
+  <div id="sample-vault-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 230; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #0f172a; border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 16px; max-width: 840px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-folder-open" style="color: #facc15; font-size: 1.5rem;"></i>
+          <div>
+            <h3 style="color: white; font-size: 1.15rem; font-weight: 800;">GENESIS Sample Vault ライブラリ</h3>
+            <span style="font-size: 0.7rem; color: var(--text-sub);">登録・保存されたお気に入りパッド音源コレクション</span>
+          </div>
+        </div>
+        <button class="stem-btn" onclick="closeSampleVaultModal()" style="font-size: 1rem; padding: 4px 10px;">✕</button>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span style="font-size: 0.76rem; color: #94a3b8;" id="vault-list-summary">保存済み音源: 0 件</span>
+        <button class="stem-btn" onclick="loadSampleVaultList()"><i class="fa-solid fa-rotate-right"></i> 更新</button>
+      </div>
+
+      <!-- Scrollable Sample List -->
+      <div id="sample-vault-items" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+        <div style="text-align: center; color: var(--text-sub); padding: 40px; font-size: 0.85rem;">
+          <i class="fa-solid fa-box-open" style="font-size: 2rem; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
+          登録済みの音源がまだありません。<br>Pad上の <i class="fa-solid fa-bookmark" style="color: #facc15;"></i> アイコンを押して保存してください。
         </div>
       </div>
     </div>
