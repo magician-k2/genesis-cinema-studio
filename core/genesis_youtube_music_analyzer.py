@@ -484,21 +484,21 @@ def analyze_and_produce_prompt(url_or_query: str, scene_context: str = "サイ�
         except Exception:
             pass
 
-def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "Cyberpunk Neo-Tokyo") -> dict:
+def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "Cyberpunk Neo-Tokyo", max_duration_sec: float = 30.0) -> dict:
     is_local_file = os.path.exists(url_or_query_or_file)
     temp_dir = None
     if is_local_file:
         audio_path = url_or_query_or_file
         title = os.path.splitext(os.path.basename(audio_path))[0]
     else:
-        audio_path, title, temp_dir = download_youtube_music_sample(url_or_query_or_file)
+        audio_path, title, temp_dir = download_youtube_music_sample(url_or_query_or_file, sample_sec=int(max_duration_sec))
 
     if not audio_path or not os.path.exists(audio_path):
         raise FileNotFoundError(f"Could not load audio for {url_or_query_or_file}")
 
     try:
         features = extract_features_from_audio(audio_path)
-        stem_result = separate_stems_and_slices(audio_path, max_duration_sec=20.0)
+        stem_result = separate_stems_and_slices(audio_path, max_duration_sec=max_duration_sec)
         prompts = synthesize_multi_ai_prompts(features, title, scene_context)
 
         return {

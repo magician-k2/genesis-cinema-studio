@@ -714,6 +714,16 @@
         <button class="file-upload-btn" onclick="document.getElementById('local-file-input').click()">
           <i class="fa-solid fa-file-audio"></i> MP3/WAVファイルを開く
         </button>
+            </div>
+
+      <!-- Sampling Range Selector -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.78rem;">
+        <span class="preset-label"><i class="fa-solid fa-scissors"></i> サンプリング範囲:</span>
+        <button class="preset-chip" id="chip-sample-15" onclick="setSamplingDuration(15)">⚡ 15秒</button>
+        <button class="preset-chip active" id="chip-sample-30" onclick="setSamplingDuration(30)">⚡ 30秒 (標準)</button>
+        <button class="preset-chip" id="chip-sample-60" onclick="setSamplingDuration(60)">⚡ 60秒</button>
+        <button class="preset-chip" id="chip-sample-full" onclick="setSamplingDuration(180)">⚡ フル楽曲 (Full Track 3分)</button>
+        <span style="font-size: 0.7rem; color: #38bdf8; margin-left: auto;">💡 波形をクリックして好きな位置からパッドへ切り出し可能</span>
       </div>
 
       <!-- Loading State -->
@@ -851,9 +861,15 @@
         <div class="mpc-chassis">
           <div class="mpc-brand-strip">
             <div class="mpc-logo"><i class="fa-solid fa-fingerprint"></i> GENESIS MPC-16 PRO</div>
-            <div class="mpc-screen">
-              <span id="mpc-status-screen">READY • 123 BPM • G MAJ</span>
-              <span id="mpc-last-hit">PAD: --</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="stem-btn" id="btn-live-jam-rec" onclick="toggleLiveJamRecording()" style="background: rgba(239,68,68,0.2); color: #f87171; border-color: rgba(239,68,68,0.4); font-size: 0.72rem; padding: 4px 10px; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-circle" id="icon-rec-dot" style="color: #ef4444; font-size: 0.6rem;"></i>
+                <span id="txt-live-rec">LIVE 演奏録音</span>
+              </button>
+              <div class="mpc-screen">
+                <span id="mpc-status-screen">READY • 123 BPM • G MAJ</span>
+                <span id="mpc-last-hit">PAD: --</span>
+              </div>
             </div>
           </div>
 
@@ -883,6 +899,14 @@
 
           <div style="font-size: 0.74rem; color: #cbd5e1; line-height: 1.4;">
             物理音響解析で得た <strong>BPM (<span id="lyria-param-bpm">123.0</span>)</strong> ＆ <strong>調性 (<span id="lyria-param-key">G Major</span>)</strong> を厳格アンカーにし、Suno/Udioを超える超高解像度楽曲を実生成します。
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.76rem;">
+            <span style="color: var(--text-sub); font-weight: bold;"><i class="fa-solid fa-clock"></i> 生成レングス:</span>
+            <button class="preset-chip" id="chip-lyria-30" onclick="setLyriaDuration(30)">30秒 (Clip)</button>
+            <button class="preset-chip" id="chip-lyria-60" onclick="setLyriaDuration(60)">60秒 (Shorts)</button>
+            <button class="preset-chip active" id="chip-lyria-120" onclick="setLyriaDuration(120)">120秒 (2分 フル楽曲)</button>
+            <button class="preset-chip" id="chip-lyria-180" onclick="setLyriaDuration(180)">180秒 (3分 フル楽曲 / Pro)</button>
           </div>
 
           <div style="display: flex; gap: 8px;">
@@ -1199,7 +1223,7 @@
         const res = await fetch('/api/music/separate_stems', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: query, context: 'Tokyo Cyberpunk Noir Blockbuster' })
+          body: JSON.stringify({ url: query, context: 'Tokyo Cyberpunk Noir Blockbuster', duration_sec: window.activeSamplingDuration || 30 })
         });
 
         if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
@@ -1639,7 +1663,7 @@
           body: JSON.stringify({
             prompt: promptText,
             features: { bpm: bpm, key: key, energy: document.getElementById('val-energy').textContent },
-            duration_sec: 30
+            duration_sec: window.activeLyriaDuration || 120
           })
         });
 
@@ -1781,6 +1805,162 @@
         closeYouTubePublishModal();
       } catch (err) {
         alert('配信登録エラー: ' + err.message);
+      }
+    }
+
+  
+    // ================================================================
+    // ⏱️ Dynamic Duration & Interactive Waveform Slicing Engine
+    // ================================================================
+    window.activeSamplingDuration = 30;
+    window.activeLyriaDuration = 120;
+    window.isJamRecording = false;
+    window.recordedJamChunks = [];
+    window.mediaRecorder = null;
+
+    function setSamplingDuration(sec) {
+      window.activeSamplingDuration = sec;
+      ['15', '30', '60', 'full'].forEach(k => {
+        const chip = document.getElementById(`chip-sample-${k}`);
+        if (chip) chip.classList.remove('active');
+      });
+      const key = sec === 180 ? 'full' : sec.toString();
+      const activeChip = document.getElementById(`chip-sample-${key}`);
+      if (activeChip) activeChip.classList.add('active');
+    }
+
+    function setLyriaDuration(sec) {
+      window.activeLyriaDuration = sec;
+      ['30', '60', '120', '180'].forEach(s => {
+        const chip = document.getElementById(`chip-lyria-${s}`);
+        if (chip) chip.classList.remove('active');
+      });
+      const activeChip = document.getElementById(`chip-lyria-${sec}`);
+      if (activeChip) activeChip.classList.add('active');
+    }
+
+    // Attach Interactive Click Listeners to Waveform Canvases
+    function setupWaveformClickListeners() {
+      ['drums', 'bass', 'vocals', 'melody'].forEach(stem => {
+        const canvas = document.getElementById(`canvas-${stem}`);
+        if (!canvas) return;
+        canvas.style.cursor = 'crosshair';
+        canvas.title = 'クリックしてこの位置から再生、またはPadへスライス割り当て';
+        canvas.onclick = (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const ratio = clickX / rect.width;
+          const buf = window.stemAudioBuffers[stem];
+          if (!buf) {
+            alert(`${stem} ステムがまだ読み込まれていません。先に「ステム分離」を実行してください。`);
+            return;
+          }
+          const clickTime = ratio * buf.duration;
+          playStemFromTime(stem, clickTime);
+
+          // Prompt pad assignment option
+          const targetPad = prompt(`✂️ [${stem.toUpperCase()}] の位置 ${clickTime.toFixed(2)}秒 からスライスを切り出しました！\nどのPad (1〜16) に割り当てますか？`, '1');
+          if (targetPad && parseInt(targetPad) >= 1 && parseInt(targetPad) <= 16) {
+            assignSliceToPad(stem, clickTime, parseInt(targetPad));
+          }
+        };
+      });
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(setupWaveformClickListeners, 500);
+    });
+
+    function playStemFromTime(stem, startTime) {
+      const ctx = getAudioContext();
+      const buf = window.stemAudioBuffers[stem];
+      if (!buf) return;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.85, ctx.currentTime);
+      src.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(0, startTime, Math.min(2.0, buf.duration - startTime));
+    }
+
+    function assignSliceToPad(stem, startTime, padId) {
+      const ctx = getAudioContext();
+      const buf = window.stemAudioBuffers[stem];
+      if (!buf) return;
+
+      const sliceLen = 0.8;
+      const sr = buf.sampleRate;
+      const startSample = Math.floor(startTime * sr);
+      const endSample = Math.min(buf.length, startSample + Math.floor(sliceLen * sr));
+      const sliceBuf = ctx.createBuffer(buf.numberOfChannels, endSample - startSample, sr);
+
+      for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+        const chData = buf.getChannelData(ch);
+        const sliceData = sliceBuf.getChannelData(ch);
+        sliceData.set(chData.subarray(startSample, endSample));
+      }
+
+      window.loadedAudioBuffers[padId] = sliceBuf;
+      const padObj = window.currentSlices.find(p => p.id === padId);
+      if (padObj) {
+        padObj.name = `${stem.slice(0,3).toUpperCase()} ${startTime.toFixed(1)}s`;
+        const padNameEl = document.querySelector(`#pad-btn-${padId} .pad-name`);
+        if (padNameEl) padNameEl.textContent = padObj.name;
+      }
+      triggerPad(padId);
+      alert(`🎯 Pad ${padId} に [${stem} @ ${startTime.toFixed(2)}s] をサンプリング割り当てしました！`);
+    }
+
+    // ================================================================
+    // 🔴 Live Jam Performance Recorder
+    // ================================================================
+    function toggleLiveJamRecording() {
+      const ctx = getAudioContext();
+      const btn = document.getElementById('btn-live-jam-rec');
+      const icon = document.getElementById('icon-rec-dot');
+      const label = document.getElementById('txt-live-rec');
+
+      if (!window.isJamRecording) {
+        // Start recording
+        window.isJamRecording = true;
+        if (btn) btn.style.background = '#ef4444';
+        if (btn) btn.style.color = '#ffffff';
+        if (label) label.textContent = '録音中 (停止で保存)';
+        if (icon) icon.className = 'fa-solid fa-stop';
+
+        // Connect master destination to recorder
+        const dest = ctx.createMediaStreamDestination();
+        if (window.masterGainNode) window.masterGainNode.connect(dest);
+        
+        window.mediaRecorder = new MediaRecorder(dest.stream);
+        window.recordedJamChunks = [];
+        window.mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) window.recordedJamChunks.push(e.data);
+        };
+        window.mediaRecorder.onstop = () => {
+          const blob = new Blob(window.recordedJamChunks, { type: 'audio/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `GENESIS_Live_Jam_Session_${Date.now()}.webm`;
+          a.click();
+          alert('💾 LIVE演奏セッションを録音・保存しました！');
+        };
+        window.mediaRecorder.start();
+
+        // Also start master play if not already playing
+        if (!window.isMasterPlaying) startMasterPlay();
+      } else {
+        // Stop recording
+        window.isJamRecording = false;
+        if (btn) btn.style.background = 'rgba(239,68,68,0.2)';
+        if (btn) btn.style.color = '#f87171';
+        if (label) label.textContent = 'LIVE 演奏録音';
+        if (icon) icon.className = 'fa-solid fa-circle';
+
+        if (window.mediaRecorder && window.mediaRecorder.state !== 'inactive') {
+          window.mediaRecorder.stop();
+        }
       }
     }
 
