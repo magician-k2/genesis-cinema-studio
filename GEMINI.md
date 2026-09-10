@@ -27,7 +27,18 @@ Whenever the user asks to build, architect, upgrade, or deploy an application, a
 
 ---
 
-## 🛡️ Workspace Rules
+## 🛡️ Workspace Rules & Universal Application
+- **Universal & Retroactive Enforcement (過去・既存プロジェクトへの完全適用)**:
+  - This 7-Step Framework is **permanently binding across ALL projects, modules, and engines** in the GENESIS repository (past, present, and future): `GENESIS_CINEMA_STUDIO`, `core/`, `knowledge_bank/`, `browser_extension/`, `GENESIS_WEBMCP_SUBMISSION`, `NEDO_GENIAC_SUBMISSION`.
+  - Every existing module or project touched, reviewed, or upgraded must be elevated to conform with all 7 steps:
+    1. Step 0: Google Official Live Harvester & Tech Injection
+    2. Step 1: Architecture & Spec (One-Prompt Blueprint)
+    3. Step 2: MVP Step-by-Step (Zero Placeholders, 100% executable)
+    4. Step 3: Level Up UI/UX (Linear / Apple SaaS Aesthetics)
+    5. Step 4: Auth, Database & Storage (Data Layer & Sessions)
+    6. Step 5: Turn into an AI Product (Gemini & Edge Engine)
+    7. Step 6: Stress Test & Ruthless QA (Adversarial Audit, 100% Pass)
+    8. Step 7: Launch Readiness & Monetization (Stripe / Deployment)
 - Maintain 100% test pass rate across unit and E2E test suites.
 - Preserve zero-drift consistency for all AI characters, assets, and styling.
 - All code and artifacts must be maintained in pristine, executable quality.
