@@ -92,10 +92,12 @@ def extract_features_from_audio(audio_path: str, max_duration_sec: float = 30.0)
         "spectral_centroid": round(mean_centroid, 1)
     }
 
-def separate_stems_and_slices(audio_path: str, max_duration_sec: float = 20.0) -> dict:
+def separate_stems_and_slices(audio_path: str, max_duration_sec: float = None) -> dict:
     """Separates audio into 4 stems (Vocals, Drums, Bass, Melody) and extracts 16 pad slices."""
     sr = 22050
-    y, _ = librosa.load(audio_path, sr=sr, duration=max_duration_sec)
+    # If None, 0, or negative, load full length without truncation!
+    load_duration = None if (max_duration_sec is None or max_duration_sec <= 0 or max_duration_sec >= 9999) else float(max_duration_sec)
+    y, _ = librosa.load(audio_path, sr=sr, duration=load_duration)
     total_samples = len(y)
     if total_samples < sr:
         raise ValueError("Audio duration too short for stem separation.")
@@ -160,9 +162,14 @@ def separate_stems_and_slices(audio_path: str, max_duration_sec: float = 20.0) -
         pad_idx_in_stem = (pad["id"] - 1) % 4
         start_sample = 0
         if len(onsets) > pad_idx_in_stem:
-            start_sample = int(onsets[pad_idx_in_stem])
+            # For full songs, spread slices across 0%, 25%, 50%, 75% of onsets
+            onset_step = max(1, len(onsets) // 4)
+            chosen_onset_idx = min(len(onsets) - 1, pad_idx_in_stem * onset_step)
+            start_sample = int(onsets[chosen_onset_idx])
         else:
-            start_sample = int((pad_idx_in_stem * 1.5) * sr) % max(1, total_samples - slice_samples)
+            # Spread across timeline proportional to total song duration
+            section_offset = int((pad_idx_in_stem / 4.0) * max(1, total_samples - slice_samples))
+            start_sample = section_offset
 
         end_sample = min(total_samples, start_sample + slice_samples)
         chunk = arr[start_sample:end_sample].copy()
@@ -190,12 +197,13 @@ def separate_stems_and_slices(audio_path: str, max_duration_sec: float = 20.0) -
         "duration_sec": round(total_samples / sr, 1)
     }
 
-def download_youtube_music_sample(url_or_query: str, sample_sec: int = 20) -> tuple:
+def download_youtube_music_sample(url_or_query: str, sample_sec: int = None) -> tuple:
     """Downloads audio from YouTube Music / YouTube with yt-dlp, with persistent caching."""
     import hashlib, shutil
     cache_dir = os.path.join(os.path.dirname(__file__), "..", "GENESIS_CINEMA_STUDIO", "cache_audio")
     os.makedirs(cache_dir, exist_ok=True)
-    cache_key = hashlib.md5(f"{url_or_query}".encode('utf-8')).hexdigest()
+    cache_tag = "full" if (sample_sec is None or sample_sec <= 0 or sample_sec >= 9999) else str(sample_sec)
+    cache_key = hashlib.md5(f"{url_or_query}_{cache_tag}".encode('utf-8')).hexdigest()
     cached_mp3 = os.path.join(cache_dir, f"{cache_key}.mp3")
     cached_title_file = os.path.join(cache_dir, f"{cache_key}.title")
 
@@ -513,14 +521,15 @@ def analyze_and_produce_prompt(url_or_query: str, scene_context: str = "サイ�
         except Exception:
             pass
 
-def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "Cyberpunk Neo-Tokyo", max_duration_sec: float = 30.0) -> dict:
+def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "Cyberpunk Neo-Tokyo", max_duration_sec: float = None) -> dict:
     is_local_file = os.path.exists(url_or_query_or_file)
     temp_dir = None
+    sample_sec = None if (max_duration_sec is None or max_duration_sec <= 0 or max_duration_sec >= 9999) else int(max_duration_sec)
     if is_local_file:
         audio_path = url_or_query_or_file
         title = os.path.splitext(os.path.basename(audio_path))[0]
     else:
-        audio_path, title, temp_dir = download_youtube_music_sample(url_or_query_or_file, sample_sec=int(max_duration_sec))
+        audio_path, title, temp_dir = download_youtube_music_sample(url_or_query_or_file, sample_sec=sample_sec)
 
     if not audio_path or not os.path.exists(audio_path):
         raise FileNotFoundError(f"Could not load audio for {url_or_query_or_file}")
@@ -530,13 +539,19 @@ def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "
         stem_result = separate_stems_and_slices(audio_path, max_duration_sec=max_duration_sec)
         prompts = synthesize_multi_ai_prompts(features, title, scene_context)
 
+        total_sec = stem_result["duration_sec"]
+        mins = int(total_sec // 60)
+        secs = int(total_sec % 60)
+        formatted_duration = f"{mins:02d}:{secs:02d}"
+
         return {
             "success": True,
             "track_title": title,
             "features": features,
             "stems": stem_result["stems"],
             "slices": stem_result["slices"],
-            "duration_sec": stem_result["duration_sec"],
+            "duration_sec": total_sec,
+            "formatted_duration": formatted_duration,
             "prompts": prompts
         }
     finally:

@@ -1899,7 +1899,8 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 payload = json.loads(body) if body else {}
                 url_or_query = payload.get('url', '').strip()
                 scene_context = payload.get('context', 'Cyberpunk & Cinema Blockbuster')
-                duration_sec = float(payload.get('duration_sec', 30.0))
+                raw_duration = payload.get('duration_sec', 0)
+                duration_sec = None if (raw_duration is None or float(raw_duration) <= 0 or float(raw_duration) >= 9999) else float(raw_duration)
                 if not url_or_query:
                     url_or_query = "Hans Zimmer Interstellar Style"
 
@@ -1914,14 +1915,19 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(resp_bytes)
                 return
+            except (ConnectionAbortedError, BrokenPipeError):
+                return
             except Exception as e:
                 err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
-                self.send_response(500)
-                self.send_header('Content-Type', 'application/json; charset=utf-8')
-                self.send_header('Content-Length', str(len(err_bytes)))
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(err_bytes)
+                try:
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Content-Length', str(len(err_bytes)))
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(err_bytes)
+                except Exception:
+                    pass
                 return
 
         elif parsed.path == '/api/music/upload_and_analyze':
@@ -1932,7 +1938,8 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 b64_data = payload.get('audio_base64', '')
                 filename = payload.get('filename', 'upload.wav')
                 scene_context = payload.get('context', 'Cyberpunk & Cinema Blockbuster')
-                duration_sec = float(payload.get('duration_sec', 30.0))
+                raw_duration = payload.get('duration_sec', 0)
+                duration_sec = None if (raw_duration is None or float(raw_duration) <= 0 or float(raw_duration) >= 9999) else float(raw_duration)
 
                 if ',' in b64_data:
                     b64_data = b64_data.split(',', 1)[1]

@@ -735,12 +735,12 @@
       <!-- Sampling Range Selector -->
       <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; font-size: 0.78rem;">
         <span class="preset-label"><i class="fa-solid fa-scissors"></i> サンプリング範囲:</span>
-        <button class="preset-chip" id="chip-sample-15" onclick="setSamplingDuration(15)">⚡ 15秒</button>
-        <button class="preset-chip active" id="chip-sample-30" onclick="setSamplingDuration(30)">⚡ 30秒 (標準)</button>
-        <button class="preset-chip" id="chip-sample-60" onclick="setSamplingDuration(60)">⚡ 60秒</button>
-        <button class="preset-chip" id="chip-sample-full" onclick="setSamplingDuration(180)">⚡ フル楽曲 (Full Track 3分)</button>
+        <button class="preset-chip" id="chip-sample-15" onclick="setSamplingDuration(15)">⚡ 15秒 (Hook)</button>
+        <button class="preset-chip" id="chip-sample-30" onclick="setSamplingDuration(30)">⚡ 30秒 (Short)</button>
+        <button class="preset-chip" id="chip-sample-60" onclick="setSamplingDuration(60)">⚡ 60秒 (Extended)</button>
+        <button class="preset-chip active" id="chip-sample-full" onclick="setSamplingDuration(0)">⚡ 原曲フル尺 (Full Length / 完全サンプリング)</button>
         <span id="sampling-range-feedback" style="font-size: 0.72rem; color: #38bdf8; margin-left: 8px; display: inline-flex; align-items: center; gap: 4px;">
-          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> <span>30秒設定中</span>
+          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> <span>原曲フル尺（時間無制限）設定中</span>
         </span>
         <span style="font-size: 0.7rem; color: #94a3b8; margin-left: auto;">💡 波形をクリックして好きな位置からパッドへ切り出し可能</span>
       </div>
@@ -1275,6 +1275,13 @@
           document.getElementById('val-key').textContent = data.features.key;
           document.getElementById('val-energy').textContent = data.features.energy;
           document.getElementById('val-timbre').textContent = data.features.timbre;
+        if (data.formatted_duration || data.duration_sec) {
+          const durEl = document.getElementById('val-duration');
+          if (durEl) {
+            const fmt = data.formatted_duration || `${Math.floor(data.duration_sec/60)}:${Math.floor(data.duration_sec%60).toString().padStart(2,'0')}`;
+            durEl.textContent = `${fmt} (${data.duration_sec.toFixed(1)}s)`;
+          }
+        }
           document.getElementById('mpc-status-screen').textContent = `ACTIVE • ${data.features.bpm} BPM • ${data.features.key}`;
         }
 
@@ -1850,7 +1857,7 @@
     // ================================================================
     // ⏱️ Dynamic Duration & Interactive Waveform Slicing Engine
     // ================================================================
-    window.activeSamplingDuration = 30;
+    window.activeSamplingDuration = 0;
     window.activeLyriaDuration = 120;
     window.isJamRecording = false;
     window.recordedJamChunks = [];
@@ -1862,11 +1869,12 @@
         const chip = document.getElementById(`chip-sample-${k}`);
         if (chip) chip.classList.remove('active');
       });
-      const key = sec === 180 ? 'full' : sec.toString();
+      const key = (sec === 0 || sec === 'full' || sec === 180) ? 'full' : sec.toString();
       const activeChip = document.getElementById(`chip-sample-${key}`);
       if (activeChip) activeChip.classList.add('active');
 
-      const label = sec === 180 ? 'フル楽曲 (3分 / 180秒)' : `${sec}秒`;
+      const isFull = (sec === 0 || sec === 'full' || sec === 180);
+      const label = isFull ? '原曲フル尺（時間無制限サンプリング）' : `${sec}秒`;
       const feedbackEl = document.getElementById('sampling-range-feedback');
       if (feedbackEl) {
         feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> <span style="color: #38bdf8; font-weight: bold;">${label} 設定完了</span>`;
@@ -1920,8 +1928,11 @@
           const clickTime = ratio * buf.duration;
           playStemFromTime(stem, clickTime);
 
+          const m = Math.floor(clickTime / 60);
+          const s = (clickTime % 60).toFixed(1);
+          const timeStr = `${m}:${s < 10 ? '0' : ''}${s}`;
           // Prompt pad assignment option
-          const targetPad = prompt(`✂️ [${stem.toUpperCase()}] の位置 ${clickTime.toFixed(2)}秒 からスライスを切り出しました！\nどのPad (1〜16) に割り当てますか？`, '1');
+          const targetPad = prompt(`✂️ [${stem.toUpperCase()}] の位置 ${timeStr} (${clickTime.toFixed(2)}秒 / 原曲全体: ${buf.duration.toFixed(1)}秒) からスライスを切り出しました！\nどのPad (1〜16) に割り当てますか？`, '1');
           if (targetPad && parseInt(targetPad) >= 1 && parseInt(targetPad) <= 16) {
             assignSliceToPad(stem, clickTime, parseInt(targetPad));
           }
@@ -1965,7 +1976,9 @@
       window.loadedAudioBuffers[padId] = sliceBuf;
       const padObj = window.currentSlices.find(p => p.id === padId);
       if (padObj) {
-        padObj.name = `${stem.slice(0,3).toUpperCase()} ${startTime.toFixed(1)}s`;
+        const m = Math.floor(startTime / 60);
+        const s = Math.floor(startTime % 60);
+        padObj.name = `${stem.slice(0,3).toUpperCase()} ${m}:${s < 10 ? '0' : ''}${s}`;
         const padNameEl = document.querySelector(`#pad-btn-${padId} .pad-name`);
         if (padNameEl) padNameEl.textContent = padObj.name;
       }
