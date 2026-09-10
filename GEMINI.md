@@ -1,8 +1,15 @@
 # 🧠 GENESIS & Google AI Studio Development Master Guidelines
 
-## 🌟 Permanent Framework: Google AI Studio 7-Step App Builder
-Whenever the user asks to build, architect, upgrade, or deploy an application, always follow the **Google AI Studio 7-Step Production App Builder Framework**:
+## 🌟 Permanent Framework: Google AI Studio 7-Step App Builder ✕ Google Official Harvester
+Whenever the user asks to build, architect, upgrade, or deploy an application, always follow the **Google AI Studio 7-Step Production App Builder Framework** infused with **Google Official Live Tech Injection**:
 
+0. **Step 0: Google Official Live Harvester & Tech Injection (公式最新ナレッジ常時注入)**:
+   - Always reference and utilize the latest official information and techniques from Google developer portals:
+     - **Google AI for Developers (i.google.dev)**: Latest google-genai SDK, Structured Outputs (JSON schema), Context Caching, Function Calling, System Instructions, Code Execution.
+     - **Google Cloud Architecture Center (cloud.google.com)**: Production Cloud Run, Secret Manager, Vertex AI, and Cloud Storage security/scaling best practices.
+     - **Chrome for Developers (developer.chrome.com)**: WebGPU acceleration, WebCodecs, Storage Foundation, Service Workers, and Chrome Built-in AI (Gemini Nano).
+     - **Google DeepMind (deepmind.google)**: Multimodal prompting, Veo 3.1 video framing, Imagen 3 poster art generation, Lyria audio scoring.
+     - **Google Workspace (developers.google.com/workspace)**: Apps Script, AppSheet, and Google Drive API integration.
 1. **Step 1: Architecture & Spec (One-Prompt Blueprint)**:
    - Establish complete technical spec, modern tech stack (React/Tailwind/FastAPI), and module breakdowns before writing code.
 2. **Step 2: MVP Step-by-Step (Zero Placeholders)**:
@@ -24,3 +31,4 @@ Whenever the user asks to build, architect, upgrade, or deploy an application, a
 - Maintain 100% test pass rate across unit and E2E test suites.
 - Preserve zero-drift consistency for all AI characters, assets, and styling.
 - All code and artifacts must be maintained in pristine, executable quality.
+- Actively incorporate Google official developer techniques into every solution.
