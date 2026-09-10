@@ -34,29 +34,58 @@ def _audio_to_base64_wav(audio: np.ndarray, sr: int) -> str:
     b64 = base64.b64encode(buf.getvalue()).decode('ascii')
     return f"data:audio/wav;base64,{b64}"
 
-def extract_features_from_audio(audio_path: str, max_duration_sec: float = 30.0) -> dict:
-    """Analyze audio using Librosa to extract BPM, Key, Energy, and Timbre."""
+def estimate_key_krumhansl_schmuckler(chroma_mean: np.ndarray) -> str:
+    """
+    Estimates key and mode using cognitive Krumhansl-Schmuckler key-finding algorithm.
+    Correlates chroma profile against 24 cognitive major and minor key profiles.
+    """
+    major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
+    minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
+    pitch_classes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+    c = chroma_mean - np.mean(chroma_mean)
+    c_norm = np.linalg.norm(c)
+    if c_norm < 1e-6:
+        return "C Major"
+    c = c / c_norm
+
+    best_corr = -999.0
+    best_key = "C Major"
+
+    for i in range(12):
+        maj_p = np.roll(major_profile, i)
+        maj_p = (maj_p - np.mean(maj_p)) / np.linalg.norm(maj_p - np.mean(maj_p))
+        corr_maj = float(np.dot(c, maj_p))
+        if corr_maj > best_corr:
+            best_corr = corr_maj
+            best_key = f"{pitch_classes[i]} Major"
+
+        min_p = np.roll(minor_profile, i)
+        min_p = (min_p - np.mean(min_p)) / np.linalg.norm(min_p - np.mean(min_p))
+        corr_min = float(np.dot(c, min_p))
+        if corr_min > best_corr:
+            best_corr = corr_min
+            best_key = f"{pitch_classes[i]} Minor"
+
+    return best_key
+
+def extract_features_from_audio(audio_path: str, max_duration_sec: float = 60.0) -> dict:
+    """Analyze audio using Librosa to extract deep BPM, Key, HPSS ratio, and Spectral DNA."""
     try:
         y, sr = librosa.load(audio_path, duration=max_duration_sec)
     except Exception as e:
         return {"success": False, "error": f"Audio load failed: {str(e)}"}
 
+    total_energy = max(1e-6, float(np.sum(y**2)))
+
     # 1. BPM / Tempo Tracking
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
     bpm = float(tempo[0]) if isinstance(tempo, (list, np.ndarray)) else float(tempo)
 
-    # 2. Key Estimation via Chroma CQT
+    # 2. Key Estimation via Chroma CQT + Krumhansl-Schmuckler
     chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
     chroma_mean = np.mean(chroma, axis=1)
-    pitch_classes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    key_idx = int(np.argmax(chroma_mean))
-    root_key = pitch_classes[key_idx]
-
-    # Major vs Minor heuristic
-    min_3rd = chroma_mean[(key_idx + 3) % 12]
-    maj_3rd = chroma_mean[(key_idx + 4) % 12]
-    mode = "Minor" if min_3rd > maj_3rd else "Major"
-    full_key = f"{root_key} {mode}"
+    full_key = estimate_key_krumhansl_schmuckler(chroma_mean)
 
     # 3. Energy / Dynamics via RMS
     rms = librosa.feature.rms(y=y)
@@ -65,21 +94,49 @@ def extract_features_from_audio(audio_path: str, max_duration_sec: float = 30.0)
         energy_label = "Calm & Intimate"
         dynamics = "Low / Ambient"
     elif mean_rms < 0.14:
-        energy_label = "Steady & Cinematic"
+        energy_label = "Steady & Driving"
         dynamics = "Moderate / Tension"
     else:
         energy_label = "High & Explosive"
         dynamics = "Intense / Climax"
 
-    # 4. Spectral Centroid (Timbre Brightness)
+    # 4. HPSS Percussive vs Harmonic Energy Ratio
+    y_harm, y_perc = librosa.effects.hpss(y)
+    perc_ratio = float(np.sum(y_perc**2) / total_energy)
+    harm_ratio = float(np.sum(y_harm**2) / total_energy)
+
+    # 5. Spectral Metrics (Brightness, Flatness, Contrast)
     centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
     mean_centroid = float(np.mean(centroid))
-    if mean_centroid < 1800:
-        timbre = "Dark, Deep & Gritty (Sub-bass, Cello, Low Moog Brass)"
+    rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr, roll_percent=0.85)
+    mean_rolloff = float(np.mean(rolloff))
+    flatness = librosa.feature.spectral_flatness(y=y)
+    mean_flatness = float(np.mean(flatness))
+
+    # 6. Frequency Band Balance (Sub-bass <150Hz & Vocal Presence 300-3400Hz)
+    try:
+        sos_sub = scipy.signal.butter(4, 150, 'lowpass', fs=sr, output='sos')
+        y_sub = scipy.signal.sosfilt(sos_sub, y)
+        sub_ratio = float(np.sum(y_sub**2) / total_energy)
+    except Exception:
+        sub_ratio = 0.25
+
+    try:
+        sos_voc = scipy.signal.butter(4, [300, 3400], 'bandpass', fs=sr, output='sos')
+        y_voc = scipy.signal.sosfilt(sos_voc, y)
+        vocal_ratio = float(np.sum(y_voc**2) / total_energy)
+    except Exception:
+        vocal_ratio = 0.35
+
+    # Timbre descriptor based on physical measurements
+    if mean_flatness > 0.03:
+        timbre = "Aggressive & Gritty (Distorted Synth Stabs, Heavy Overdriven Percussion)"
+    elif mean_centroid < 1800:
+        timbre = "Dark, Deep & Sub-Heavy (Heavy Sub-bass, Warm Analog Pads)"
     elif mean_centroid < 3200:
-        timbre = "Warm, Rich & Atmospheric (Strings, Piano, Analog Pads)"
+        timbre = "Punchy & Saturated (Analog Hardware, Defined Transients, Melodic Synths)"
     else:
-        timbre = "Bright, Piercing & Futuristic (Cyber Synth Leads, Metal Percussion)"
+        timbre = "Bright & Piercing (Crisp Hi-Hats, Acid Synth Leads, High Resonance)"
 
     return {
         "success": True,
@@ -89,7 +146,13 @@ def extract_features_from_audio(audio_path: str, max_duration_sec: float = 30.0)
         "dynamics": dynamics,
         "timbre": timbre,
         "rms": round(mean_rms, 4),
-        "spectral_centroid": round(mean_centroid, 1)
+        "percussive_ratio": round(perc_ratio, 3),
+        "harmonic_ratio": round(harm_ratio, 3),
+        "spectral_centroid": round(mean_centroid, 1),
+        "spectral_rolloff": round(mean_rolloff, 1),
+        "spectral_flatness": round(mean_flatness, 5),
+        "sub_bass_ratio": round(sub_ratio, 3),
+        "vocal_band_ratio": round(vocal_ratio, 3)
     }
 
 def separate_stems_and_slices(audio_path: str, max_duration_sec: float = None) -> dict:
@@ -274,6 +337,17 @@ def download_youtube_music_sample(url_or_query: str, sample_sec: int = None) -> 
                 shutil.copyfile(found_file, cached_mp3)
                 with open(cached_title_file, 'w', encoding='utf-8') as tf:
                     tf.write(title)
+                cached_meta_file = os.path.join(cache_dir, f"{cache_key}.meta.json")
+                meta = {
+                    "title": title,
+                    "artist": info.get("artist") or info.get("creator") or info.get("uploader") or "",
+                    "tags": (info.get("tags") or [])[:15],
+                    "categories": (info.get("categories") or []),
+                    "description": (info.get("description") or "")[:500],
+                    "genre": info.get("genre") or ""
+                }
+                with open(cached_meta_file, 'w', encoding='utf-8') as mf:
+                    json.dump(meta, mf, ensure_ascii=False)
                 return cached_mp3, title, temp_dir
             except Exception:
                 return found_file, title, temp_dir
@@ -281,65 +355,126 @@ def download_youtube_music_sample(url_or_query: str, sample_sec: int = None) -> 
     except Exception as e:
         return None, str(e), temp_dir
 
-def synthesize_multi_ai_prompts(features: dict, track_title: str, scene_context: str = "Cyberpunk Neo-Tokyo") -> dict:
-    """Generates structured prompts tailored for Suno v4, Udio, MiniMax Music, Lyria 3.5, and Veo 3.1."""
-    bpm = features.get("bpm", 120)
+def deconstruct_music_dna_with_gemini(features: dict, track_title: str, metadata: dict = None, scene_context: str = "Cyberpunk Neo-Tokyo") -> dict:
+    """
+    Deconstructs deep musical DNA using Gemini 2.5 Flash Structured Outputs and
+    generates dual-mode prompts tailored for Suno v6, Google DeepMind Lyria 3.5, MiniMax, and Udio.
+    """
+    metadata = metadata or {}
+    bpm = features.get("bpm", 120.0)
     key = features.get("key", "D Minor")
-    timbre = features.get("timbre", "Cinematic Strings")
-    energy = features.get("energy", "Steady & Cinematic")
-    dynamics = features.get("dynamics", "Moderate / Tension")
+    energy = features.get("energy", "Steady & Driving")
+    timbre = features.get("timbre", "Punchy & Saturated")
+    perc_ratio = features.get("percussive_ratio", 0.5)
+    harm_ratio = features.get("harmonic_ratio", 0.5)
+    sub_ratio = features.get("sub_bass_ratio", 0.25)
+    vocal_ratio = features.get("vocal_band_ratio", 0.35)
+    rolloff = features.get("spectral_rolloff", 3500)
+    flatness = features.get("spectral_flatness", 0.01)
 
-    # 1. Google Lyria 3.5 Official Prompt (Anchored with verified BPM & Key)
-    lyria_prompt = (
-        f"[Genre: Cinematic Cyberpunk Orchestral] [Key: {key}] [Tempo: {bpm} BPM] [Dynamics: {energy}]\n"
-        f"Instrumentation: {timbre}, analog Moog modular sub-bass, 808 percussion, cinematic string quartet, soaring synth leads.\n"
-        f"Production: 44.1kHz 24-bit studio stereo master, wide soundstage, controlled sub-bass resonance, crystal highs.\n"
-        f"[Structure - 30s]:\n"
-        f"0:00-0:06 Intro: Ambient {key} root drone, slow rhythmic pulse establishing at {bpm} BPM.\n"
-        f"0:06-0:15 Verse: Punchy kick & snare enter, syncopated bassline with melodic motif.\n"
-        f"0:15-0:24 Climax: Full orchestral brass crescendo, soaring lead synthesizer, maximum dynamic impact.\n"
-        f"0:24-0:30 Outro: Resonant sub-bass tail decay with lush atmospheric reverb."
-    )
+    prompt = f"""
+You are the World-Leading Musicologist and Master AI Music Prompt Engineer at GENESIS Cinema & Music Studio.
+Perform an exhaustive musical DNA deconstruction and generate professional prompts tailored specifically for **Suno v6** and **Google DeepMind Lyria 3.5**.
 
-    # 2. MiniMax Music Format
-    minimax_prompt = (
-        f"A cinematic orchestral track in {key}, tempo {bpm} BPM. {energy} dynamics. "
-        f"Featuring {timbre}. Deep analog low-end pulse, evolving harmonic strings, dramatic riser transitions. "
-        f"Tags: [Cinematic], [{key}], [{bpm}BPM], [Orchestral], [Cyberpunk], [Dramatic Trailer]"
-    )
+TRACK INFORMATION:
+- Title: {track_title}
+- Artist / Uploader: {metadata.get('artist', '')}
+- Tags / Category: {', '.join(metadata.get('tags', []))} {', '.join(metadata.get('categories', []))}
+- Physical Acoustic Profile:
+  * Tempo: {bpm} BPM
+  * Key / Scale: {key}
+  * Energy Profile: {energy}
+  * Percussive Ratio: {perc_ratio:.1%} | Harmonic Ratio: {harm_ratio:.1%}
+  * Sub-bass Energy: {sub_ratio:.1%} | Vocal Presence: {vocal_ratio:.1%}
+  * Spectral Brightness (Rolloff): {rolloff:.0f} Hz | Flatness: {flatness:.5f}
 
-    # 3. Suno v4 / Udio Format
-    suno_prompt = (
-        f"Style: Cinematic Cyberpunk Score, {key}, {bpm} BPM\n"
-        f"Mood: {energy}, {dynamics}, atmospheric, blockbuster tension\n"
-        f"Instruments: {timbre}, heavy 808 sub bass, analog modular synth, brass stabs, organic percussion\n"
-        f"[Intro - 0:00]\n"
-        f"(Atmospheric ambient drone in {key}, rising filtered arpeggio)\n"
-        f"[Verse / Build - 0:04]\n"
-        f"(Punchy kick and syncopated snare at {bpm} BPM, dynamic bassline enters)\n"
-        f"[Drop / Climax - 0:10]\n"
-        f"(Full orchestral crescendo, epic cinematic brass, wide stereophonic synth lead)\n"
-        f"[Outro - 0:14]\n"
-        f"(Decaying sub-bass impact, lingering analog echo tail)"
-    )
+Output a strictly valid JSON object matching this schema:
+{{
+  "detected_genre": "Precise primary genre (e.g. '90s Rave Techno / Breakbeat Hardcore', 'Synthwave / Darksynth', 'French Electro', 'Drill / Trap', 'Liquid Drum & Bass', 'Lo-Fi Hip-Hop')",
+  "sub_genres": ["Subgenre 1", "Subgenre 2", "Subgenre 3"],
+  "production_era": "Production era and recording character (e.g. '1991 Oldschool Rave, early digital samplers, 12-bit crunch, analog warmth, stadium reverb')",
+  "key_instruments": ["Iconic Instrument 1 (e.g. Roland Alpha Juno Hoover Synth / Mentasm)", "Iconic Instrument 2 (e.g. Roland TR-909 Kick & Snare)", "Iconic Instrument 3", "Vocal element"],
+  "rhythmic_groove": "Rhythmic structure and groove feel (e.g. 'Relentless 129.2 BPM four-on-the-floor kick pattern with driving 16th-note offbeat open hi-hats and breakbeat snare fills')",
+  "vocal_character": "Vocal delivery characteristics (e.g. 'Sampled rave vocal shouts, pitched female hooks, hypnotic repetitive chants')",
 
-    # 4. Google Veo 3.1 Video-Audio Sync Directive
-    veo_directive = (
-        f"Scene Audio Sync: {bpm} BPM | {key} | {energy} | "
-        f"Cut 1 (0-3.5s): Ambient swell ({key}) | "
-        f"Cut 2 (3.5-7.5s): Rhythm entrance ({bpm} BPM) | "
-        f"Cut 3 (7.5-11.0s): Climax surge | "
-        f"Cut 4 (11.0-15.0s): Impact resolve"
-    )
+  "prompts_faithful": {{
+    "suno_v6": "Production-ready Suno v6 prompt strictly reproducing the original genre. Include style tags [Style: ...], [Tempo: {bpm} BPM], [Key: {key}], [Instruments: ...], [Vocals: ...], and structured arrangement sections: [Intro], [Rave Stab / Verse], [Build], [Drop / Climax], [Breakdown], [Outro]. No generic orchestral descriptors.",
+    "lyria_3_5": "Google DeepMind Lyria 3.5 structured prompt with genre, key, tempo, acoustic instrumentation anchors, and 30s-60s chronological timecode breakdown faithful to the original style.",
+    "minimax": "MiniMax Music prompt with exact genre tags, instruments, and style descriptor.",
+    "udio": "Udio style tags and prompt string."
+  }},
+
+  "prompts_cinematic_crossover": {{
+    "suno_v6": "Suno v6 cinematic blockbuster trailer / hybrid orchestral crossover remix prompt that transforms this track's BPM ({bpm} BPM) and Key ({key}) into an epic movie trailer score (Hans Zimmer / Cyberpunk trailer style with massive brass, cinematic taiko/percussion, soaring strings, and trailer drops). Include structured sections: [Intro], [Rising Tension], [Trailer Hit / Drop], [Climax], [Outro].",
+    "lyria_3_5": "Lyria 3.5 prompt for the cinematic orchestral crossover version.",
+    "minimax": "MiniMax Music cinematic crossover prompt.",
+    "udio": "Udio cinematic crossover prompt."
+  }},
+
+  "veo_audio_directive": "Scene audio sync directive for Google Veo 3.1 video matching {bpm} BPM."
+}}
+"""
+
+    try:
+        from core.genesis_gemini_client import GenesisGeminiClientProvider
+        provider = GenesisGeminiClientProvider()
+        client = provider.client
+        resp = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config={"response_mime_type": "application/json"}
+        )
+        data = json.loads(resp.text)
+        if "detected_genre" in data and "prompts_faithful" in data:
+            return data
+    except Exception as e:
+        print(f"[MusicDNA] Gemini analysis error, falling back to heuristic: {e}")
+
+    # Robust Heuristic Fallback if offline
+    is_fast_tempo = bpm > 120
+    is_percussive = perc_ratio > 0.5
+    genre = "Electronic / Dance" if (is_fast_tempo and is_percussive) else ("Cinematic & Ambient" if harm_ratio > 0.55 else "Modern Pop / Hybrid")
+    
+    return {
+        "detected_genre": genre,
+        "sub_genres": ["Synthesizer", "Bass", "Groove"],
+        "production_era": "Modern Digital Production, High Dynamic Range",
+        "key_instruments": ["Synthesizer", "Drum Machine", "Bass Synth", "Vocal Chop"],
+        "rhythmic_groove": f"Rhythmic pulse at {bpm} BPM with steady meter",
+        "vocal_character": "Processed vocal elements and melodic leads",
+        "prompts_faithful": {
+            "suno_v6": f"[Style: {genre}, {key}, {bpm}BPM] [Instruments: Analog synth, punchy percussion, deep bass] [Intro - 0:00] Atmospheric swell [Drop - 0:15] Driving beat at {bpm} BPM [Outro - 0:45] Sustained decay",
+            "lyria_3_5": f"[Genre: {genre}] [Key: {key}] [Tempo: {bpm} BPM] Heavy bass and dynamic percussion.",
+            "minimax": f"{genre} track in {key}, tempo {bpm} BPM. Dynamic rhythm.",
+            "udio": f"{genre}, {key}, {bpm} bpm, electronic"
+        },
+        "prompts_cinematic_crossover": {
+            "suno_v6": f"[Style: Cinematic Hybrid Orchestral Trailer, {key}, {bpm}BPM] [Instruments: Massive brass braams, cinematic taiko, soaring strings, modular sub-bass] [Intro] Dark atmospheric drone [Rise] Ticking percussion building [Drop] Massive orchestral impact and choir [Climax] Full cinematic climax [Outro] Sub-bass decay",
+            "lyria_3_5": f"[Genre: Cinematic Blockbuster Orchestral] [Key: {key}] [Tempo: {bpm} BPM] Massive orchestral brass and hybrid percussion.",
+            "minimax": f"Epic cinematic orchestral track in {key}, tempo {bpm} BPM.",
+            "udio": f"cinematic trailer, orchestral, {key}, {bpm} bpm"
+        },
+        "veo_audio_directive": f"Scene Audio Sync: {bpm} BPM | {key} | {energy}"
+    }
+
+def synthesize_multi_ai_prompts(features: dict, track_title: str, metadata: dict = None, scene_context: str = "Cyberpunk Neo-Tokyo") -> dict:
+    """Generates structured prompts tailored for Suno v6, Udio, MiniMax Music, Lyria 3.5, and Veo 3.1."""
+    dna = deconstruct_music_dna_with_gemini(features, track_title, metadata=metadata, scene_context=scene_context)
+    pf = dna.get("prompts_faithful", {})
+    pc = dna.get("prompts_cinematic_crossover", {})
 
     return {
-        "lyria": lyria_prompt,
-        "minimax": minimax_prompt,
-        "suno": suno_prompt,
-        "udio": suno_prompt,
-        "veo": veo_directive,
-        "cinema_score_prompt": f"Cinematic Score [{track_title}]: {bpm} BPM, {key}, {energy}. {timbre}.",
-        "veo_audio_directive": veo_directive
+        "music_dna": dna,
+        "prompts_faithful": pf,
+        "prompts_cinematic_crossover": pc,
+        # Default top-level prompt references for backward compatibility
+        "lyria": pf.get("lyria_3_5", ""),
+        "suno": pf.get("suno_v6", ""),
+        "minimax": pf.get("minimax", ""),
+        "udio": pf.get("udio", ""),
+        "veo": dna.get("veo_audio_directive", ""),
+        "cinema_score_prompt": pc.get("suno_v6", ""),
+        "veo_audio_directive": dna.get("veo_audio_directive", "")
     }
 
 # ====================================================================
@@ -550,9 +685,23 @@ def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "
         raise FileNotFoundError(f"Could not load audio for {url_or_query_or_file}")
 
     try:
+        # Load cached metadata if available
+        meta = {"title": title}
+        cache_dir = os.path.join(os.path.dirname(__file__), "..", "GENESIS_CINEMA_STUDIO", "cache_audio")
+        import hashlib
+        cache_tag = "full" if (sample_sec is None or sample_sec <= 0 or sample_sec >= 9999) else str(sample_sec)
+        cache_key = hashlib.md5(f"{url_or_query_or_file}_{cache_tag}".encode('utf-8')).hexdigest()
+        cached_meta_file = os.path.join(cache_dir, f"{cache_key}.meta.json")
+        if os.path.exists(cached_meta_file):
+            try:
+                with open(cached_meta_file, 'r', encoding='utf-8') as mf:
+                    meta = json.load(mf)
+            except Exception:
+                pass
+
         features = extract_features_from_audio(audio_path)
         stem_result = separate_stems_and_slices(audio_path, max_duration_sec=max_duration_sec)
-        prompts = synthesize_multi_ai_prompts(features, title, scene_context)
+        prompts = synthesize_multi_ai_prompts(features, title, metadata=meta, scene_context=scene_context)
 
         total_sec = stem_result["duration_sec"]
         mins = int(total_sec // 60)
@@ -563,6 +712,7 @@ def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "
             "success": True,
             "track_title": title,
             "features": features,
+            "music_dna": prompts.get("music_dna"),
             "stems": stem_result["stems"],
             "slices": stem_result["slices"],
             "duration_sec": total_sec,
