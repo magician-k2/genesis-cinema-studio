@@ -176,6 +176,21 @@ def separate_stems_and_slices(audio_path: str, max_duration_sec: float = None) -
         if len(chunk) < int(0.1 * sr):
             chunk = arr[:slice_samples].copy()
 
+        # Transient alignment: trim leading silence to zero attack delay
+        peak_amp = np.max(np.abs(chunk))
+        if peak_amp > 1e-4:
+            lead_thresh = peak_amp * 0.05
+            active_pts = np.where(np.abs(chunk) > lead_thresh)[0]
+            if len(active_pts) > 0 and active_pts[0] > 0:
+                offset = active_pts[0]
+                zc_min = max(0, offset - int(0.005 * sr))
+                diff_sign = np.diff(np.signbit(chunk[zc_min:offset + 1]))
+                zc = np.where(diff_sign)[0]
+                snap = (zc_min + zc[-1]) if len(zc) > 0 else offset
+                start_sample = min(total_samples - int(0.1 * sr), start_sample + snap)
+                end_sample = min(total_samples, start_sample + slice_samples)
+                chunk = arr[start_sample:end_sample].copy()
+
         fade_len = min(256, len(chunk) // 4)
         if fade_len > 0:
             chunk[-fade_len:] *= np.linspace(1.0, 0.0, fade_len)
@@ -557,7 +572,7 @@ def analyze_and_separate_stems(url_or_query_or_file: str, scene_context: str = "
     finally:
         if temp_dir and os.path.exists(temp_dir):
             try:
-                if os.path.exists(audio_path): os.remove(audio_path)
-                os.rmdir(temp_dir)
+                import shutil
+                shutil.rmtree(temp_dir, ignore_errors=True)
             except Exception:
                 pass

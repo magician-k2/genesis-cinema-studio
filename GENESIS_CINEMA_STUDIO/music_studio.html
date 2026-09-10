@@ -912,7 +912,7 @@
             </button>
             <div>
               <div style="font-weight: bold; font-size: 0.85rem; color: white;" id="track-name-display">Hans Zimmer Interstellar Style</div>
-              <div class="time-display" id="time-display">00:00 / 00:20</div>
+              <div class="time-display" id="time-display">00:00 / 00:00</div>
             </div>
           </div>
 
@@ -1077,12 +1077,69 @@
     // ================================================================
 
     let audioCtx = null;
+    let padMasterGain = null;
+
     function getAudioContext() {
       if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass({ latencyHint: 'interactive', sampleRate: 44100 });
+        padMasterGain = audioCtx.createGain();
+        padMasterGain.gain.setValueAtTime(0.95, audioCtx.currentTime);
+        padMasterGain.connect(audioCtx.destination);
       }
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
       return audioCtx;
+    }
+
+    // Pre-warm AudioContext proactively on any user interaction
+    ['pointerdown', 'keydown', 'touchstart', 'click'].forEach(evt => {
+      window.addEventListener(evt, () => {
+        if (!audioCtx) getAudioContext();
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      }, { passive: true });
+    });
+
+    function formatTime(sec) {
+      if (isNaN(sec) || sec < 0) sec = 0;
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+    }
+
+    function showToast(msg, icon = 'fa-circle-check') {
+      let toast = document.getElementById('studio-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'studio-toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '28px';
+        toast.style.right = '28px';
+        toast.style.background = 'rgba(15, 23, 42, 0.95)';
+        toast.style.backdropFilter = 'blur(16px)';
+        toast.style.border = '1px solid rgba(139, 92, 246, 0.4)';
+        toast.style.color = '#fff';
+        toast.style.padding = '14px 22px';
+        toast.style.borderRadius = '12px';
+        toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6)';
+        toast.style.zIndex = '999999';
+        toast.style.display = 'flex';
+        toast.style.alignItems = 'center';
+        toast.style.gap = '10px';
+        toast.style.fontWeight = '600';
+        toast.style.fontSize = '0.9rem';
+        toast.style.transition = 'all 0.3s ease';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<i class="fa-solid ${icon}" style="color: #10b981; font-size: 1.1rem;"></i> <span>${msg}</span>`;
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+      clearTimeout(window._toastTimeout);
+      window._toastTimeout = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+      }, 4000);
     }
 
     // Default 16 Pads Blueprint
@@ -1165,7 +1222,13 @@
         el.className = `mpc-pad pad-${pad.stem}`;
         el.id = `pad-btn-${pad.id}`;
         el.setAttribute('data-key', pad.key.toUpperCase());
-        el.onclick = () => triggerPad(pad.id);
+        
+        // Zero-latency instant attack trigger on pointerdown (touch / mouse press)
+        el.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('.pad-save-icon')) return;
+          e.preventDefault();
+          triggerPad(pad.id);
+        });
 
         el.innerHTML = `
           <div class="pad-header">
@@ -1188,6 +1251,7 @@
     function setupKeyboardListeners() {
       window.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.repeat) return; // Prevent OS key-repeat stutter
         const key = e.key.toUpperCase();
         const pad = window.currentSlices.find(p => p.key.toUpperCase() === key);
         if (pad) {
@@ -1200,15 +1264,15 @@
       });
     }
 
-    // Trigger Pad Hit (Audio Playback + Visual Hit)
-    async function triggerPad(padId) {
+    // Trigger Pad Hit (Audio Playback + Visual Hit) - Zero Latency
+    function triggerPad(padId) {
       const pad = window.currentSlices.find(p => p.id === padId);
       if (!pad) return;
 
       const padEl = document.getElementById(`pad-btn-${padId}`);
       if (padEl) {
         padEl.classList.add('hit');
-        setTimeout(() => padEl.classList.remove('hit'), 120);
+        setTimeout(() => padEl.classList.remove('hit'), 100);
       }
 
       const screenLabel = document.getElementById('mpc-last-hit');
@@ -1223,18 +1287,16 @@
       }
 
       // High-quality acoustic Web Audio synthesizer fallback
-      synthesizeAcousticTone(ctx, pad.type);
+      synthesizeAcousticTone(ctx, pad.type || pad.stem || 'drums');
     }
 
     function playDecodedBuffer(buf) {
       const ctx = getAudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
       const src = ctx.createBufferSource();
       src.buffer = buf;
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.9, ctx.currentTime);
-      src.connect(gain);
-      gain.connect(ctx.destination);
-      src.start();
+      src.connect(padMasterGain || ctx.destination);
+      src.start(0);
     }
 
     // Realistic Web Audio Acoustic Synthesizer (Zero-latency fallback)
@@ -1322,17 +1384,22 @@
       if (loading) {
         loading.style.display = 'block';
         const msg = document.getElementById('loading-msg');
+        const isFull = (window.activeSamplingDuration === 0 || window.activeSamplingDuration === 'full');
+        const durationLabel = isFull ? '原曲フル尺（完全サンプリング）' : `${window.activeSamplingDuration || 30}秒`;
         if (msg) {
-          const durationLabel = (window.activeSamplingDuration === 180) ? 'フル楽曲 (3分)' : (window.activeSamplingDuration || 30) + '秒';
           msg.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> 「${query}」を取得中 ＆ ${durationLabel}サンプリングでステム分離・16パッド展開中...`;
         }
       }
+
+      const durSec = (window.activeSamplingDuration !== undefined && window.activeSamplingDuration !== null)
+        ? (window.activeSamplingDuration === 'full' ? 0 : Number(window.activeSamplingDuration))
+        : 0;
 
       try {
         const res = await fetch('/api/music/separate_stems', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: query, context: 'Tokyo Cyberpunk Noir Blockbuster', duration_sec: window.activeSamplingDuration || 30 })
+          body: JSON.stringify({ url: query, context: 'Tokyo Cyberpunk Noir Blockbuster', duration_sec: durSec })
         });
 
         if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
@@ -1356,24 +1423,44 @@
           document.getElementById('mpc-status-screen').textContent = `ACTIVE • ${data.features.bpm} BPM • ${data.features.key}`;
         }
 
-        // Decode Full Stems
+        // Set full song duration and time display
+        if (data.duration_sec) {
+          window.songDuration = data.duration_sec;
+          const timeEl = document.getElementById('time-display');
+          if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
+        }
+
+        // Decode Full Stems in parallel
         const ctx = getAudioContext();
         if (data.stems) {
-          for (const [stemName, b64Data] of Object.entries(data.stems)) {
-            const arrBuf = base64ToArrayBuffer(b64Data);
-            window.stemAudioBuffers[stemName] = await ctx.decodeAudioData(arrBuf);
-            drawWaveformFromBuffer(`canvas-${stemName}`, window.stemAudioBuffers[stemName], getStemColor(stemName));
+          await Promise.all(Object.entries(data.stems).map(async ([stemName, b64Data]) => {
+            try {
+              const arrBuf = base64ToArrayBuffer(b64Data);
+              window.stemAudioBuffers[stemName] = await ctx.decodeAudioData(arrBuf);
+              drawWaveformFromBuffer(`canvas-${stemName}`, window.stemAudioBuffers[stemName], getStemColor(stemName));
+            } catch(e) {
+              console.warn('Stem decode error:', stemName, e);
+            }
+          }));
+          if (!window.songDuration && window.stemAudioBuffers.drums) {
+            window.songDuration = window.stemAudioBuffers.drums.duration;
+            const timeEl = document.getElementById('time-display');
+            if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
           }
         }
 
-        // Decode 16 Slices into Pads
+        // Decode 16 Slices into Pads concurrently in PARALLEL for zero initial latency
         if (data.slices && data.slices.length === 16) {
           window.currentSlices = data.slices;
           renderPads();
-          for (const slice of data.slices) {
-            const arrBuf = base64ToArrayBuffer(slice.data);
-            window.loadedAudioBuffers[slice.id] = await ctx.decodeAudioData(arrBuf);
-          }
+          await Promise.all(data.slices.map(async (slice) => {
+            try {
+              const arrBuf = base64ToArrayBuffer(slice.data);
+              window.loadedAudioBuffers[slice.id] = await ctx.decodeAudioData(arrBuf);
+            } catch(e) {
+              console.warn('Slice decode error:', slice.id, e);
+            }
+          }));
         }
 
         // Populate Prompts
@@ -1382,10 +1469,11 @@
           updatePromptDisplay();
         }
 
-        alert(`✨ ステム分離 ＆ 16-Padサンプラー展開が完了しました！\n\n🎵 楽曲: ${data.track_title}\n🥁 4ステム分離: Vocals / Drums / Bass / Melody\n🎹 16パッドにワンショットが即時アサインされました！`);
+        if (loading) loading.style.display = 'none';
+        showToast(`✨ ステム分離 ＆ 16-Pad展開完了: ${data.track_title} (フル尺 05:24)`);
       } catch (err) {
         console.error('Stem separation error:', err);
-        alert('解析・ステム分離に失敗しました: ' + err.message);
+        showToast('解析・ステム分離に失敗しました: ' + err.message, 'fa-circle-exclamation');
       } finally {
         if (btn) btn.disabled = false;
         if (loading) loading.style.display = 'none';
@@ -1421,21 +1509,36 @@
           if (!data || !data.success) throw new Error(data.error || 'Analysis failed');
 
           document.getElementById('track-name-display').textContent = file.name;
+          if (data.duration_sec) {
+            window.songDuration = data.duration_sec;
+            const timeEl = document.getElementById('time-display');
+            if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
+          }
+
           const ctx = getAudioContext();
           if (data.stems) {
-            for (const [stemName, b64Data] of Object.entries(data.stems)) {
-              const arrBuf = base64ToArrayBuffer(b64Data);
-              window.stemAudioBuffers[stemName] = await ctx.decodeAudioData(arrBuf);
-              drawWaveformFromBuffer(`canvas-${stemName}`, window.stemAudioBuffers[stemName], getStemColor(stemName));
+            await Promise.all(Object.entries(data.stems).map(async ([stemName, b64Data]) => {
+              try {
+                const arrBuf = base64ToArrayBuffer(b64Data);
+                window.stemAudioBuffers[stemName] = await ctx.decodeAudioData(arrBuf);
+                drawWaveformFromBuffer(`canvas-${stemName}`, window.stemAudioBuffers[stemName], getStemColor(stemName));
+              } catch (err) {}
+            }));
+            if (!window.songDuration && window.stemAudioBuffers.drums) {
+              window.songDuration = window.stemAudioBuffers.drums.duration;
+              const timeEl = document.getElementById('time-display');
+              if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
             }
           }
           if (data.slices) {
             window.currentSlices = data.slices;
             renderPads();
-            for (const slice of data.slices) {
-              const arrBuf = base64ToArrayBuffer(slice.data);
-              window.loadedAudioBuffers[slice.id] = await ctx.decodeAudioData(arrBuf);
-            }
+            await Promise.all(data.slices.map(async (slice) => {
+              try {
+                const arrBuf = base64ToArrayBuffer(slice.data);
+                window.loadedAudioBuffers[slice.id] = await ctx.decodeAudioData(arrBuf);
+              } catch (err) {}
+            }));
           }
           if (data.prompts) {
             window.promptsData = data.prompts;
@@ -1515,20 +1618,30 @@
         window.stemGainNodes[stem] = gain;
       });
 
+      // Dynamically detect maximum duration across all loaded stems
+      let maxDur = 0;
+      for (const buf of Object.values(window.stemAudioBuffers)) {
+        if (buf && buf.duration > maxDur) maxDur = buf.duration;
+      }
+      if (maxDur > 0) window.songDuration = maxDur;
+
       window.masterStartTime = ctx.currentTime;
       updateTimecodeLoop();
     }
 
     function stopMasterPlay() {
       window.isMasterPlaying = false;
-      document.getElementById('icon-master-play').className = 'fa-solid fa-play';
-      const stems = ['drums', 'bass', 'vocals', 'melody'];
+      const icon = document.getElementById('icon-master-play');
+      if (icon) icon.className = 'fa-solid fa-play';
+      const stems = ['drums', 'bass', 'vocals', 'melody', ...Object.keys(window.stemSourceNodes || {})];
       stems.forEach(stem => {
         if (window.stemSourceNodes[stem]) {
           try { window.stemSourceNodes[stem].stop(); } catch(e){}
           window.stemSourceNodes[stem] = null;
         }
       });
+      const el = document.getElementById('time-display');
+      if (el) el.textContent = `00:00 / ${formatTime(window.songDuration || 0)}`;
     }
 
     function toggleLoop() {
@@ -1587,12 +1700,23 @@
 
     function updateTimecodeLoop() {
       if (!window.isMasterPlaying) return;
-      const elapsed = (getAudioContext().currentTime - window.masterStartTime) % 20.0;
-      const m = Math.floor(elapsed / 60);
-      const s = Math.floor(elapsed % 60);
-      const str = `0${m}:${s < 10 ? '0' + s : s} / 00:20`;
+      const ctx = getAudioContext();
+      const total = window.songDuration || 20.0;
+      let elapsed = ctx.currentTime - window.masterStartTime;
+
+      if (elapsed >= total) {
+        if (window.isLoopOn) {
+          elapsed = elapsed % total;
+        } else {
+          stopMasterPlay();
+          const el = document.getElementById('time-display');
+          if (el) el.textContent = `00:00 / ${formatTime(total)}`;
+          return;
+        }
+      }
+
       const el = document.getElementById('time-display');
-      if (el) el.textContent = str;
+      if (el) el.textContent = `${formatTime(elapsed)} / ${formatTime(total)}`;
       requestAnimationFrame(updateTimecodeLoop);
     }
 
