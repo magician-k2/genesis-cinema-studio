@@ -982,64 +982,65 @@
         </div>
 
         
-        <!-- 🌟 Google DeepMind Lyria 3.5 Music Generator Card -->
-        <div class="panel-card" style="border-color: rgba(139, 92, 246, 0.4); background: linear-gradient(145deg, rgba(20, 15, 38, 0.9), rgba(10, 12, 24, 0.9));">
+        <!-- 🌟 Google Flow Music (Lyria 3 Pro) ✕ Suno v6 Studio Hub -->
+        <div class="panel-card" id="flow-music-hub" style="border-color: rgba(139, 92, 246, 0.45); background: linear-gradient(145deg, rgba(20, 15, 42, 0.95), rgba(10, 12, 28, 0.95)); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);">
           <div class="panel-header" style="border-color: rgba(139, 92, 246, 0.25);">
             <div class="panel-title" style="color: #c084fc;">
               <i class="fa-solid fa-wand-magic-sparkles"></i>
-              <span>Google Lyria 3.5 楽曲新創生成 (Google DeepMind)</span>
+              <span>Google Flow Music (Lyria 3 Pro) ✕ Suno v6 音楽生成スタジオ</span>
             </div>
-            <span style="font-size: 0.65rem; background: rgba(139,92,246,0.25); color: #e9d5ff; border: 1px solid rgba(139,92,246,0.4); padding: 2px 8px; border-radius: 12px; font-weight: bold;">
-              44.1kHz Stereo ✕ SynthID
+            <span style="font-size: 0.65rem; background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(56,189,248,0.3)); color: #e9d5ff; border: 1px solid rgba(139,92,246,0.5); padding: 3px 10px; border-radius: 12px; font-weight: 800;">
+              Google Labs ✕ Lyria 3 Pro TPU Engine
             </span>
           </div>
 
-          <div style="font-size: 0.74rem; color: #cbd5e1; line-height: 1.4;">
-            物理音響解析で得た <strong>BPM (<span id="lyria-param-bpm">123.0</span>)</strong> ＆ <strong>調性 (<span id="lyria-param-key">G Major</span>)</strong> を厳格アンカーにし、Suno/Udioを超える超高解像度楽曲を実生成します。
+          <div style="font-size: 0.76rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">
+            DeepMindの最高峰音楽生成モデル<strong>「Lyria 3 Pro」</strong>は、Google公式の<strong>Flow Music</strong> (Google Labs) 上のTPUクラウドで直接稼働します。<br>
+            GENESISで完全解剖した <strong>BPM (<span id="lyria-param-bpm">123.0</span>)</strong> ＆ <strong>調性 (<span id="lyria-param-key">G Major</span>)</strong>、実機シンセ・ドラムDNAを貼り付けるだけで、チープな電子音ではない<strong>本物のニューラルマスター楽曲</strong>を一発生成できます。
           </div>
 
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.76rem;">
-            <span style="color: var(--text-sub); font-weight: bold;"><i class="fa-solid fa-clock"></i> 生成レングス:</span>
-            <button class="preset-chip" id="chip-lyria-30" onclick="setLyriaDuration(30)">30秒 (Clip)</button>
-            <button class="preset-chip" id="chip-lyria-60" onclick="setLyriaDuration(60)">60秒 (Shorts)</button>
-            <button class="preset-chip active" id="chip-lyria-120" onclick="setLyriaDuration(120)">120秒 (2分 フル楽曲)</button>
-            <button class="preset-chip" id="chip-lyria-180" onclick="setLyriaDuration(180)">180秒 (3分 フル楽曲 / Pro)</button>
-          </div>
-
-          <div style="display: flex; gap: 8px;">
-            <button id="btn-generate-lyria" class="btn-action-primary" style="flex: 1; padding: 10px 18px; justify-content: center;" onclick="generateLyriaMusic()">
-              <i class="fa-solid fa-music"></i> ⚡ Lyria 3.5 で新曲を生成 (44.1kHz)
-            </button>
-            <button class="btn-action-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 16px rgba(239,68,68,0.4); padding: 10px 16px;" onclick="openYouTubePublishModal()">
-              <i class="fa-brands fa-youtube"></i> YouTube Music 登録
-            </button>
-          </div>
-
-          <!-- Lyria Generation Loading -->
-          <div id="lyria-loading" style="display: none; background: rgba(139, 92, 246, 0.15); border: 1px dashed #8b5cf6; border-radius: 8px; padding: 12px; text-align: center; color: #d8b4fe; font-size: 0.78rem; font-weight: 600;">
-            <i class="fa-solid fa-spinner fa-spin"></i> Google Lyria 3.5 が44.1kHzステレオマスターを生成中... (Google DeepMind SynthID 付与)
-          </div>
-
-          <!-- Lyria Generated Audio Player Box -->
-          <div id="lyria-player-box" style="display: none; background: rgba(0,0,0,0.5); border: 1px solid rgba(139,92,246,0.3); border-radius: 10px; padding: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
-                <strong style="color: white; font-size: 0.8rem;" id="lyria-track-title">新曲生成完了: Lyria 3.5 Master</strong>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <!-- Flow Music Hub -->
+            <div style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; color: #c084fc; font-size: 0.82rem; margin-bottom: 4px;">
+                  <i class="fa-solid fa-brain"></i> Google Flow Music
+                </div>
+                <div style="font-size: 0.68rem; color: #94a3b8;">Google DeepMind Lyria 3 Pro 搭載 / ステム編集対応</div>
               </div>
-              <span style="font-size: 0.62rem; color: #10b981; border: 1px solid #10b981; border-radius: 4px; padding: 1px 6px;">SynthID 刻印済</span>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-action-primary" style="flex: 1; padding: 8px 10px; font-size: 0.74rem; justify-content: center;" onclick="launchFlowMusic()">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Flow Music を開く
+                </button>
+                <button class="stem-btn" style="padding: 8px 10px; font-size: 0.74rem; background: rgba(139,92,246,0.25); color: #d8b4fe;" onclick="copyFlowMusicPrompt()">
+                  <i class="fa-solid fa-copy"></i> プロンプトコピー
+                </button>
+              </div>
             </div>
 
-            <audio id="lyria-audio-player" controls style="width: 100%; height: 36px; margin-bottom: 8px;"></audio>
-
-            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-              <button class="stem-btn" onclick="recycleLyriaToStems()" style="background: rgba(16,185,129,0.2); color: #34d399; border-color: rgba(16,185,129,0.4); font-size: 0.74rem; padding: 6px 12px;">
-                <i class="fa-solid fa-arrows-rotate"></i> 4ステム分離 ＆ MPCパッドへ再投入
-              </button>
-              <button class="stem-btn" onclick="downloadLyriaMaster()" style="font-size: 0.74rem; padding: 6px 12px;">
-                <i class="fa-solid fa-download"></i> WAV保存
-              </button>
+            <!-- Suno v6 Hub -->
+            <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; color: #60a5fa; font-size: 0.82rem; margin-bottom: 4px;">
+                  <i class="fa-solid fa-music"></i> Suno v6
+                </div>
+                <div style="font-size: 0.68rem; color: #94a3b8;">原曲完全再現 &amp; ボーカルディレクション特化</div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-action-primary" style="flex: 1; padding: 8px 10px; font-size: 0.74rem; justify-content: center; background: linear-gradient(135deg, #2563eb, #1d4ed8);" onclick="window.open('https://suno.com/create', '_blank')">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Suno を開く
+                </button>
+                <button class="stem-btn" style="padding: 8px 10px; font-size: 0.74rem; background: rgba(59,130,246,0.25); color: #93c5fd;" onclick="copySunoStyleOnly()">
+                  <i class="fa-solid fa-copy"></i> Style欄コピー
+                </button>
+              </div>
             </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end;">
+            <button class="btn-action-primary" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 16px rgba(239,68,68,0.4); padding: 7px 14px; font-size: 0.75rem;" onclick="openYouTubePublishModal()">
+              <i class="fa-brands fa-youtube"></i> YouTube Music 登録パッケージ
+            </button>
           </div>
         </div>
 
@@ -1087,7 +1088,7 @@
                 <i class="fa-solid fa-music"></i> Suno v6 / Udio
               </button>
               <button class="tab-btn" id="tab-btn-lyria" onclick="switchPromptTab('lyria')">
-                <i class="fa-solid fa-brain"></i> Google Lyria 3.5
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Google Flow Music (Lyria 3 Pro)
               </button>
               <button class="tab-btn" id="tab-btn-minimax" onclick="switchPromptTab('minimax')">
                 <i class="fa-solid fa-robot"></i> MiniMax Music
@@ -2003,9 +2004,52 @@
       if (label) {
         const modeLabel = (mode === 'faithful') ? '【🎯 原曲忠実再現】' : '【🎬 シネマ変容・Remix】';
         if (tab === 'suno') label.textContent = `${modeLabel} Suno v6 / Udio 用 [Style / Instruments / タイムコード構成タグ]`;
-        else if (tab === 'lyria') label.textContent = `${modeLabel} Google DeepMind Lyria 3.5 高忠実度生成プロンプト`;
+        else if (tab === 'lyria') label.textContent = `${modeLabel} Google Flow Music (Lyria 3 Pro) 専用プロンプト [Style / BPM / Key / Structure]`;
         else if (tab === 'minimax') label.textContent = `${modeLabel} MiniMax Music 生成用キャプション & タグ`;
         else if (tab === 'veo') label.textContent = 'Google Veo 3.1 映画同期ディレクティブ';
+      }
+
+      // Update guide banner based on tab
+      const sunoGuide = document.getElementById('suno-guide-banner');
+      if (sunoGuide) {
+        if (tab === 'lyria') {
+          sunoGuide.style.background = 'rgba(139, 92, 246, 0.15)';
+          sunoGuide.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+          sunoGuide.innerHTML = `
+            <div style="color: #c084fc; line-height: 1.4;">
+              <i class="fa-solid fa-wand-magic-sparkles" style="color: #a855f7; margin-right: 4px;"></i>
+              <strong>Google Flow Music (Lyria 3 Pro) への入力方法：</strong>
+              <span style="color: #e2e8f0;">[Genre: ...], [Key: ...], [Tempo: ... BPM] およびセクション指示 [Intro], [Drop] を入力</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="launchFlowMusic()" style="background: rgba(139, 92, 246, 0.3); border: 1px solid rgba(139, 92, 246, 0.7); color: #e9d5ff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Flow Music を開く
+              </button>
+              <button onclick="copyFlowMusicPrompt()" style="background: rgba(56, 189, 248, 0.25); border: 1px solid rgba(56, 189, 248, 0.6); color: #bae6fd; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> FlowMusic用コピー
+              </button>
+            </div>
+          `;
+        } else if (tab === 'suno') {
+          sunoGuide.style.background = 'rgba(59, 130, 246, 0.12)';
+          sunoGuide.style.borderColor = 'rgba(59, 130, 246, 0.35)';
+          sunoGuide.innerHTML = `
+            <div style="color: #93c5fd; line-height: 1.4;">
+              <i class="fa-solid fa-circle-question" style="color: #60a5fa; margin-right: 4px;"></i>
+              <strong>SUNO (Custom Mode) への貼り付け場所：</strong>
+              <span style="color: #e2e8f0;">①「Style of Music」欄にスタイル・機材・BPM</span> ＆ 
+              <span style="color: #e2e8f0;">②「Lyrics」欄に構成タグ [Intro] やボーカル指示</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copySunoStyleOnly()" style="background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.6); color: #bfdbfe; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                ① Style欄用コピー
+              </button>
+              <button onclick="copySunoLyricsOnly()" style="background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                ② Lyrics欄用コピー
+              </button>
+            </div>
+          `;
+        }
       }
     }
 
@@ -2059,6 +2103,34 @@
         showToast('✨ SUNOの「Lyrics」欄用メタタグ・構成をコピーしました！');
       });
     }
+    // ================================================================
+    // 🌟 Google Flow Music (Lyria 3 Pro) Helpers
+    // ================================================================
+    function launchFlowMusic() {
+      copyFlowMusicPrompt();
+      window.open('https://flowmusic.google/', '_blank');
+    }
+
+    function copyFlowMusicPrompt() {
+      let promptVal = '';
+      if (window.promptsData) {
+        const mode = window.activePromptMode || 'faithful';
+        const pDict = (mode === 'faithful') ? window.promptsData.prompts_faithful : window.promptsData.prompts_cinematic_crossover;
+        if (pDict) {
+          promptVal = pDict.flow_music || pDict.lyria_3_5 || window.promptsData.flow_music || window.promptsData.lyria;
+        }
+      }
+      if (!promptVal) {
+        const box = document.getElementById('prompt-output-box');
+        if (box) promptVal = box.value;
+      }
+      if (promptVal) {
+        navigator.clipboard.writeText(promptVal).then(() => {
+          showToast('✨ Google Flow Music (Lyria 3 Pro) 用プロンプトをコピーしました！flowmusic.google に貼り付けて生成できます。');
+        });
+      }
+    }
+
 
   
     // ================================================================

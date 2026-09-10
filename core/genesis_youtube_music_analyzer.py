@@ -468,7 +468,8 @@ def synthesize_multi_ai_prompts(features: dict, track_title: str, metadata: dict
         "prompts_faithful": pf,
         "prompts_cinematic_crossover": pc,
         # Default top-level prompt references for backward compatibility
-        "lyria": pf.get("lyria_3_5", ""),
+        "flow_music": pf.get("flow_music", pf.get("lyria_3_5", "")),
+        "lyria": pf.get("flow_music", pf.get("lyria_3_5", "")),
         "suno": pf.get("suno_v6", ""),
         "minimax": pf.get("minimax", ""),
         "udio": pf.get("udio", ""),
@@ -483,132 +484,26 @@ def synthesize_multi_ai_prompts(features: dict, track_title: str, metadata: dict
 
 def generate_music_with_lyria(prompt: str, features: dict, duration_sec: int = 30) -> dict:
     """
-    Calls Google DeepMind Lyria 3.5 via Gemini API (or high-fidelity 44.1kHz master engine)
-    with physical acoustic parameter anchoring (BPM, Key, Timbre).
+    Google Flow Music & Lyria 3 Pro Generation Hub.
+    Google DeepMind Lyria is officially operated by Google on Google Labs Flow Music (TPU cluster).
+    Direct Text-to-Audio waveform generation is not exposed via general Gemini API keys.
+    Returns direct Flow Music launcher information and optimal prompt payload.
     """
     bpm = features.get("bpm", 123.0)
     key = features.get("key", "G Major")
     timbre = features.get("timbre", "Orchestral Strings & Analog Bass")
 
-    sr = 44100
-    total_samples = int(sr * duration_sec)
-
-    # Attempt Google GenAI API connection if key is configured
-    api_audio_bytes = None
-    try:
-        from google import genai
-        api_key = os.environ.get('GEMINI_API_KEY')
-        if api_key:
-            client = genai.Client(api_key=api_key)
-            # Try lyria-3.5-clip-preview / audio models
-            try:
-                resp = client.models.generate_content(
-                    model="lyria-3.5-clip-preview",
-                    contents=f"Generate 44.1kHz stereo music: {prompt}"
-                )
-                if resp.candidates and resp.candidates[0].content and resp.candidates[0].content.parts:
-                    for part in resp.candidates[0].content.parts:
-                        if hasattr(part, 'inline_data') and part.inline_data and part.inline_data.data:
-                            api_audio_bytes = part.inline_data.data
-                            break
-            except Exception as e_lyria:
-                print(f"[Lyria 3.5] Direct API call fallback: {e_lyria}", file=sys.stderr)
-    except Exception as e_init:
-        print(f"[Lyria 3.5] SDK init notice: {e_init}", file=sys.stderr)
-
-    if api_audio_bytes:
-        b64_str = base64.b64encode(api_audio_bytes).decode('ascii')
-        data_url = f"data:audio/wav;base64,{b64_str}"
-        return {
-            "success": True,
-            "engine": "Google DeepMind Lyria 3.5 Official",
-            "sample_rate": 44100,
-            "duration_sec": duration_sec,
-            "synth_id_verified": True,
-            "data_url": data_url
-        }
-
-    # High-Fidelity 44.1kHz Stereo Soundscape Synthesizer (Zero-Failure Engine)
-    # Physically models: 808 Sub Kick, Snare, Hi-Hats, Bassline in requested Key, Chord Pads, Lead Arp
-    t = np.linspace(0, duration_sec, total_samples)
-
-    # Convert musical key to root frequency
-    key_root = key.split()[0] if key else "G"
-    is_minor = "Minor" in key
-    note_freqs = {
-        'C': 65.41, 'C#': 69.30, 'D': 73.42, 'D#': 77.78, 'E': 82.41, 'F': 87.31,
-        'F#': 92.50, 'G': 98.00, 'G#': 103.83, 'A': 110.00, 'A#': 116.54, 'B': 123.47
-    }
-    f0 = note_freqs.get(key_root, 98.00) # Root Bass frequency
-    third_mult = 1.20 if is_minor else 1.25 # Minor 3rd vs Major 3rd
-    fifth_mult = 1.50 # Perfect fifth
-
-    # 1. Rhythmic Beats at exact BPM
-    beat_period = 60.0 / bpm
-    beat_phase = (t % beat_period) / beat_period
-    # 808 Kick on beats 0 and 2
-    kick_env = np.exp(-beat_phase * 16) * ((t % (beat_period * 2)) < beat_period)
-    kick_wave = np.sin(2 * np.pi * (55 * np.exp(-beat_phase * 12) + 35) * t) * kick_env * 0.7
-
-    # Snare on alternate beats
-    snare_env = np.exp(-beat_phase * 22) * ((t % (beat_period * 2)) >= beat_period)
-    snare_noise = (np.random.rand(total_samples) * 2 - 1) * snare_env * 0.35
-
-    # 16th note Hi-Hats
-    hat_phase = (t % (beat_period / 4)) / (beat_period / 4)
-    hat_env = np.exp(-hat_phase * 35)
-    hat_wave = (np.random.rand(total_samples) * 2 - 1) * hat_env * 0.15
-
-    # 2. Harmonic Chord Pad (Root + 3rd + 5th) with slow filter envelope
-    pad_l = (
-        np.sin(2 * np.pi * f0 * 2 * t) * 0.25 +
-        np.sin(2 * np.pi * f0 * 2 * third_mult * t) * 0.22 +
-        np.sin(2 * np.pi * f0 * 2 * fifth_mult * t) * 0.20
-    )
-    pad_r = (
-        np.sin(2 * np.pi * f0 * 2 * 1.002 * t) * 0.25 +
-        np.sin(2 * np.pi * f0 * 2 * third_mult * 0.998 * t) * 0.22 +
-        np.sin(2 * np.pi * f0 * 2 * fifth_mult * 1.003 * t) * 0.20
-    )
-
-    # Master dynamic envelope (Intro 20%, Build 20-50%, Climax 50-80%, Outro 80-100%)
-    dyn_env = np.ones(total_samples)
-    intro_idx = max(1, int(total_samples * 0.20))
-    climax_start = max(intro_idx + 1, int(total_samples * 0.50))
-    outro_idx = max(climax_start + 1, int(total_samples * 0.80))
-
-    dyn_env[:intro_idx] = np.linspace(0.2, 0.7, intro_idx)
-    dyn_env[intro_idx:climax_start] = np.linspace(0.7, 0.9, climax_start - intro_idx)
-    dyn_env[climax_start:outro_idx] = 1.0
-    dyn_env[outro_idx:] = np.linspace(1.0, 0.0, total_samples - outro_idx)
-
-
-    # Mix stereo channels
-    left = (kick_wave * 0.7 + snare_noise * 0.5 + hat_wave * 0.6 + pad_l * 0.8) * dyn_env
-    right = (kick_wave * 0.7 + snare_noise * 0.5 + hat_wave * 0.6 + pad_r * 0.8) * dyn_env
-
-    # Peak normalization
-    max_val = max(np.max(np.abs(left)), np.max(np.abs(right)), 1e-4)
-    stereo = np.vstack([(left / max_val) * 0.92, (right / max_val) * 0.92]).T
-    stereo_int16 = np.int16(np.clip(stereo, -1.0, 1.0) * 32767)
-
-    buf = io.BytesIO()
-    scipy.io.wavfile.write(buf, sr, stereo_int16)
-    b64_str = base64.b64encode(buf.getvalue()).decode('ascii')
-    data_url = f"data:audio/wav;base64,{b64_str}"
-
     return {
         "success": True,
-        "engine": "Google DeepMind Lyria 3.5 Engine",
-        "sample_rate": 44100,
-        "duration_sec": duration_sec,
-        "synth_id_verified": True,
-        "data_url": data_url
+        "is_flow_music": True,
+        "engine": "Google Flow Music (Lyria 3 Pro Official)",
+        "flow_music_url": "https://flowmusic.google/",
+        "suno_url": "https://suno.com/create",
+        "bpm": bpm,
+        "key": key,
+        "prompt": prompt,
+        "message": "Google DeepMind Lyria 3 Pro は Google Labs 公式『Flow Music』(https://flowmusic.google/) で直接稼働しています。解析されたDNAプロンプトをFlow Musicへ渡すことで最高音質で生成できます。"
     }
-
-# ====================================================================
-# 📦 YouTube Music Ready Packaging Engine
-# ====================================================================
 
 def package_for_youtube_music(track_title: str, artist_name: str, features: dict, prompt: str) -> dict:
     """
