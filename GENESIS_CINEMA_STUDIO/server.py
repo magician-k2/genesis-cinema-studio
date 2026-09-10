@@ -1960,6 +1960,68 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
                 return
 
+        elif parsed.path == '/api/music/generate_lyria':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                prompt = payload.get('prompt', 'Cinematic Cyberpunk Track')
+                features = payload.get('features', {"bpm": 123.0, "key": "G Major", "energy": "Cinematic"})
+                duration = int(payload.get('duration_sec', 30))
+
+                from core.genesis_youtube_music_analyzer import generate_music_with_lyria
+                result = generate_music_with_lyria(prompt, features, duration)
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/music/publish_ytmusic':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                track_title = payload.get('track_title', 'GENESIS Sovereign Track')
+                artist_name = payload.get('artist', 'GENESIS Cinema AI Ensemble')
+                features = payload.get('features', {})
+                prompt = payload.get('prompt', '')
+
+                from core.genesis_youtube_music_analyzer import package_for_youtube_music
+                result = package_for_youtube_music(track_title, artist_name, features, prompt)
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+
 
 
         self.send_response(404)
