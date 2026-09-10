@@ -1108,6 +1108,24 @@
             </div>
           </div>
 
+          <!-- Suno v6 Placement Guide & Split Copy Bar -->
+          <div id="suno-guide-banner" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.76rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="color: #93c5fd; line-height: 1.4;">
+              <i class="fa-solid fa-circle-question" style="color: #60a5fa; margin-right: 4px;"></i>
+              <strong>SUNO (Custom Mode) への貼り付け場所：</strong>
+              <span style="color: #e2e8f0;">①「Style of Music」欄にスタイル・機材・BPM</span> ＆ 
+              <span style="color: #e2e8f0;">②「Lyrics」欄に構成タグ [Intro] やボーカル指示</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copySunoStyleOnly()" style="background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.6); color: #bfdbfe; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> ① Style欄用コピー
+              </button>
+              <button onclick="copySunoLyricsOnly()" style="background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> ② Lyrics欄用コピー
+              </button>
+            </div>
+          </div>
+
           <textarea id="prompt-output-box" class="prompt-textarea" readonly></textarea>
 
           <div class="prompt-actions">
@@ -1995,11 +2013,50 @@
       const box = document.getElementById('prompt-output-box');
       if (!box || !box.value) return;
       navigator.clipboard.writeText(box.value).then(() => {
-        alert('📋 プロンプトをクリップボードにコピーしました！');
+        showToast('📋 全文プロンプトをクリップボードにコピーしました！');
       }).catch(() => {
         box.select();
         document.execCommand('copy');
-        alert('📋 プロンプトをクリップボードにコピーしました！');
+        showToast('📋 全文プロンプトをコピーしました！');
+      });
+    }
+
+    function copySunoStyleOnly() {
+      const box = document.getElementById('prompt-output-box');
+      if (!box || !box.value) return;
+      const text = box.value;
+
+      // Extract style, tempo, key, instruments tags
+      const styleMatches = text.match(/\[(Style|Tempo|Key|Instruments|Genre):[^\]]+\]/gi);
+      let styleText = '';
+      if (styleMatches && styleMatches.length > 0) {
+        styleText = styleMatches.map(m => m.replace(/^\[|\]$/g, '').replace(/^(Style|Tempo|Key|Instruments|Genre):\s*/i, '')).join(', ');
+      } else {
+        styleText = text.split('\n')[0].replace(/\[.*?\]/g, '').trim();
+      }
+
+      navigator.clipboard.writeText(styleText).then(() => {
+        showToast('✨ SUNOの「Style of Music」欄用タグをコピーしました！');
+      });
+    }
+
+    function copySunoLyricsOnly() {
+      const box = document.getElementById('prompt-output-box');
+      if (!box || !box.value) return;
+      const text = box.value;
+
+      let lyricsText = '';
+      const introIdx = text.search(/\[(Intro|Verse|Rave Stab|Rising Tension|Drop|Build|Chorus|Hook|Breakdown|Climax|Outro)/i);
+      if (introIdx !== -1) {
+        const vocalsMatch = text.match(/\[Vocals:[^\]]+\]/i);
+        const vocalsPart = vocalsMatch ? vocalsMatch[0] + '\n\n' : '';
+        lyricsText = vocalsPart + text.substring(introIdx).trim();
+      } else {
+        lyricsText = text;
+      }
+
+      navigator.clipboard.writeText(lyricsText).then(() => {
+        showToast('✨ SUNOの「Lyrics」欄用メタタグ・構成をコピーしました！');
       });
     }
 
