@@ -238,18 +238,34 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-subtle);
       color: #cbd5e1;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
       cursor: pointer;
-      transition: all 0.15s ease;
-      display: flex;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 0.76rem;
+      outline: none;
+      user-select: none;
     }
     .preset-chip:hover {
-      background: rgba(139, 92, 246, 0.2);
-      border-color: rgba(139, 92, 246, 0.4);
+      background: rgba(139, 92, 246, 0.25);
+      border-color: rgba(139, 92, 246, 0.5);
       color: white;
+      transform: translateY(-1px);
+    }
+    .preset-chip:active {
+      transform: scale(0.96);
+    }
+    button.preset-chip.active,
+    .preset-chip.active {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(139, 92, 246, 0.45)) !important;
+      border: 1.5px solid #38bdf8 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+      font-weight: 800 !important;
     }
 
     .file-upload-btn {
@@ -702,28 +718,31 @@
         </button>
       </div>
 
-      <div class="presets-row">
+      <div class="presets-row" id="presets-row-container">
         <span class="preset-label"><i class="fa-solid fa-bolt"></i> プリセット:</span>
-        <span class="preset-chip" onclick="setPreset('Hans Zimmer Interstellar Style')">🪐 ハンス・ジマー (Interstellar)</span>
-        <span class="preset-chip" onclick="setPreset('Tokyo Neo Noir Cyberpunk 2077')">🌃 サイバー東京 2077</span>
-        <span class="preset-chip" onclick="setPreset('80s Retro Synthwave Drive')">🏎️ 80s シンセウェイブ</span>
-        <span class="preset-chip" onclick="setPreset('Lo-Fi Hip Hop Chill Rainy Tokyo')">☕ 雨の渋谷 Lo-Fi</span>
-        <span class="preset-chip" onclick="setPreset('Epic Hollywood Action Trailer Brass')">🎬 ハリウッド超大作トレーラー</span>
+        <button class="preset-chip active" id="preset-hans" onclick="setPreset('Hans Zimmer Interstellar Style', this)">🪐 ハンス・ジマー (Interstellar)</button>
+        <button class="preset-chip" id="preset-cyberpunk" onclick="setPreset('Tokyo Neo Noir Cyberpunk 2077', this)">🌃 サイバー東京 2077</button>
+        <button class="preset-chip" id="preset-synthwave" onclick="setPreset('80s Retro Synthwave Drive', this)">🏎️ 80s シンセウェイブ</button>
+        <button class="preset-chip" id="preset-lofi" onclick="setPreset('Lo-Fi Hip Hop Chill Rainy Tokyo', this)">☕ 雨の渋谷 Lo-Fi</button>
+        <button class="preset-chip" id="preset-trailer" onclick="setPreset('Epic Hollywood Action Trailer Brass', this)">🎬 ハリウッド超大作トレーラー</button>
 
         <input type="file" id="local-file-input" accept="audio/*" style="display: none;" onchange="handleLocalFileUpload(event)">
         <button class="file-upload-btn" onclick="document.getElementById('local-file-input').click()">
           <i class="fa-solid fa-file-audio"></i> MP3/WAVファイルを開く
         </button>
-            </div>
+      </div>
 
       <!-- Sampling Range Selector -->
-      <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.78rem;">
+      <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; font-size: 0.78rem;">
         <span class="preset-label"><i class="fa-solid fa-scissors"></i> サンプリング範囲:</span>
         <button class="preset-chip" id="chip-sample-15" onclick="setSamplingDuration(15)">⚡ 15秒</button>
         <button class="preset-chip active" id="chip-sample-30" onclick="setSamplingDuration(30)">⚡ 30秒 (標準)</button>
         <button class="preset-chip" id="chip-sample-60" onclick="setSamplingDuration(60)">⚡ 60秒</button>
         <button class="preset-chip" id="chip-sample-full" onclick="setSamplingDuration(180)">⚡ フル楽曲 (Full Track 3分)</button>
-        <span style="font-size: 0.7rem; color: #38bdf8; margin-left: auto;">💡 波形をクリックして好きな位置からパッドへ切り出し可能</span>
+        <span id="sampling-range-feedback" style="font-size: 0.72rem; color: #38bdf8; margin-left: 8px; display: inline-flex; align-items: center; gap: 4px;">
+          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> <span>30秒設定中</span>
+        </span>
+        <span style="font-size: 0.7rem; color: #94a3b8; margin-left: auto;">💡 波形をクリックして好きな位置からパッドへ切り出し可能</span>
       </div>
 
       <!-- Loading State -->
@@ -1052,9 +1071,21 @@
       drawMockWaveforms();
     });
 
-    function setPreset(query) {
+    function setPreset(query, btnEl) {
       const input = document.getElementById('ytm-query-input');
       if (input) input.value = query;
+
+      // Highlight clicked preset button
+      const chips = document.querySelectorAll('#presets-row-container .preset-chip');
+      chips.forEach(c => c.classList.remove('active'));
+      if (btnEl) {
+        btnEl.classList.add('active');
+      } else {
+        chips.forEach(c => {
+          if (c.textContent.includes(query.slice(0, 8))) c.classList.add('active');
+        });
+      }
+
       runStemSeparationAndSampling();
     }
 
@@ -1217,7 +1248,14 @@
       const btn = document.getElementById('btn-run-separate');
       const loading = document.getElementById('ingest-loading');
       if (btn) btn.disabled = true;
-      if (loading) loading.style.display = 'block';
+      if (loading) {
+        loading.style.display = 'block';
+        const msg = document.getElementById('loading-msg');
+        if (msg) {
+          const durationLabel = (window.activeSamplingDuration === 180) ? 'フル楽曲 (3分)' : (window.activeSamplingDuration || 30) + '秒';
+          msg.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> 「${query}」を取得中 ＆ ${durationLabel}サンプリングでステム分離・16パッド展開中...`;
+        }
+      }
 
       try {
         const res = await fetch('/api/music/separate_stems', {
@@ -1827,6 +1865,24 @@
       const key = sec === 180 ? 'full' : sec.toString();
       const activeChip = document.getElementById(`chip-sample-${key}`);
       if (activeChip) activeChip.classList.add('active');
+
+      const label = sec === 180 ? 'フル楽曲 (3分 / 180秒)' : `${sec}秒`;
+      const feedbackEl = document.getElementById('sampling-range-feedback');
+      if (feedbackEl) {
+        feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> <span style="color: #38bdf8; font-weight: bold;">${label} 設定完了</span>`;
+      }
+
+      // If stems are already loaded, automatically re-separate with new duration
+      if (window.stemAudioBuffers && window.stemAudioBuffers.drums) {
+        const input = document.getElementById('ytm-query-input');
+        const query = input ? input.value.trim() : '';
+        if (query) {
+          const runSeparateBtn = document.getElementById('btn-run-separate');
+          if (runSeparateBtn && !runSeparateBtn.disabled) {
+            runStemSeparationAndSampling();
+          }
+        }
+      }
     }
 
     function setLyriaDuration(sec) {
@@ -1837,6 +1893,12 @@
       });
       const activeChip = document.getElementById(`chip-lyria-${sec}`);
       if (activeChip) activeChip.classList.add('active');
+
+      const genBtn = document.getElementById('btn-generate-lyria');
+      if (genBtn) {
+        const label = sec === 180 ? '180秒 フル楽曲 / Pro' : `${sec}秒`;
+        genBtn.innerHTML = `<i class="fa-solid fa-music"></i> ⚡ Lyria 3.5 で新曲を生成 (${label} / 44.1kHz)`;
+      }
     }
 
     // Attach Interactive Click Listeners to Waveform Canvases

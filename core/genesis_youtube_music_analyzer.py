@@ -191,7 +191,24 @@ def separate_stems_and_slices(audio_path: str, max_duration_sec: float = 20.0) -
     }
 
 def download_youtube_music_sample(url_or_query: str, sample_sec: int = 20) -> tuple:
-    """Downloads first N seconds of audio from YouTube Music / YouTube with yt-dlp."""
+    """Downloads audio from YouTube Music / YouTube with yt-dlp, with persistent caching."""
+    import hashlib, shutil
+    cache_dir = os.path.join(os.path.dirname(__file__), "..", "GENESIS_CINEMA_STUDIO", "cache_audio")
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_key = hashlib.md5(f"{url_or_query}".encode('utf-8')).hexdigest()
+    cached_mp3 = os.path.join(cache_dir, f"{cache_key}.mp3")
+    cached_title_file = os.path.join(cache_dir, f"{cache_key}.title")
+
+    if os.path.exists(cached_mp3) and os.path.getsize(cached_mp3) > 1024:
+        title = url_or_query
+        if os.path.exists(cached_title_file):
+            try:
+                with open(cached_title_file, 'r', encoding='utf-8') as f:
+                    title = f.read().strip()
+            except Exception:
+                pass
+        return cached_mp3, title, None
+
     temp_dir = tempfile.mkdtemp(prefix="ytm_sample_")
     out_template = os.path.join(temp_dir, "sample.%(ext)s")
 
@@ -219,12 +236,24 @@ def download_youtube_music_sample(url_or_query: str, sample_sec: int = 20) -> tu
             if "entries" in info and len(info["entries"]) > 0:
                 title = info["entries"][0].get("title", title)
         
+        found_file = None
         mp3_path = os.path.join(temp_dir, "sample.mp3")
         if os.path.exists(mp3_path):
-            return mp3_path, title, temp_dir
-        for f in os.listdir(temp_dir):
-            if f.endswith((".mp3", ".m4a", ".opus", ".webm")):
-                return os.path.join(temp_dir, f), title, temp_dir
+            found_file = mp3_path
+        else:
+            for f in os.listdir(temp_dir):
+                if f.endswith((".mp3", ".m4a", ".opus", ".webm")):
+                    found_file = os.path.join(temp_dir, f)
+                    break
+
+        if found_file and os.path.exists(found_file):
+            try:
+                shutil.copyfile(found_file, cached_mp3)
+                with open(cached_title_file, 'w', encoding='utf-8') as tf:
+                    tf.write(title)
+                return cached_mp3, title, temp_dir
+            except Exception:
+                return found_file, title, temp_dir
         return None, title, temp_dir
     except Exception as e:
         return None, str(e), temp_dir
