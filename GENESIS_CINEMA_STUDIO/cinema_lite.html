@@ -1493,14 +1493,79 @@
         </div>
 
         <!-- Direct YouTube Music Input -->
-        <div style="margin-bottom: 16px;">
+        <div style="margin-bottom: 14px;">
           <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 6px; font-weight: bold;">
             <i class="fa-solid fa-link"></i> YouTube Music URL 直接指定 / 楽曲検索:
           </label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="ytmusic-custom-url" class="bible-input" placeholder="https://music.youtube.com/watch?v=... または 曲名・アーティスト" value="https://music.youtube.com/watch?v=neo_tokyo_cyber_2026" style="flex: 1;">
-            <button class="btn" onclick="applyCustomYouTubeMusicTrack()" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; font-weight: bold; font-size: 0.75rem; padding: 6px 14px;">
-              <i class="fa-solid fa-cloud-arrow-down"></i> 連携反映
+            <input type="text" id="ytmusic-custom-url" class="bible-input" placeholder="https://music.youtube.com/watch?v=... または 曲名・アーティスト名" value="Hans Zimmer Interstellar Style" style="flex: 1;">
+            <button class="btn" onclick="applyCustomYouTubeMusicTrack()" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: white; font-weight: bold; font-size: 0.75rem; padding: 6px 12px; white-space: nowrap;">
+              <i class="fa-solid fa-cloud-arrow-down"></i> 連携
+            </button>
+            <button class="btn" id="btn-ytm-analyze" onclick="analyzeYouTubeMusicTrack()" style="background: linear-gradient(135deg, #8b5cf6, #ec4899); border: none; color: white; font-weight: bold; font-size: 0.75rem; padding: 6px 14px; white-space: nowrap; box-shadow: 0 0 12px rgba(139,92,246,0.35);">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> AI音響解析＆プロンプト錬成
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Audio Analysis & Cinema Prompt Synthesis Card -->
+        <div id="ytm-analysis-loading" style="display: none; background: rgba(139, 92, 246, 0.1); border: 1px dashed rgba(139, 92, 246, 0.5); border-radius: 8px; padding: 14px; margin-bottom: 14px; text-align: center;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: #c084fc; font-weight: bold; font-size: 0.85rem;">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>YouTube Music 音源を取得中 ＆ Librosa ✕ Gemini による音響解析・劇伴プロンプト錬成中...</span>
+          </div>
+          <div style="color: var(--text-sub); font-size: 0.7rem; margin-top: 4px;">
+            BPM・調性(Key)・ダイナミクス・音色輝度を物理解析し、15秒4カット絵コンテ同期プロンプトを構築しています
+          </div>
+        </div>
+
+        <div id="ytm-analysis-result" style="display: none; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.6)); border: 1px solid rgba(139, 92, 246, 0.45); border-radius: 8px; padding: 14px; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(139, 92, 246, 0.2); padding-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-waveform-lines" style="color: #c084fc; font-size: 1.1rem;"></i>
+              <strong style="color: white; font-size: 0.82rem;" id="ytm-res-title">楽曲音響解析結果</strong>
+              <span id="ytm-res-mode-badge" style="font-size: 0.62rem; background: rgba(139,92,246,0.25); color: #e9d5ff; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(139,92,246,0.4);">Librosa ✕ Gemma</span>
+            </div>
+            <button class="btn" onclick="document.getElementById('ytm-analysis-result').style.display='none'" style="padding: 2px 6px; font-size: 0.7rem;"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <!-- Feature Badges -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;">
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; text-align: center;">
+              <div style="font-size: 0.65rem; color: var(--text-sub);">🎵 テンポ (BPM)</div>
+              <div id="ytm-res-bpm" style="font-size: 0.88rem; font-weight: bold; color: #38bdf8;">123.0</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; text-align: center;">
+              <div style="font-size: 0.65rem; color: var(--text-sub);">🎼 キー (Key)</div>
+              <div id="ytm-res-key" style="font-size: 0.88rem; font-weight: bold; color: #facc15;">G Major</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; text-align: center;">
+              <div style="font-size: 0.65rem; color: var(--text-sub);">⚡ エネルギー</div>
+              <div id="ytm-res-energy" style="font-size: 0.82rem; font-weight: bold; color: #ec4899;">Cinematic</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; text-align: center;">
+              <div style="font-size: 0.65rem; color: var(--text-sub);">✨ 音色 (Timbre)</div>
+              <div id="ytm-res-timbre" style="font-size: 0.72rem; font-weight: bold; color: #a78bfa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Dark & Gritty</div>
+            </div>
+          </div>
+
+          <!-- Prompt Box -->
+          <div style="margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-size: 0.7rem; color: var(--text-sub); font-weight: bold;">
+                <i class="fa-solid fa-clapperboard"></i> 映画絵コンテ・劇伴生成プロンプト (Veo 3.1 / Lyria / MiniMax):
+              </span>
+              <button class="btn" onclick="copyYTMAnalyzedPrompt()" style="font-size: 0.65rem; padding: 2px 8px; background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4); color: #c084fc;">
+                <i class="fa-solid fa-copy"></i> コピー
+              </button>
+            </div>
+            <textarea id="ytm-res-prompt-text" readonly style="width: 100%; height: 90px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #e2e8f0; font-family: monospace; font-size: 0.68rem; padding: 8px; resize: vertical;"></textarea>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button class="btn" onclick="applyYTMScoreToStoryboard()" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; font-weight: bold; font-size: 0.75rem; padding: 6px 14px;">
+              <i class="fa-solid fa-wand-magic"></i> 絵コンテ台本に劇伴プロンプトを適用
             </button>
           </div>
         </div>
@@ -5368,6 +5433,122 @@
       alert("✨ YouTube Musicトラックを映画本編BGMとして接続・同期しました！\n（ALL Google Sovereign Stack: Gemini 3.8 ✕ Veo 3.1 ✕ YouTube Music）");
       closeYouTubeMusicModal();
     };
+
+    // --- YouTube Music AI Audio Analysis & Prompt Synthesis ---
+    window.analyzedYTMData = null;
+
+    window.analyzeYouTubeMusicTrack = async function() {
+      const input = document.getElementById('ytmusic-custom-url');
+      const query = input ? input.value.trim() : '';
+      if (!query) {
+        alert("YouTube MusicのURLまたは楽曲名を入力してください。");
+        return;
+      }
+
+      const loadingEl = document.getElementById('ytm-analysis-loading');
+      const resultEl = document.getElementById('ytm-analysis-result');
+      const analyzeBtn = document.getElementById('btn-ytm-analyze');
+
+      if (loadingEl) loadingEl.style.display = 'block';
+      if (resultEl) resultEl.style.display = 'none';
+      if (analyzeBtn) analyzeBtn.disabled = true;
+
+      try {
+        const res = await fetch('/api/ytmusic/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: query,
+            context: 'Tokyo Cyberpunk Noir & Epic Blockbuster Drama'
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data || !data.success) throw new Error(data.error || 'Analysis failed');
+
+        window.analyzedYTMData = data;
+
+        // Populate badges
+        const feat = data.features || {};
+        const bpmEl = document.getElementById('ytm-res-bpm');
+        const keyEl = document.getElementById('ytm-res-key');
+        const energyEl = document.getElementById('ytm-res-energy');
+        const timbreEl = document.getElementById('ytm-res-timbre');
+        const titleEl = document.getElementById('ytm-res-title');
+        const promptArea = document.getElementById('ytm-res-prompt-text');
+
+        if (bpmEl) bpmEl.textContent = feat.bpm ? feat.bpm.toFixed(1) : '120.0';
+        if (keyEl) keyEl.textContent = feat.key || 'D Minor';
+        if (energyEl) energyEl.textContent = feat.energy || 'Cinematic';
+        if (timbreEl) {
+          timbreEl.textContent = feat.timbre || 'Atmospheric';
+          timbreEl.title = feat.timbre || '';
+        }
+        if (titleEl) titleEl.textContent = `解析完了: ${data.track_title || query}`;
+
+        if (promptArea) {
+          const prompts = data.prompts || {};
+          promptArea.value = prompts.cinema_score_prompt || prompts.veo_audio_directive || JSON.stringify(prompts, null, 2);
+        }
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (resultEl) resultEl.style.display = 'block';
+
+        // Play audio feedback tone
+        playYTMPreviewTone('heroic');
+      } catch (err) {
+        console.error("YTM Analysis error:", err);
+        alert("音響解析に失敗しました: " + err.message);
+        if (loadingEl) loadingEl.style.display = 'none';
+      } finally {
+        if (analyzeBtn) analyzeBtn.disabled = false;
+      }
+    };
+
+    window.copyYTMAnalyzedPrompt = function() {
+      const promptArea = document.getElementById('ytm-res-prompt-text');
+      if (!promptArea || !promptArea.value) return;
+      navigator.clipboard.writeText(promptArea.value).then(() => {
+        alert("📋 劇伴生成プロンプトをクリップボードにコピーしました！");
+      }).catch(() => {
+        promptArea.select();
+        document.execCommand('copy');
+        alert("📋 劇伴生成プロンプトをクリップボードにコピーしました！");
+      });
+    };
+
+    window.applyYTMScoreToStoryboard = function() {
+      if (!window.analyzedYTMData || !window.analyzedYTMData.prompts) {
+        alert("先に「AI音響解析」を実行してください。");
+        return;
+      }
+      const data = window.analyzedYTMData;
+      const title = data.track_title || 'YouTube Music Track';
+
+      // Update active track
+      window.activeYTMTrack = `${title} (AI解析劇伴)`;
+      const trackLabel = document.getElementById('ytmusic-active-track-name');
+      if (trackLabel) trackLabel.textContent = window.activeYTMTrack;
+
+      const bgmText = document.getElementById('txt-bgm-toggle');
+      if (bgmText) {
+        bgmText.innerHTML = `BGM: YouTube Music [${title.slice(0, 14)}...] (${isBGMOn ? 'ON' : 'OFF'})`;
+      }
+
+      // If storyboard cut prompt exists, append cinema BGM directive
+      try {
+        const cutPromptInput = document.getElementById('sb-prompt-input');
+        if (cutPromptInput) {
+          cutPromptInput.value += `\n[BGM Directives: ${data.prompts.veo_audio_directive || ''}]`;
+        }
+      } catch(e) {}
+
+      playYTMPreviewTone('heroic');
+      alert(`✨ 映画絵コンテ台本にYouTube Music解析劇伴を適用しました！\n\n🎵 楽曲: ${title}\n🎼 Key: ${data.features.key} | BPM: ${data.features.bpm}\n🎬 Veo 3.1 & Lyria 音響ディレクティブが各カットに同期されます。`);
+      closeYouTubeMusicModal();
+    };
+
 
     function playYTMPreviewTone(type) {
       try {

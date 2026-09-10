@@ -41,6 +41,150 @@ matting_engine = CharacterMattingEngine(vault_dir=os.path.join(DIRECTORY, 'chara
 mocap_engine = MocapPoseTransferEngine(root_dir=ROOT_DIR)
 aerial_engine = AerialFlightSwarmEngine()
 
+
+# 🎙️ Google DeepMind Gemini Native Audio TTS Engine (gemini-2.5-flash-preview-tts)
+import hashlib
+import struct
+
+VOICES_CACHE_DIR = os.path.join(DIRECTORY, 'characters', 'voices')
+os.makedirs(VOICES_CACHE_DIR, exist_ok=True)
+
+def pcm24k_to_wav(pcm_bytes, rate=24000):
+    datalen = len(pcm_bytes)
+    header = struct.pack('<4sI4s4sIHHIIHH4sI',
+        b'RIFF', 36 + datalen, b'WAVE', b'fmt ', 16, 1, 1, rate, rate * 2, 2, 16, b'data', datalen
+    )
+    return header + pcm_bytes
+
+def synthesize_gemini_tts(text: str, voice_name: str = 'Fenrir', persona: dict = None) -> dict:
+    if not text:
+        return {"success": False, "error": "Empty text"}
+        
+    text_clean = text.replace('『', '').replace('』', '').replace('「', '').replace('」', '').strip()
+    persona = persona or {}
+    birthplace = persona.get('birthplace', '').strip()
+    raised = persona.get('raised', '').strip()
+    residence = persona.get('residence', '').strip()
+    story = persona.get('story', '').strip()
+    accent = persona.get('accent', '').strip()
+    char_name = persona.get('name', '').strip()
+    
+    acting_context = []
+    if char_name: acting_context.append(f"【キャラクター名】{char_name}")
+    if birthplace: acting_context.append(f"【出身地】{birthplace}")
+    if raised: acting_context.append(f"【育った場所・環境】{raised}")
+    if residence: acting_context.append(f"【現在の居住地】{residence}")
+    if story: acting_context.append(f"【生い立ちと声の個性】{story}")
+    if accent: acting_context.append(f"【方言・口調】{accent}")
+
+    # 1. Primary cache key by spoken text and voice name for instantaneous 0ms cache hits
+    cache_key = hashlib.md5(f"{text_clean}_{voice_name}".encode('utf-8')).hexdigest()
+    cache_filename = f"{voice_name}_{cache_key}.wav"
+    cache_path = os.path.join(VOICES_CACHE_DIR, cache_filename)
+    audio_url = f"/characters/voices/{cache_filename}"
+
+    # Also check actor-named preset clips (e.g. ren_normal_Aoede.wav or ren_test_Aoede.wav)
+    actor_key = persona.get('actor', '')
+    if actor_key:
+        named_candidates = [
+            f"{actor_key}_normal_{voice_name}.wav",
+            f"{actor_key}_awaken_{voice_name}.wav",
+            f"{actor_key}_test_{voice_name}.wav",
+            f"{actor_key}_{voice_name}.wav"
+        ]
+        for nc in named_candidates:
+            np = os.path.join(VOICES_CACHE_DIR, nc)
+            if os.path.exists(np) and os.path.getsize(np) > 1000:
+                if not os.path.exists(cache_path):
+                    try:
+                        with open(np, 'rb') as sf, open(cache_path, 'wb') as df:
+                            df.write(sf.read())
+                    except Exception:
+                        pass
+                return {
+                    "success": True,
+                    "cached": True,
+                    "voice": voice_name,
+                    "audioUrl": f"/characters/voices/{nc}",
+                    "text": text_clean,
+                    "persona": persona
+                }
+
+    if os.path.exists(cache_path) and os.path.getsize(cache_path) > 1000:
+        return {
+            "success": True,
+            "cached": True,
+            "voice": voice_name,
+            "audioUrl": audio_url,
+            "text": text_clean,
+            "persona": persona
+        }
+
+    # Google Gemini Native Audio TTS generates pristine audio when contents is the clean dialogue transcript
+    prompt_content = text_clean
+
+    try:
+        from google import genai
+        from google.genai import types
+        from dotenv import load_dotenv
+        load_dotenv(os.path.join(ROOT_DIR, '.env'))
+        api_key = os.environ.get('GEMINI_API_KEY')
+        client = genai.Client(api_key=api_key)
+
+        resp = client.models.generate_content(
+            model='gemini-2.5-flash-preview-tts',
+            contents=prompt_content,
+            config=types.GenerateContentConfig(
+                response_modalities=['AUDIO'],
+                speech_config=types.SpeechConfig(
+                    voice_config=types.VoiceConfig(
+                        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice_name)
+                    )
+                )
+            )
+        )
+
+        if resp.candidates and resp.candidates[0].content and resp.candidates[0].content.parts:
+            part = resp.candidates[0].content.parts[0]
+            if part.inline_data and part.inline_data.data:
+                wav_bytes = pcm24k_to_wav(part.inline_data.data, 24000)
+                with open(cache_path, 'wb') as f:
+                    f.write(wav_bytes)
+                return {
+                    "success": True,
+                    "cached": False,
+                    "voice": voice_name,
+                    "audioUrl": audio_url,
+                    "text": text_clean,
+                    "persona": persona,
+                    "fileSize": len(wav_bytes)
+                }
+    except Exception as e:
+        print(f"[Gemini TTS] API Error: {e}", file=sys.stderr)
+
+    # Fallback to Edge Neural TTS if Gemini API was unavailable
+    try:
+        import asyncio, edge_tts
+        edge_voice_map = {
+            'Fenrir': 'ja-JP-KeitaNeural',
+            'Charon': 'ja-JP-KeitaNeural',
+            'Aoede': 'ja-JP-NanamiNeural',
+            'Kore': 'ja-JP-MayuNeural',
+            'Puck': 'ja-JP-AoiNeural'
+        }
+        edge_voice = edge_voice_map.get(voice_name, 'ja-JP-NanamiNeural' if voice_name in ['Aoede', 'Kore'] else 'ja-JP-KeitaNeural')
+        asyncio.run(edge_tts.Communicate(text_clean, edge_voice).save(cache_path))
+        return {
+            "success": True,
+            "cached": False,
+            "fallback": f"Edge Neural TTS ({edge_voice})",
+            "voice": voice_name,
+            "audioUrl": audio_url,
+            "text": text_clean
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 def generate_ai_character_turnaround(prompt_text: str, metadata: dict):
     """
     Generate photorealistic 4-view turnaround sheet using Google GenAI (gemini-3.1-flash-image / gemini-2.5-flash-image).
@@ -737,6 +881,49 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
         # 🚀 Google AI Photorealistic 4-View Turnaround Generator Endpoint
+                # 🎙️ Google Gemini Native Audio TTS Endpoint
+        elif parsed.path == '/api/tts/gemini':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8')
+            try:
+                payload = json.loads(body)
+                text = payload.get('text', '').strip()
+                voice_name = payload.get('voice', 'Fenrir')
+                actor = payload.get('actor', 'ren')
+
+                voice_map = {
+                    'ren': 'Fenrir',
+                    'mayu': 'Aoede',
+                    'rin': 'Kore',
+                    'aoi': 'Puck'
+                }
+                if voice_name in ['ja-JP-Chirp3-HD-Ren', 'Ren', 'ren']:
+                    voice_name = 'Fenrir'
+                elif voice_name in ['ja-JP-Chirp3-HD-Yui', 'Yui', 'mayu']:
+                    voice_name = 'Aoede'
+                elif voice_name in ['ja-JP-Chirp3-HD-Aoi-Kids', 'Aoi', 'aoi']:
+                    voice_name = 'Puck'
+                elif voice_name not in ['Fenrir', 'Aoede', 'Kore', 'Puck', 'Charon']:
+                    voice_name = voice_map.get(actor, 'Fenrir')
+
+                persona = payload.get('persona', {})
+                if isinstance(persona, dict):
+                    persona['actor'] = actor
+                else:
+                    persona = {'actor': actor}
+                result = synthesize_gemini_tts(text, voice_name, persona)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+                return
+
         elif parsed.path == '/api/character/generate_ai_turnaround':
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8')
@@ -1677,6 +1864,34 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
                 return
+
+        elif parsed.path == '/api/ytmusic/analyze':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                url_or_query = payload.get('url', '').strip()
+                scene_context = payload.get('context', 'Cyberpunk & Cinema Blockbuster')
+                if not url_or_query:
+                    url_or_query = "Hans Zimmer Interstellar Style"
+
+                from core.genesis_youtube_music_analyzer import analyze_and_produce_prompt
+                result = analyze_and_produce_prompt(url_or_query, scene_context)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
 
         self.send_response(404)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
