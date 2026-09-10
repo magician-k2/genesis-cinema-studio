@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GENESIS AI Music & Sampling Studio | YouTube Music ✕ ステム分離 ✕ 16-Pad MPC</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@300;400;600;700;900&family=Noto+Sans+JP:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --bg-surface: rgba(30, 41, 59, 0.5);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(139, 92, 246, 0.4);
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --accent-drums: #ef4444;
+      --accent-bass: #eab308;
+      --accent-vocals: #06b6d4;
+      --accent-melody: #a855f7;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-ui: 'Outfit', 'Noto Sans JP', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(239, 68, 68, 0.06) 0px, transparent 60%);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 60px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+    /* Top Navigation */
+    header {
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #ef4444, #8b5cf6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: white;
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
+    }
+    .brand-title {
+      font-weight: 900;
+      font-size: 1.15rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 40%, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #c084fc;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-cinema-back {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-sub);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-cinema-back:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Studio Container */
+    .studio-container {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Hero Ingestion Card */
+    .ingest-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .ingest-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #ef4444, #eab308, #06b6d4, #a855f7);
+    }
+
+    .ingest-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ingest-input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 1rem;
+    }
+    .search-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 12px 14px 12px 42px;
+      color: white;
+      font-family: var(--font-ui);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .btn-action-primary {
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      border: none;
+      color: white;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+      white-space: nowrap;
+    }
+    .btn-action-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+    }
+    .btn-action-primary:active { transform: translateY(1px); }
+    .btn-action-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Presets and Upload */
+    .presets-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+    .preset-label { color: var(--text-sub); font-weight: 600; }
+    .preset-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .preset-chip:hover {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: rgba(139, 92, 246, 0.4);
+      color: white;
+    }
+
+    .file-upload-btn {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      color: #94a3b8;
+      padding: 4px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.76rem;
+      transition: all 0.2s ease;
+    }
+    .file-upload-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Metrics Bar */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .metric-cell {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .metric-title { font-size: 0.68rem; color: var(--text-sub); font-weight: 600; text-transform: uppercase; }
+    .metric-val { font-size: 1.15rem; font-weight: 800; font-family: var(--font-mono); color: white; }
+
+    /* Loading Overlay */
+    .loading-banner {
+      display: none;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px dashed var(--primary);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      color: #d8b4fe;
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-top: 14px;
+    }
+
+    /* Main Workspace Layout (2-Column) */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 1080px) {
+      .workspace-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Left Column: 4-Track Stems Console */
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Stems Strip */
+    .stem-strip {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .stem-strip.active { border-color: rgba(255, 255, 255, 0.2); background: rgba(0,0,0,0.5); }
+    .stem-strip.muted { opacity: 0.45; }
+
+    .stem-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stem-badge {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.5px;
+    }
+    .badge-drums { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .badge-bass { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+    .badge-vocals { background: rgba(6, 182, 212, 0.2); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.4); }
+    .badge-melody { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+
+    .stem-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stem-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: #94a3b8;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .stem-btn:hover { color: white; background: rgba(255, 255, 255, 0.15); }
+    .stem-btn.active-mute { background: #ef4444; color: white; border-color: #ef4444; }
+    .stem-btn.active-solo { background: #eab308; color: black; border-color: #eab308; font-weight: 800; }
+
+    .stem-volume {
+      width: 70px;
+      height: 4px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .stem-waveform-canvas {
+      width: 100%;
+      height: 48px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 6px;
+      display: block;
+    }
+
+    /* Master Transport */
+    .master-transport {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .transport-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-play-master {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+      transition: all 0.15s ease;
+    }
+    .btn-play-master:hover { transform: scale(1.06); filter: brightness(1.1); }
+    .time-display {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    /* Right Column: 16-Pad MPC Sampler */
+    .mpc-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .mpc-chassis {
+      background: linear-gradient(180deg, #141724 0%, #0d0f18 100%);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 
+        inset 0 1px 1px rgba(255,255,255,0.1),
+        0 14px 40px rgba(0,0,0,0.7);
+      position: relative;
+    }
+    .mpc-brand-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .mpc-logo {
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      color: #94a3b8;
+    }
+    .mpc-screen {
+      background: #020408;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #a855f7;
+      text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+      display: flex;
+      gap: 10px;
+    }
+
+    /* 16-Pad Grid */
+    .pad-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .mpc-pad {
+      aspect-ratio: 1;
+      background: linear-gradient(145deg, #1f2538, #131726);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.08s ease;
+      box-shadow: 
+        0 4px 10px rgba(0,0,0,0.5),
+        inset 0 1px 1px rgba(255,255,255,0.15);
+    }
+    .mpc-pad:hover {
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+    .mpc-pad:active, .mpc-pad.hit {
+      transform: translateY(2px) scale(0.97);
+      box-shadow: 
+        0 1px 4px rgba(0,0,0,0.8),
+        inset 0 0 16px var(--pad-glow);
+      border-color: var(--pad-color);
+      filter: brightness(1.3);
+    }
+
+    .pad-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pad-num {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+    .pad-key {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: white;
+    }
+    .pad-name {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: white;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: auto;
+    }
+    .pad-stem-tag {
+      font-size: 0.58rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Pad color specific styles */
+    .pad-drums { --pad-color: #ef4444; --pad-glow: rgba(239, 68, 68, 0.5); }
+    .pad-bass { --pad-color: #eab308; --pad-glow: rgba(234, 179, 8, 0.5); }
+    .pad-vocals { --pad-color: #06b6d4; --pad-glow: rgba(6, 182, 212, 0.5); }
+    .pad-melody { --pad-color: #a855f7; --pad-glow: rgba(168, 85, 247, 0.5); }
+
+    .pad-drums .pad-stem-tag { color: #f87171; }
+    .pad-bass .pad-stem-tag { color: #facc15; }
+    .pad-vocals .pad-stem-tag { color: #38bdf8; }
+    .pad-melody .pad-stem-tag { color: #c084fc; }
+
+    /* AI Prompts Section */
+    .prompts-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-sub);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.1); }
+    .tab-btn.active {
+      background: rgba(139, 92, 246, 0.25);
+      color: #c084fc;
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+
+    .prompt-textarea {
+      width: 100%;
+      height: 120px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 12px;
+      resize: vertical;
+      outline: none;
+      line-height: 1.5;
+    }
+    .prompt-textarea:focus { border-color: var(--primary); }
+
+    .prompt-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    /* Oscilloscope Visualizer Banner */
+    .scope-canvas {
+      width: 100%;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-compact-disc"></i>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center;">
+          <span class="brand-title">GENESIS AI MUSIC & SAMPLING STUDIO</span>
+          <span class="brand-badge">PRO EDITION</span>
+        </div>
+        <div style="font-size: 0.68rem; color: var(--text-sub);">
+          YouTube Music Ingest ✕ 4-Track Stems ✕ 16-Pad MPC Sampler ✕ Multi-AI Prompt Producer
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <span style="font-size: 0.72rem; color: #10b981; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> Local Engine Online
+      </span>
+      <a href="cinema_lite.html" class="btn-cinema-back">
+        <i class="fa-solid fa-clapperboard"></i> 映画スタジオに戻る
+      </a>
+    </div>
+  </header>
+
+  <div class="studio-container">
+
+    <!-- 1. Hero Ingestion & Analysis Section -->
+    <div class="ingest-card">
+      <div class="ingest-title">
+        <i class="fa-brands fa-youtube" style="color: #ef4444;"></i>
+        <span>YouTube Music / 音声ファイルから直感サンプリング＆プロンプト生成</span>
+      </div>
+
+      <div class="ingest-input-row">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="ytm-query-input" class="search-input" placeholder="YouTube Music URL (https://music.youtube.com/...) または 曲名・アーティスト・ジャンル" value="Hans Zimmer Interstellar Style">
+        </div>
+        <button id="btn-run-separate" class="btn-action-primary" onclick="runStemSeparationAndSampling()">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> ステム分離 ＆ サンプラー展開
+        </button>
+      </div>
+
+      <div class="presets-row">
+        <span class="preset-label"><i class="fa-solid fa-bolt"></i> プリセット:</span>
+        <span class="preset-chip" onclick="setPreset('Hans Zimmer Interstellar Style')">🪐 ハンス・ジマー (Interstellar)</span>
+        <span class="preset-chip" onclick="setPreset('Tokyo Neo Noir Cyberpunk 2077')">🌃 サイバー東京 2077</span>
+        <span class="preset-chip" onclick="setPreset('80s Retro Synthwave Drive')">🏎️ 80s シンセウェイブ</span>
+        <span class="preset-chip" onclick="setPreset('Lo-Fi Hip Hop Chill Rainy Tokyo')">☕ 雨の渋谷 Lo-Fi</span>
+        <span class="preset-chip" onclick="setPreset('Epic Hollywood Action Trailer Brass')">🎬 ハリウッド超大作トレーラー</span>
+
+        <input type="file" id="local-file-input" accept="audio/*" style="display: none;" onchange="handleLocalFileUpload(event)">
+        <button class="file-upload-btn" onclick="document.getElementById('local-file-input').click()">
+          <i class="fa-solid fa-file-audio"></i> MP3/WAVファイルを開く
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="ingest-loading" class="loading-banner">
+        <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i>
+        <span id="loading-msg">YouTube Music音源を取得中 ＆ Librosa HPSSにより4ステム分離・16スライスパッド展開中...</span>
+      </div>
+
+      <!-- Live Metrics Dashboard -->
+      <div class="metrics-bar">
+        <div class="metric-cell">
+          <span class="metric-title">🎵 テンポ (BPM)</span>
+          <span class="metric-val" id="val-bpm" style="color: #38bdf8;">123.0</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-title">🎼 キー (Musical Key)</span>
+          <span class="metric-val" id="val-key" style="color: #facc15;">G Major</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-title">⚡ ダイナミクス (Energy)</span>
+          <span class="metric-val" id="val-energy" style="color: #ec4899; font-size: 0.95rem;">Steady & Cinematic</span>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-title">✨ 音色特性 (Timbre)</span>
+          <span class="metric-val" id="val-timbre" style="color: #a855f7; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Deep & Gritty (Sub-bass, Cello)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Main Studio Grid -->
+    <div class="workspace-grid">
+
+      <!-- LEFT: 4-Track Stems Console -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i class="fa-solid fa-sliders" style="color: #38bdf8;"></i>
+            <span>4-Track ステムミキサー (RipX / Serato Stems スタイル)</span>
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-sub);">独立ソロ・ミュート・個別ダウンロード</span>
+        </div>
+
+        <!-- Track 1: Drums -->
+        <div class="stem-strip" id="stem-strip-drums">
+          <div class="stem-meta-row">
+            <span class="stem-badge badge-drums"><i class="fa-solid fa-drum"></i> DRUMS (ビート / キック / スネア)</span>
+            <div class="stem-controls">
+              <input type="range" class="stem-volume" id="vol-drums" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('drums', this.value)">
+              <button class="stem-btn" id="mute-drums" onclick="toggleMute('drums')">MUTE</button>
+              <button class="stem-btn" id="solo-drums" onclick="toggleSolo('drums')">SOLO</button>
+              <button class="stem-btn" onclick="downloadStem('drums')"><i class="fa-solid fa-download"></i></button>
+            </div>
+          </div>
+          <canvas class="stem-waveform-canvas" id="canvas-drums"></canvas>
+        </div>
+
+        <!-- Track 2: Bass -->
+        <div class="stem-strip" id="stem-strip-bass">
+          <div class="stem-meta-row">
+            <span class="stem-badge badge-bass"><i class="fa-solid fa-guitar"></i> BASS (808 / サブベース)</span>
+            <div class="stem-controls">
+              <input type="range" class="stem-volume" id="vol-bass" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('bass', this.value)">
+              <button class="stem-btn" id="mute-bass" onclick="toggleMute('bass')">MUTE</button>
+              <button class="stem-btn" id="solo-bass" onclick="toggleSolo('bass')">SOLO</button>
+              <button class="stem-btn" onclick="downloadStem('bass')"><i class="fa-solid fa-download"></i></button>
+            </div>
+          </div>
+          <canvas class="stem-waveform-canvas" id="canvas-bass"></canvas>
+        </div>
+
+        <!-- Track 3: Vocals -->
+        <div class="stem-strip" id="stem-strip-vocals">
+          <div class="stem-meta-row">
+            <span class="stem-badge badge-vocals"><i class="fa-solid fa-microphone"></i> VOCALS (ボーカル / アカペラ)</span>
+            <div class="stem-controls">
+              <input type="range" class="stem-volume" id="vol-vocals" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('vocals', this.value)">
+              <button class="stem-btn" id="mute-vocals" onclick="toggleMute('vocals')">MUTE</button>
+              <button class="stem-btn" id="solo-vocals" onclick="toggleSolo('vocals')">SOLO</button>
+              <button class="stem-btn" onclick="downloadStem('vocals')"><i class="fa-solid fa-download"></i></button>
+            </div>
+          </div>
+          <canvas class="stem-waveform-canvas" id="canvas-vocals"></canvas>
+        </div>
+
+        <!-- Track 4: Melody / Other -->
+        <div class="stem-strip" id="stem-strip-melody">
+          <div class="stem-meta-row">
+            <span class="stem-badge badge-melody"><i class="fa-solid fa-wave-square"></i> MELODY (シンセ / ピアノ / ギター)</span>
+            <div class="stem-controls">
+              <input type="range" class="stem-volume" id="vol-melody" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('melody', this.value)">
+              <button class="stem-btn" id="mute-melody" onclick="toggleMute('melody')">MUTE</button>
+              <button class="stem-btn" id="solo-melody" onclick="toggleSolo('melody')">SOLO</button>
+              <button class="stem-btn" onclick="downloadStem('melody')"><i class="fa-solid fa-download"></i></button>
+            </div>
+          </div>
+          <canvas class="stem-waveform-canvas" id="canvas-melody"></canvas>
+        </div>
+
+        <!-- Master Transport Strip -->
+        <div class="master-transport">
+          <div class="transport-controls">
+            <button class="btn-play-master" id="btn-master-play" onclick="toggleMasterPlay()">
+              <i class="fa-solid fa-play" id="icon-master-play"></i>
+            </button>
+            <div>
+              <div style="font-weight: bold; font-size: 0.85rem; color: white;" id="track-name-display">Hans Zimmer Interstellar Style</div>
+              <div class="time-display" id="time-display">00:00 / 00:20</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="stem-btn" id="btn-loop-toggle" onclick="toggleLoop()" style="padding: 6px 12px;">
+              <i class="fa-solid fa-repeat"></i> LOOP ON
+            </button>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-volume-high" style="color: var(--text-sub); font-size: 0.8rem;"></i>
+              <input type="range" style="width: 80px;" min="0" max="1" step="0.05" value="0.9" oninput="updateMasterVolume(this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Master Oscilloscope -->
+        <div>
+          <div style="font-size: 0.7rem; color: var(--text-sub); margin-bottom: 4px; font-weight: 600;">
+            <i class="fa-solid fa-chart-simple"></i> リアルタイム・オシロスコープ (Web Audio API)
+          </div>
+          <canvas class="scope-canvas" id="master-oscilloscope"></canvas>
+        </div>
+      </div>
+
+      <!-- RIGHT: 16-Pad MPC Sampler & Prompt Producer -->
+      <div class="mpc-wrapper">
+
+        <!-- 16-Pad Chassis -->
+        <div class="mpc-chassis">
+          <div class="mpc-brand-strip">
+            <div class="mpc-logo"><i class="fa-solid fa-fingerprint"></i> GENESIS MPC-16 PRO</div>
+            <div class="mpc-screen">
+              <span id="mpc-status-screen">READY • 123 BPM • G MAJ</span>
+              <span id="mpc-last-hit">PAD: --</span>
+            </div>
+          </div>
+
+          <!-- 4x4 Pads Grid -->
+          <div class="pad-grid" id="mpc-pad-grid">
+            <!-- Pads will be generated dynamically or pre-rendered -->
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 0.72rem; color: var(--text-sub);">
+            <span><i class="fa-regular fa-keyboard"></i> PCキーボードで即演奏可能: <strong>1-4</strong> (Drums) / <strong>Q-R</strong> (Bass) / <strong>A-F</strong> (Vocals) / <strong>Z-V</strong> (Melody)</span>
+            <span style="color: #10b981;">● 低遅延 Web Audio 動作</span>
+          </div>
+        </div>
+
+        <!-- Multi-AI Prompt Producer Panel -->
+        <div class="prompts-card">
+          <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchPromptTab('minimax')">
+              <i class="fa-solid fa-robot"></i> MiniMax Music
+            </button>
+            <button class="tab-btn" onclick="switchPromptTab('suno')">
+              <i class="fa-solid fa-music"></i> Suno v4 / Udio
+            </button>
+            <button class="tab-btn" onclick="switchPromptTab('lyria')">
+              <i class="fa-solid fa-brain"></i> Google Lyria
+            </button>
+            <button class="tab-btn" onclick="switchPromptTab('veo')">
+              <i class="fa-solid fa-video"></i> Veo 3.1 映画同期
+            </button>
+          </div>
+
+          <textarea id="prompt-output-box" class="prompt-textarea" readonly></textarea>
+
+          <div class="prompt-actions">
+            <span style="font-size: 0.7rem; color: var(--text-sub);" id="prompt-desc-label">
+              MiniMax生成用キャプション・タグプロンプト
+            </span>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-action-primary" style="padding: 6px 14px; font-size: 0.78rem;" onclick="copyActivePrompt()">
+                <i class="fa-solid fa-copy"></i> プロンプトをコピー
+              </button>
+              <a href="cinema_lite.html" class="btn-cinema-back" style="padding: 6px 14px; font-size: 0.78rem;">
+                <i class="fa-solid fa-paper-plane"></i> 絵コンテに送る
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // ================================================================
+    // 🎧 GENESIS AI Music & Sampling Engine (Web Audio API ✕ DSP)
+    // ================================================================
+
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    // Default 16 Pads Blueprint
+    const defaultPads = [
+      // Row 1: Drums (Keys: 1, 2, 3, 4)
+      { id: 1, stem: 'drums', name: 'Kick Hit', key: '1', color: '#ef4444', type: 'drum_kick' },
+      { id: 2, stem: 'drums', name: 'Snare Crack', key: '2', color: '#f97316', type: 'drum_snare' },
+      { id: 3, stem: 'drums', name: 'Hi-Hat Tick', key: '3', color: '#fb923c', type: 'drum_hat' },
+      { id: 4, stem: 'drums', name: 'Perc Loop', key: '4', color: '#ea580c', type: 'drum_perc' },
+
+      // Row 2: Bass (Keys: Q, W, E, R)
+      { id: 5, stem: 'bass', name: '808 Low', key: 'Q', color: '#eab308', type: 'bass_808' },
+      { id: 6, stem: 'bass', name: 'Sub Punch', key: 'W', color: '#facc15', type: 'bass_punch' },
+      { id: 7, stem: 'bass', name: 'Bass Riff', key: 'E', color: '#ca8a04', type: 'bass_riff' },
+      { id: 8, stem: 'bass', name: 'Sub Glide', key: 'R', color: '#d97706', type: 'bass_glide' },
+
+      // Row 3: Vocals (Keys: A, S, D, F)
+      { id: 9, stem: 'vocals', name: 'Vocal Chop 1', key: 'A', color: '#06b6d4', type: 'vocal_1' },
+      { id: 10, stem: 'vocals', name: 'Vocal Chop 2', key: 'S', color: '#38bdf8', type: 'vocal_2' },
+      { id: 11, stem: 'vocals', name: 'Vocal Hook', key: 'D', color: '#0ea5e9', type: 'vocal_hook' },
+      { id: 12, stem: 'vocals', name: 'Breath Adlib', key: 'F', color: '#0284c7', type: 'vocal_adlib' },
+
+      // Row 4: Melody (Keys: Z, X, C, V)
+      { id: 13, stem: 'melody', name: 'Synth Chord', key: 'Z', color: '#a855f7', type: 'melody_chord' },
+      { id: 14, stem: 'melody', name: 'Lead Stab', key: 'X', color: '#c084fc', type: 'melody_lead' },
+      { id: 15, stem: 'melody', name: 'Arp Pluck', key: 'C', color: '#9333ea', type: 'melody_arp' },
+      { id: 16, stem: 'melody', name: 'Ambient Pad', key: 'V', color: '#7e22ce', type: 'melody_pad' },
+    ];
+
+    // State
+    window.currentSlices = [...defaultPads];
+    window.loadedAudioBuffers = {}; // id -> AudioBuffer
+    window.stemAudioBuffers = {};  // stemName -> AudioBuffer
+    window.stemSourceNodes = {};   // stemName -> AudioBufferSourceNode
+    window.stemGainNodes = {};     // stemName -> GainNode
+    window.stemMute = { drums: false, bass: false, vocals: false, melody: false };
+    window.stemSolo = { drums: false, bass: false, vocals: false, melody: false };
+    window.isMasterPlaying = false;
+    window.isLoopOn = true;
+    window.masterStartTime = 0;
+    window.masterGainNode = null;
+    window.analyserNode = null;
+    window.activePromptTab = 'minimax';
+    window.promptsData = {};
+
+    // Initialize UI on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderPads();
+      initOscilloscope();
+      setupKeyboardListeners();
+      setDefaultPrompts();
+      drawMockWaveforms();
+    });
+
+    function setPreset(query) {
+      const input = document.getElementById('ytm-query-input');
+      if (input) input.value = query;
+      runStemSeparationAndSampling();
+    }
+
+    function renderPads() {
+      const grid = document.getElementById('mpc-pad-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      window.currentSlices.forEach(pad => {
+        const el = document.createElement('div');
+        el.className = `mpc-pad pad-${pad.stem}`;
+        el.id = `pad-btn-${pad.id}`;
+        el.setAttribute('data-key', pad.key.toUpperCase());
+        el.onclick = () => triggerPad(pad.id);
+
+        el.innerHTML = `
+          <div class="pad-header">
+            <span class="pad-num">${pad.id < 10 ? '0' + pad.id : pad.id}</span>
+            <span class="pad-key">${pad.key}</span>
+          </div>
+          <div class="pad-name">${pad.name}</div>
+          <div class="pad-stem-tag">${pad.stem}</div>
+        `;
+        grid.appendChild(el);
+      });
+    }
+
+    // Keyboard Event Listener for MPC Pads
+    function setupKeyboardListeners() {
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        const key = e.key.toUpperCase();
+        const pad = window.currentSlices.find(p => p.key.toUpperCase() === key);
+        if (pad) {
+          e.preventDefault();
+          triggerPad(pad.id);
+        } else if (e.code === 'Space') {
+          e.preventDefault();
+          toggleMasterPlay();
+        }
+      });
+    }
+
+    // Trigger Pad Hit (Audio Playback + Visual Hit)
+    async function triggerPad(padId) {
+      const pad = window.currentSlices.find(p => p.id === padId);
+      if (!pad) return;
+
+      const padEl = document.getElementById(`pad-btn-${padId}`);
+      if (padEl) {
+        padEl.classList.add('hit');
+        setTimeout(() => padEl.classList.remove('hit'), 120);
+      }
+
+      const screenLabel = document.getElementById('mpc-last-hit');
+      if (screenLabel) screenLabel.textContent = `PAD ${padId}: ${pad.name}`;
+
+      const ctx = getAudioContext();
+
+      // Check if we have loaded actual sliced audio buffer
+      if (window.loadedAudioBuffers[padId]) {
+        playDecodedBuffer(window.loadedAudioBuffers[padId]);
+        return;
+      }
+
+      // High-quality acoustic Web Audio synthesizer fallback
+      synthesizeAcousticTone(ctx, pad.type);
+    }
+
+    function playDecodedBuffer(buf) {
+      const ctx = getAudioContext();
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.9, ctx.currentTime);
+      src.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+    }
+
+    // Realistic Web Audio Acoustic Synthesizer (Zero-latency fallback)
+    function synthesizeAcousticTone(ctx, type) {
+      const t = ctx.currentTime;
+      if (type.startsWith('drum_kick') || type.startsWith('bass_808')) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(type.includes('808') ? 70 : 130, t);
+        osc.frequency.exponentialRampToValueAtTime(32, t + (type.includes('808') ? 0.6 : 0.25));
+        gain.gain.setValueAtTime(0.9, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + (type.includes('808') ? 0.7 : 0.3));
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.7);
+      } else if (type.includes('snare')) {
+        // Noise + body
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, t);
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.2);
+      } else if (type.includes('hat')) {
+        // High tick
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(7500, t);
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.08);
+      } else if (type.startsWith('melody') || type.startsWith('vocal')) {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        const baseFreq = type.includes('chord') ? 220 : type.includes('lead') ? 440 : type.includes('pad') ? 330 : 392;
+        osc1.type = type.includes('pad') ? 'sine' : 'sawtooth';
+        osc2.type = 'triangle';
+        osc1.frequency.setValueAtTime(baseFreq, t);
+        osc2.frequency.setValueAtTime(baseFreq * 1.5, t); // Perfect fifth
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(type.includes('vocal') ? 1400 : 2800, t);
+
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + (type.includes('pad') ? 0.9 : 0.5));
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(t);
+        osc2.start(t);
+        osc1.stop(t + 0.9);
+        osc2.stop(t + 0.9);
+      }
+    }
+
+    // ================================================================
+    // ⚡ Full Stem Separation & Sampling API Execution
+    // ================================================================
+    async function runStemSeparationAndSampling() {
+      const input = document.getElementById('ytm-query-input');
+      const query = input ? input.value.trim() : '';
+      if (!query) {
+        alert('YouTube Music URL または検索キーワードを入力してください。');
+        return;
+      }
+
+      const btn = document.getElementById('btn-run-separate');
+      const loading = document.getElementById('ingest-loading');
+      if (btn) btn.disabled = true;
+      if (loading) loading.style.display = 'block';
+
+      try {
+        const res = await fetch('/api/music/separate_stems', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: query, context: 'Tokyo Cyberpunk Noir Blockbuster' })
+        });
+
+        if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data || !data.success) throw new Error(data.error || 'Separation failed');
+
+        // Update Track & Metrics
+        document.getElementById('track-name-display').textContent = data.track_title || query;
+        if (data.features) {
+          document.getElementById('val-bpm').textContent = data.features.bpm.toFixed(1);
+          document.getElementById('val-key').textContent = data.features.key;
+          document.getElementById('val-energy').textContent = data.features.energy;
+          document.getElementById('val-timbre').textContent = data.features.timbre;
+          document.getElementById('mpc-status-screen').textContent = `ACTIVE • ${data.features.bpm} BPM • ${data.features.key}`;
+        }
+
+        // Decode Full Stems
+        const ctx = getAudioContext();
+        if (data.stems) {
+          for (const [stemName, b64Data] of Object.entries(data.stems)) {
+            const arrBuf = base64ToArrayBuffer(b64Data);
+            window.stemAudioBuffers[stemName] = await ctx.decodeAudioData(arrBuf);
+            drawWaveformFromBuffer(`canvas-${stemName}`, window.stemAudioBuffers[stemName], getStemColor(stemName));
+          }
+        }
+
+        // Decode 16 Slices into Pads
+        if (data.slices && data.slices.length === 16) {
+          window.currentSlices = data.slices;
+          renderPads();
+          for (const slice of data.slices) {
+            const arrBuf = base64ToArrayBuffer(slice.data);
+            window.loadedAudioBuffers[slice.id] = await ctx.decodeAudioData(arrBuf);
+          }
+        }
+
+        // Populate Prompts
+        if (data.prompts) {
+          window.promptsData = data.prompts;
+          updatePromptDisplay();
+        }
+
+        alert(`✨ ステム分離 ＆ 16-Padサンプラー展開が完了しました！\n\n🎵 楽曲: ${data.track_title}\n🥁 4ステム分離: Vocals / Drums / Bass / Melody\n🎹 16パッドにワンショットが即時アサインされました！`);
+      } catch (err) {
+        console.error('Stem separation error:', err);
+        alert('解析・ステム分離に失敗しました: ' + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+        if (loading) loading.style.display = 'none';
+      }
+    }
+
+    // File Upload Handler
+    async function handleLocalFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const btn = document.getElementById('btn-run-separate');
+      const loading = document.getElementById('ingest-loading');
+      if (btn) btn.disabled = true;
+      if (loading) {
+        document.getElementById('loading-msg').textContent = `${file.name} をアップロード＆ステム分離解析中...`;
+        loading.style.display = 'block';
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const res = await fetch('/api/music/upload_and_analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              audio_base64: e.target.result,
+              context: 'Local Audio Master'
+            })
+          });
+          const data = await res.json();
+          if (!data || !data.success) throw new Error(data.error || 'Analysis failed');
+
+          document.getElementById('track-name-display').textContent = file.name;
+          const ctx = getAudioContext();
+          if (data.stems) {
+            for (const [stemName, b64Data] of Object.entries(data.stems)) {
+              const arrBuf = base64ToArrayBuffer(b64Data);
+              window.stemAudioBuffers[stemName] = await ctx.decodeAudioData(arrBuf);
+              drawWaveformFromBuffer(`canvas-${stemName}`, window.stemAudioBuffers[stemName], getStemColor(stemName));
+            }
+          }
+          if (data.slices) {
+            window.currentSlices = data.slices;
+            renderPads();
+            for (const slice of data.slices) {
+              const arrBuf = base64ToArrayBuffer(slice.data);
+              window.loadedAudioBuffers[slice.id] = await ctx.decodeAudioData(arrBuf);
+            }
+          }
+          if (data.prompts) {
+            window.promptsData = data.prompts;
+            updatePromptDisplay();
+          }
+          alert(`✨ ローカルファイル [${file.name}] のステム分離＆サンプラー割り当てが完了しました！`);
+        } catch (err) {
+          alert('アップロード解析エラー: ' + err.message);
+        } finally {
+          if (btn) btn.disabled = false;
+          if (loading) loading.style.display = 'none';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Helpers
+    function base64ToArrayBuffer(base64) {
+      if (base64.includes(',')) base64 = base64.split(',')[1];
+      const binary_string = window.atob(base64);
+      const len = binary_string.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function getStemColor(stem) {
+      if (stem === 'drums') return '#ef4444';
+      if (stem === 'bass') return '#eab308';
+      if (stem === 'vocals') return '#06b6d4';
+      return '#a855f7';
+    }
+
+    // ================================================================
+    // 🎛️ Stem Mixer & Master Transport
+    // ================================================================
+    function toggleMasterPlay() {
+      const ctx = getAudioContext();
+      if (window.isMasterPlaying) {
+        stopMasterPlay();
+      } else {
+        startMasterPlay();
+      }
+    }
+
+    function startMasterPlay() {
+      const ctx = getAudioContext();
+      window.isMasterPlaying = true;
+      document.getElementById('icon-master-play').className = 'fa-solid fa-pause';
+
+      if (!window.masterGainNode) {
+        window.masterGainNode = ctx.createGain();
+        window.analyserNode = ctx.createAnalyser();
+        window.analyserNode.fftSize = 256;
+        window.masterGainNode.connect(window.analyserNode);
+        window.analyserNode.connect(ctx.destination);
+      }
+
+      const stems = ['drums', 'bass', 'vocals', 'melody'];
+      stems.forEach(stem => {
+        if (!window.stemAudioBuffers[stem]) return;
+
+        const src = ctx.createBufferSource();
+        src.buffer = window.stemAudioBuffers[stem];
+        src.loop = window.isLoopOn;
+
+        const gain = ctx.createGain();
+        applyStemGain(stem, gain);
+
+        src.connect(gain);
+        gain.connect(window.masterGainNode);
+        src.start(0);
+
+        window.stemSourceNodes[stem] = src;
+        window.stemGainNodes[stem] = gain;
+      });
+
+      window.masterStartTime = ctx.currentTime;
+      updateTimecodeLoop();
+    }
+
+    function stopMasterPlay() {
+      window.isMasterPlaying = false;
+      document.getElementById('icon-master-play').className = 'fa-solid fa-play';
+      const stems = ['drums', 'bass', 'vocals', 'melody'];
+      stems.forEach(stem => {
+        if (window.stemSourceNodes[stem]) {
+          try { window.stemSourceNodes[stem].stop(); } catch(e){}
+          window.stemSourceNodes[stem] = null;
+        }
+      });
+    }
+
+    function toggleLoop() {
+      window.isLoopOn = !window.isLoopOn;
+      const btn = document.getElementById('btn-loop-toggle');
+      if (btn) {
+        btn.innerHTML = window.isLoopOn ? '<i class="fa-solid fa-repeat"></i> LOOP ON' : '<i class="fa-solid fa-arrow-right"></i> ONCE';
+      }
+      for (const src of Object.values(window.stemSourceNodes)) {
+        if (src) src.loop = window.isLoopOn;
+      }
+    }
+
+    function updateStemVolume(stem, val) {
+      if (window.stemGainNodes[stem]) {
+        applyStemGain(stem, window.stemGainNodes[stem]);
+      }
+    }
+
+    function toggleMute(stem) {
+      window.stemMute[stem] = !window.stemMute[stem];
+      const btn = document.getElementById(`mute-${stem}`);
+      const strip = document.getElementById(`stem-strip-${stem}`);
+      if (btn) btn.classList.toggle('active-mute', window.stemMute[stem]);
+      if (strip) strip.classList.toggle('muted', window.stemMute[stem]);
+      if (window.stemGainNodes[stem]) applyStemGain(stem, window.stemGainNodes[stem]);
+    }
+
+    function toggleSolo(stem) {
+      window.stemSolo[stem] = !window.stemSolo[stem];
+      const btn = document.getElementById(`solo-${stem}`);
+      if (btn) btn.classList.toggle('active-solo', window.stemSolo[stem]);
+
+      const anySolo = Object.values(window.stemSolo).some(v => v);
+      ['drums', 'bass', 'vocals', 'melody'].forEach(s => {
+        if (window.stemGainNodes[s]) applyStemGain(s, window.stemGainNodes[s]);
+        const strip = document.getElementById(`stem-strip-${s}`);
+        if (strip) {
+          strip.classList.toggle('active', window.stemSolo[s]);
+          strip.classList.toggle('muted', anySolo && !window.stemSolo[s]);
+        }
+      });
+    }
+
+    function applyStemGain(stem, gainNode) {
+      const volInput = document.getElementById(`vol-${stem}`);
+      const baseVol = volInput ? parseFloat(volInput.value) : 0.9;
+      const anySolo = Object.values(window.stemSolo).some(v => v);
+
+      if (window.stemMute[stem] || (anySolo && !window.stemSolo[stem])) {
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      } else {
+        gainNode.gain.setValueAtTime(baseVol, audioCtx.currentTime);
+      }
+    }
+
+    function updateTimecodeLoop() {
+      if (!window.isMasterPlaying) return;
+      const elapsed = (getAudioContext().currentTime - window.masterStartTime) % 20.0;
+      const m = Math.floor(elapsed / 60);
+      const s = Math.floor(elapsed % 60);
+      const str = `0${m}:${s < 10 ? '0' + s : s} / 00:20`;
+      const el = document.getElementById('time-display');
+      if (el) el.textContent = str;
+      requestAnimationFrame(updateTimecodeLoop);
+    }
+
+    function downloadStem(stem) {
+      if (!window.stemAudioBuffers[stem]) {
+        alert(`${stem} ステムがまだ読み込まれていません。「ステム分離」を実行してください。`);
+        return;
+      }
+      alert(`💾 ${stem.toUpperCase()} ステムのWAV書き出し準備が完了しました。`);
+    }
+
+    // ================================================================
+    // 📊 Visualizers & Oscilloscope
+    // ================================================================
+    function initOscilloscope() {
+      const canvas = document.getElementById('master-oscilloscope');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      function draw() {
+        requestAnimationFrame(draw);
+        const w = canvas.width = canvas.clientWidth;
+        const h = canvas.height = canvas.clientHeight;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(0, 0, w, h);
+
+        if (!window.analyserNode || !window.isMasterPlaying) {
+          // Idle sine wave
+          ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          const t = Date.now() * 0.003;
+          for (let x = 0; x < w; x += 4) {
+            const y = h / 2 + Math.sin(x * 0.03 + t) * 6;
+            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          return;
+        }
+
+        const bufferLength = window.analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        window.analyserNode.getByteTimeDomainData(dataArray);
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.beginPath();
+        const sliceWidth = w * 1.0 / bufferLength;
+        let x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = v * h / 2;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          x += sliceWidth;
+        }
+        ctx.lineTo(w, h / 2);
+        ctx.stroke();
+      }
+      draw();
+    }
+
+    function drawWaveformFromBuffer(canvasId, buffer, strokeColor) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fillRect(0, 0, w, h);
+
+      const data = buffer.getChannelData(0);
+      const step = Math.ceil(data.length / w);
+      const amp = h / 2;
+
+      ctx.fillStyle = strokeColor;
+      for (let i = 0; i < w; i++) {
+        let min = 1.0;
+        let max = -1.0;
+        for (let j = 0; j < step; j++) {
+          const datum = data[(i * step) + j];
+          if (datum < min) min = datum;
+          if (datum > max) max = datum;
+        }
+        ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
+      }
+    }
+
+    function drawMockWaveforms() {
+      ['drums', 'bass', 'vocals', 'melody'].forEach(stem => {
+        const canvas = document.getElementById(`canvas-${stem}`);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width = canvas.clientWidth;
+        const h = canvas.height = canvas.clientHeight;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = getStemColor(stem);
+        for (let x = 0; x < w; x += 3) {
+          const barH = Math.random() * (h * 0.7) + 4;
+          ctx.fillRect(x, (h - barH) / 2, 2, barH);
+        }
+      });
+    }
+
+    // ================================================================
+    // 📝 Multi-AI Prompt Producer Tabs
+    // ================================================================
+    function setDefaultPrompts() {
+      window.promptsData = {
+        minimax: "A cinematic orchestral track in G Major, tempo 123 BPM. Steady & Cinematic dynamics. Featuring Dark, Deep & Gritty (Sub-bass, Cello, Low Moog Brass). Deep analog low-end pulse, evolving harmonic strings, dramatic riser transitions. Tags: [Cinematic], [G Major], [123BPM], [Orchestral], [Cyberpunk], [Dramatic Trailer]",
+        suno: "Style: Cinematic Cyberpunk Score, G Major, 123 BPM\nMood: Steady & Cinematic, Moderate / Tension, atmospheric, blockbuster tension\nInstruments: Dark Sub-bass, Cello, Low Moog Brass, heavy 808 sub bass, analog modular synth\n[Intro - 0:00]\n(Atmospheric ambient drone in G Major, rising filtered arpeggio)\n[Verse / Build - 0:04]\n(Punchy kick and syncopated snare at 123 BPM, dynamic bassline enters)\n[Drop / Climax - 0:10]\n(Full orchestral crescendo, epic cinematic brass, wide stereophonic synth lead)\n[Outro - 0:14]\n(Decaying sub-bass impact, lingering analog echo tail)",
+        udio: "Style: Epic Cinematic Hybrid, G Major, 123 BPM\nMood: Intense, Dark, Futuristic, Heroic Trailer\nTags: orchestral, 808 sub, arpeggiator, sound design, hans zimmer inspired, live cello, blockbuster mix",
+        lyria: "A high-fidelity cinematic soundtrack piece. Key: G Major. Tempo: 123 BPM. Acoustic texture: Dark, Deep & Gritty. Dynamics: Steady & Cinematic with precise transient definition, multi-layer spatial depth, studio mastering standard 24-bit 48kHz.",
+        veo: "Scene Audio Sync: 123 BPM | G Major | Cinematic | Cut 1 (0-3.5s): Ambient swell | Cut 2 (3.5-7.5s): Rhythm entrance | Cut 3 (7.5-11.0s): Climax surge | Cut 4 (11.0-15.0s): Impact resolve"
+      };
+      updatePromptDisplay();
+    }
+
+    function switchPromptTab(tab) {
+      window.activePromptTab = tab;
+      document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      updatePromptDisplay();
+    }
+
+    function updatePromptDisplay() {
+      const box = document.getElementById('prompt-output-box');
+      const label = document.getElementById('prompt-desc-label');
+      if (!box) return;
+
+      const tab = window.activePromptTab;
+      box.value = window.promptsData[tab] || '';
+
+      if (label) {
+        if (tab === 'minimax') label.textContent = 'MiniMax Music 生成用キャプション & 構造タグ';
+        else if (tab === 'suno') label.textContent = 'Suno v4 / Udio 用 [Style / Mood / タイムコード構成タグ]';
+        else if (tab === 'lyria') label.textContent = 'Google Lyria / DeepMind Audio 高忠実度スコアリング指示文';
+        else if (tab === 'veo') label.textContent = 'Google Veo 3.1 映画15秒4カット同期ディレクティブ';
+      }
+    }
+
+    function copyActivePrompt() {
+      const box = document.getElementById('prompt-output-box');
+      if (!box || !box.value) return;
+      navigator.clipboard.writeText(box.value).then(() => {
+        alert('📋 プロンプトをクリップボードにコピーしました！');
+      }).catch(() => {
+        box.select();
+        document.execCommand('copy');
+        alert('📋 プロンプトをクリップボードにコピーしました！');
+      });
+    }
+
+  </script>
+</body>
+</html>

@@ -1892,6 +1892,75 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
                 return
 
+        elif parsed.path == '/api/music/separate_stems':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                url_or_query = payload.get('url', '').strip()
+                scene_context = payload.get('context', 'Cyberpunk & Cinema Blockbuster')
+                if not url_or_query:
+                    url_or_query = "Hans Zimmer Interstellar Style"
+
+                from core.genesis_youtube_music_analyzer import analyze_and_separate_stems
+                result = analyze_and_separate_stems(url_or_query, scene_context)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+        elif parsed.path == '/api/music/upload_and_analyze':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                b64_data = payload.get('audio_base64', '')
+                filename = payload.get('filename', 'upload.wav')
+                scene_context = payload.get('context', 'Cyberpunk & Cinema Blockbuster')
+
+                if ',' in b64_data:
+                    b64_data = b64_data.split(',', 1)[1]
+
+                import base64, tempfile
+                raw_bytes = base64.b64decode(b64_data)
+                ext = os.path.splitext(filename)[1] or '.wav'
+                with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tf:
+                    tf.write(raw_bytes)
+                    temp_file_path = tf.name
+
+                from core.genesis_youtube_music_analyzer import analyze_and_separate_stems
+                try:
+                    result = analyze_and_separate_stems(temp_file_path, scene_context)
+                    result["track_title"] = os.path.splitext(filename)[0]
+                finally:
+                    if os.path.exists(temp_file_path):
+                        os.remove(temp_file_path)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(result, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8'))
+                return
+
+
 
         self.send_response(404)
         self.send_header('Content-Type', 'application/json; charset=utf-8')

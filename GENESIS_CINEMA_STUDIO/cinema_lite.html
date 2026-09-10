@@ -1460,6 +1460,9 @@
           <button class="btn-audio" id="btn-ytmusic-select" onclick="openYouTubeMusicModal()" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171; background: rgba(239, 68, 68, 0.1);">
             <i class="fa-solid fa-sliders"></i> <span id="txt-ytmusic-select-btn">曲選択 (ALL Google)</span>
           </button>
+          <a href="music_studio.html" target="_blank" class="btn-audio" style="border-color: rgba(139, 92, 246, 0.4); color: #c084fc; background: rgba(139, 92, 246, 0.15); text-decoration: none; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-compact-disc"></i> <span>AI音楽＆サンプラーStudio</span>
+          </a>
         </div>
         <button class="btn-master-generate" onclick="generateFinalMovie()">
           <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="txt-master-generate-btn">🎬 15秒CM 統合生成 (書き出し)</span>
@@ -1483,6 +1486,20 @@
       </div>
 
       <div class="modal-body" style="padding: 16px;">
+        <!-- Standalone Studio Launch Banner -->
+        <a href="music_studio.html" target="_blank" style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(139,92,246,0.25), rgba(6,182,212,0.25)); border: 1px solid rgba(139,92,246,0.5); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; text-decoration: none; color: white; transition: all 0.2s ease;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-compact-disc fa-spin" style="color: #c084fc; font-size: 1.3rem;"></i>
+            <div>
+              <strong style="color: white; font-size: 0.84rem;">独立型「GENESIS AI 音楽＆サンプリング Studio」を開く</strong>
+              <div style="font-size: 0.7rem; color: #cbd5e1;">4-Trackステム分離 (ボーカル・ドラム・ベース・メロディ) ✕ 16-Pad MPC サンプラー ✕ Suno/MiniMax錬成</div>
+            </div>
+          </div>
+          <span style="font-size: 0.72rem; background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 6px; font-weight: bold; white-space: nowrap;">
+            別タブで開く <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </span>
+        </a>
+
         <!-- ALL Google Sovereign Stack Banner -->
         <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(56, 189, 248, 0.15)); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.76rem; display: flex; align-items: center; gap: 10px;">
           <i class="fa-solid fa-shield-halved" style="color: #38bdf8; font-size: 1.2rem;"></i>
@@ -1491,6 +1508,7 @@
             頭脳 (Gemini 3.8) ✕ エッジ (Gemma 4) ✕ 映像 (Veo 3.1) ✕ ロケ地 (Google Maps 360°) ✕ 音楽 (YouTube Music) により、外部ライセンスの摩擦を排した完全無欠のGoogle映画制作パイプラインを実現。
           </div>
         </div>
+
 
         <!-- Direct YouTube Music Input -->
         <div style="margin-bottom: 14px;">
