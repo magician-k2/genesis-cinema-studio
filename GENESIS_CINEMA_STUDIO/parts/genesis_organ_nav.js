@@ -5,6 +5,7 @@
  */
 (function() {
   const ORGANS = [
+    { id: 'mobile', name: 'Antigravity Mobile', label: '大脳/制御', icon: 'fa-brain', url: '/mobile_antigravity.html', color: '#38bdf8' },
     { id: 'cinema', name: 'Cinema Studio', label: '視覚野', icon: 'fa-film', url: '/cinema_lite.html', color: '#06b6d4' },
     { id: 'music', name: 'Music & Sampling', label: '聴覚野', icon: 'fa-music', url: '/music_studio.html', color: '#8b5cf6' },
     { id: 'character', name: 'Character Studio', label: '身体野', icon: 'fa-user-astronaut', url: '/character_studio.html', color: '#ec4899' },
@@ -12,6 +13,8 @@
   ];
 
   function detectActiveOrgan() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes('mobile_antigravity')) return 'mobile';
     const path = window.location.pathname.toLowerCase();
     if (path.includes('music')) return 'music';
     if (path.includes('character')) return 'character';

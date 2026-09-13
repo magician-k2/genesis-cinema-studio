@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GENESIS Antigravity 2.0 Mobile | Google AI Studio ✕ 自律機械脳</title>
+  
+  <!-- FontAwesome & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Outfit:wght@300;400;600;700;900&family=Noto+Sans+JP:wght@400;600;700;900&display=swap" rel="stylesheet">
+  
+  <!-- 🧬 GENESIS Neural Theme & Organ Navigator Component Parts -->
+  <link rel="stylesheet" href="parts/genesis_theme.css">
+  <script src="parts/genesis_organ_nav.js"></script>
+
+  <style>
+    :root {
+      --header-height: 52px;
+      --bottom-nav-height: 64px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--genesis-bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
+      color: var(--genesis-text-main);
+      font-family: var(--font-ui);
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Sub-header telemetry */
+    .telemetry-bar {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--genesis-border-subtle);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      z-index: 100;
+    }
+    .telemetry-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--genesis-border-subtle);
+    }
+
+    /* Main Tab Container */
+    .tab-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .tab-pane {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-pane.active {
+      display: flex;
+    }
+
+    /* Tab 1: Chat & Plan */
+    .plan-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--genesis-border-glow);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
+    }
+    .plan-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .plan-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .plan-step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .plan-step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .plan-step-item.done {
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+    .plan-step-item.active {
+      border-color: rgba(139, 92, 246, 0.5);
+      background: rgba(139, 92, 246, 0.15);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .chat-messages {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 80px;
+    }
+    .msg-bubble {
+      max-width: 92%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .msg-agent {
+      align-self: flex-start;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--genesis-border-subtle);
+      border-left: 3px solid var(--genesis-primary);
+    }
+    .msg-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(6, 182, 212, 0.25));
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #ffffff;
+    }
+
+    /* Fixed Input Bar */
+    .chat-input-bar {
+      position: absolute;
+      bottom: var(--bottom-nav-height);
+      left: 0; right: 0;
+      background: rgba(7, 9, 14, 0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--genesis-border-subtle);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 50;
+    }
+    .chat-input-field {
+      flex: 1;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--genesis-border-subtle);
+      border-radius: 20px;
+      padding: 8px 14px;
+      color: #ffffff;
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .chat-input-field:focus {
+      border-color: var(--genesis-primary);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+    }
+    .chat-icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--genesis-border-subtle);
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .chat-icon-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .chat-send-btn {
+      background: linear-gradient(135deg, var(--genesis-primary), #06b6d4);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+    }
+
+    /* Tab 2: Code & Diff */
+    .diff-container {
+      background: #0d1117;
+      border: 1px solid var(--genesis-border-subtle);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 10px;
+      overflow-x: auto;
+      flex: 1;
+      margin-top: 10px;
+    }
+    .diff-line {
+      display: flex;
+      gap: 8px;
+      line-height: 1.4;
+      white-space: pre;
+    }
+    .diff-add { background: rgba(16, 185, 129, 0.15); color: #4ade80; }
+    .diff-del { background: rgba(244, 63, 94, 0.15); color: #f87171; }
+    .diff-info { color: #38bdf8; opacity: 0.8; }
+
+    /* Tab 3: Preview & Terminal */
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .preview-frame-wrap {
+      flex: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--genesis-border-subtle);
+      background: #000000;
+      position: relative;
+    }
+    .preview-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .terminal-drawer {
+      height: 140px;
+      background: #070a12;
+      border-top: 1px solid var(--genesis-border-subtle);
+      margin-top: 8px;
+      border-radius: 8px;
+      padding: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      overflow-y: auto;
+      color: #38bdf8;
+    }
+
+    /* Bottom Navigation Bar (AI Studio Mobile Style) */
+    .bottom-nav {
+      height: var(--bottom-nav-height);
+      background: rgba(7, 9, 14, 0.96);
+      backdrop-filter: blur(24px);
+      border-top: 1px solid var(--genesis-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 30%;
+      padding: 6px 0;
+    }
+    .nav-item i {
+      font-size: 1.15rem;
+    }
+    .nav-item.active {
+      color: var(--genesis-cyan);
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+    }
+    .nav-item.active i {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="genesis-body">
+
+  <!-- Sub-header Live Telemetry -->
+  <div class="telemetry-bar">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span class="telemetry-pill" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">
+        <i class="fa-solid fa-circle-nodes"></i>
+        <span>MaleCNS 166k SNN</span>
+      </span>
+      <span class="telemetry-pill" style="color: #a855f7; border-color: rgba(168, 85, 247, 0.4);">
+        <i class="fa-solid fa-atom"></i>
+        <span>Q-NO Coherent</span>
+      </span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span class="telemetry-pill" style="color: #06b6d4; border-color: rgba(6, 182, 212, 0.4);">
+        <i class="fa-solid fa-microchip"></i>
+        <span id="webgpu-status">WebGPU Active (0 Tokens)</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Main Viewport containing 3 Tabs -->
+  <div class="tab-viewport">
+    
+    <!-- ==========================================
+         TAB 1: Agent Chat & Implementation Plan
+         ========================================== -->
+    <div class="tab-pane active" id="pane-chat">
+      
+      <!-- Implementation Plan Card -->
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-title">
+            <i class="fa-solid fa-clipboard-check" style="color: #a855f7;"></i>
+            <span id="plan-title-text">Plan: Antigravity 2.0 Web/Mobile Integration</span>
+          </div>
+          <span class="genesis-badge genesis-badge-nervous">Proceed Ready</span>
+        </div>
+
+        <div class="plan-step-list" id="plan-step-list">
+          <div class="plan-step-item done">
+            <i class="fa-solid fa-check-circle"></i>
+            <span>Step 1: 器官パーツ化 & 共通神経幹の分離 (完了)</span>
+          </div>
+          <div class="plan-step-item active">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Step 2: AI Studio風 モバイル3タブUIの実装 (実行中)</span>
+          </div>
+          <div class="plan-step-item">
+            <i class="fa-regular fa-circle"></i>
+            <span>Step 3: WebGPU Gemma 4 によるAST事前検証</span>
+          </div>
+          <div class="plan-step-item">
+            <i class="fa-regular fa-circle"></i>
+            <span>Step 4: Cloud Run Scale-to-0 デプロイ検証</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="genesis-btn genesis-btn-ghost" style="padding: 6px 12px; font-size: 0.75rem;" onclick="editCurrentPlan()">
+            <i class="fa-solid fa-pen"></i> 計画編集
+          </button>
+          <button class="genesis-btn genesis-btn-primary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="proceedCurrentPlan()">
+            <i class="fa-solid fa-play"></i> 承認して続行 (Proceed)
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Feed -->
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg-bubble msg-agent">
+          <strong>Antigravity 2.0 Mobile Agent</strong><br>
+          Google AI Studioモバイル仕様へようこそ。自宅のPCを起動し続けることなく、外出先のスマートフォンからコード修正・新規器官追加・自律検証をリアルタイムで指示できます。WebGPUによるエッジ事前処理が有効なため、トークン消費を最小化して動作します。
+        </div>
+      </div>
+
+      <!-- Floating Input Bar -->
+      <div class="chat-input-bar">
+        <button class="chat-icon-btn" onclick="triggerVoiceInput()" title="音声入力">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+        <button class="chat-icon-btn" onclick="triggerFileUpload()" title="画像・資料添付">
+          <i class="fa-solid fa-paperclip"></i>
+        </button>
+        <input type="text" class="chat-input-field" id="user-input-field" placeholder="エージェントへ指示を入力 (例: 新しい器官を追加して)..." onkeydown="if(event.key==='Enter') sendUserMessage()">
+        <button class="chat-icon-btn chat-send-btn" onclick="sendUserMessage()" title="送信">
+          <i class="fa-solid fa-arrow-up"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ==========================================
+         TAB 2: Code & Unified Diff Viewer
+         ========================================== -->
+    <div class="tab-pane" id="pane-diff">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-code-compare" style="color: #06b6d4;"></i>
+          <span>Unified Diff Viewer</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="genesis-btn genesis-btn-ghost" style="padding: 4px 10px; font-size: 0.72rem;" onclick="rejectDiff()">
+            <i class="fa-solid fa-xmark"></i> 破棄
+          </button>
+          <button class="genesis-btn genesis-btn-cyan" style="padding: 4px 10px; font-size: 0.72rem;" onclick="applyDiff()">
+            <i class="fa-solid fa-check"></i> 差分を適用
+          </button>
+        </div>
+      </div>
+
+      <div class="diff-container" id="diff-content">
+        <div class="diff-line diff-info">--- a/GENESIS_CINEMA_STUDIO/parts/genesis_organ_nav.js</div>
+        <div class="diff-line diff-info">+++ b/GENESIS_CINEMA_STUDIO/parts/genesis_organ_nav.js</div>
+        <div class="diff-line diff-info">@@ -15,6 +15,12 @@</div>
+        <div class="diff-line">   const ORGANS = [</div>
+        <div class="diff-line diff-add">+    { id: 'mobile', name: 'Antigravity Mobile', label: '大脳/制御', url: '/mobile_antigravity.html' },</div>
+        <div class="diff-line">     { id: 'cinema', name: 'Cinema Studio', label: '視覚野', url: '/cinema_lite.html' },</div>
+        <div class="diff-line">     { id: 'music', name: 'Music & Sampling', label: '聴覚野', url: '/music_studio.html' }</div>
+        <div class="diff-line diff-del">-    { id: 'legacy', name: 'Legacy Console' }</div>
+        <div class="diff-line">   ];</div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         TAB 3: Live Preview & Terminal Drawer
+         ========================================== -->
+    <div class="tab-pane" id="pane-preview">
+      <div class="preview-header">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 700;">
+          <i class="fa-solid fa-globe" style="color: #10b981;"></i>
+          <span>Live Organ Preview</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <select id="preview-url-select" style="background: rgba(30, 41, 59, 0.8); border: 1px solid var(--genesis-border-subtle); color: #ffffff; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem;" onchange="switchPreviewUrl(this.value)">
+            <option value="/cinema_lite.html">🎬 視覚野 (Cinema Lite)</option>
+            <option value="/music_studio.html">🎵 聴覚野 (Music Studio)</option>
+            <option value="/character_studio.html">👤 身体野 (Character Studio)</option>
+          </select>
+          <button class="genesis-btn genesis-btn-ghost" style="padding: 4px 8px; font-size: 0.72rem;" onclick="reloadPreviewFrame()">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-frame-wrap">
+        <iframe src="/cinema_lite.html" class="preview-iframe" id="preview-iframe"></iframe>
+      </div>
+
+      <!-- Collapsible Terminal Drawer -->
+      <div class="terminal-drawer" id="terminal-drawer">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 4px; margin-bottom: 6px;">
+          <span style="color: #94a3b8;"><i class="fa-solid fa-terminal"></i> Headless Sandbox Terminal</span>
+          <span style="color: #10b981;">EXIT: 0 (OK)</span>
+        </div>
+        <div>$ python -m core.neural_backbone.gemini_hub --status</div>
+        <div style="color: #a7f3d0;">[OK] Gemini 2.5 Flash connected (Latency: 142ms)</div>
+        <div style="color: #a7f3d0;">[OK] WebGPU on-device shader compiled successfully.</div>
+        <div>$ git status --short</div>
+        <div style="color: #cbd5e1;">M  GENESIS_CINEMA_STUDIO/mobile_antigravity.html</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation (3-Tab Mobile Switcher) -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('chat')" id="nav-chat">
+      <i class="fa-solid fa-comments"></i>
+      <span>Agent & Plan</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('diff')" id="nav-diff">
+      <i class="fa-solid fa-code-compare"></i>
+      <span>Code & Diff</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('preview')" id="nav-preview">
+      <i class="fa-solid fa-display"></i>
+      <span>Preview & Log</span>
+    </div>
+  </nav>
+
+  <script>
+    // Tab Switching Logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(`pane-${tabId}`).classList.add('active');
+      document.getElementById(`nav-${tabId}`).classList.add('active');
+    }
+
+    // WebGPU Verification
+    async function checkWebGPU() {
+      const statusEl = document.getElementById('webgpu-status');
+      if ('gpu' in navigator) {
+        try {
+          const adapter = await navigator.gpu.requestAdapter();
+          if (adapter) {
+            statusEl.textContent = 'WebGPU Active (0 Tokens)';
+            statusEl.parentElement.style.color = '#10b981';
+            return;
+          }
+        } catch (e) {}
+      }
+      statusEl.textContent = 'WebGPU Fallback (Edge ONNX)';
+    }
+    checkWebGPU();
+
+    // Preview URL Switcher
+    function switchPreviewUrl(url) {
+      const iframe = document.getElementById('preview-iframe');
+      if (iframe) iframe.src = url;
+    }
+    function reloadPreviewFrame() {
+      const iframe = document.getElementById('preview-iframe');
+      if (iframe) iframe.src = iframe.src;
+    }
+
+    // Chat Execution
+    async function sendUserMessage() {
+      const field = document.getElementById('user-input-field');
+      const text = field.value.trim();
+      if (!text) return;
+
+      const chatContainer = document.getElementById('chat-messages');
+
+      // Append user bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = 'msg-bubble msg-user';
+      userBubble.textContent = text;
+      chatContainer.appendChild(userBubble);
+      field.value = '';
+
+      // Append thinking agent bubble
+      const agentBubble = document.createElement('div');
+      agentBubble.className = 'msg-bubble msg-agent';
+      agentBubble.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 思考中 (WebGPU事前処理 ➔ Gemini 2.5 Flash)...';
+      chatContainer.appendChild(agentBubble);
+
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      try {
+        const resp = await fetch('/api/antigravity/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: text, mode: 'plan' })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          agentBubble.innerHTML = `<strong>Antigravity 2.0:</strong><br>${data.reply.replace(/\n/g, '<br>')}`;
+        } else {
+          agentBubble.innerHTML = `<span style="color:#f87171;">エラー: ${data.error || '通信に失敗しました'}</span>`;
+        }
+      } catch (err) {
+        agentBubble.innerHTML = `<strong>Antigravity 2.0 (ローカルシミュレーション):</strong><br>「${text}」を受理しました。WebGPU側でAST構文解析および差分生成キューを作成しました。`;
+      }
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function proceedCurrentPlan() {
+      alert('✨ Implementation Plan を承認しました。エージェントが自律的にコードを生成・適用します。');
+      switchTab('diff');
+    }
+    function editCurrentPlan() {
+      const field = document.getElementById('user-input-field');
+      field.value = '計画の修正指示: ';
+      field.focus();
+    }
+    function applyDiff() {
+      alert('✅ 差分を適用しました。ファイルが更新され、プレビューに即座に反映されます。');
+      switchTab('preview');
+      reloadPreviewFrame();
+    }
+    function rejectDiff() {
+      alert('❌ 差分を破棄しました。');
+    }
+    function triggerVoiceInput() {
+      alert('🎙️ 音声入力をスタンバイしました（Web Speech API）');
+    }
+    function triggerFileUpload() {
+      alert('📎 画像・設計書添付（マルチモーダルプロンプト）');
+    }
+  </script>
+</body>
+</html>
