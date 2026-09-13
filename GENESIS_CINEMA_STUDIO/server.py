@@ -251,7 +251,29 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
 
-        if parsed.path == '/api/music/vault/list_samples':
+        if parsed.path == '/api/cinema/docs_to_cinema/projects':
+            try:
+                from core.genesis_docs_to_cinema_engine import list_cinema_projects
+                projects = list_cinema_projects()
+                resp_bytes = json.dumps({"success": True, "projects": projects}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/music/vault/list_samples':
             vault_file = os.path.join(os.path.dirname(__file__), "..", "knowledge_bank", "sample_vault", "sample_vault.json")
             samples = []
             if os.path.exists(vault_file):
@@ -2101,6 +2123,54 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                     json.dump(samples, f, ensure_ascii=False, indent=2)
 
                 resp_bytes = json.dumps({"success": True, "deleted_id": sample_id, "remaining": len(samples)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/cinema/docs_to_cinema/ingest':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                raw_text = payload.get('text', '').strip()
+                file_base64 = payload.get('file_base64', '')
+                filename = payload.get('filename', 'Screenplay.txt')
+                style_preference = payload.get('style_preference', 'Cinematic Blockbuster')
+
+                from core.genesis_docs_to_cinema_engine import extract_text_from_bytes, transform_document_to_cinema
+
+                if file_base64:
+                    import base64
+                    if ',' in file_base64:
+                        file_base64 = file_base64.split(',', 1)[1]
+                    file_bytes = base64.b64decode(file_base64)
+                    extracted_text = extract_text_from_bytes(file_bytes, filename)
+                    if extracted_text and len(extracted_text.strip()) > 10:
+                        raw_text = extracted_text
+
+                if not raw_text:
+                    raise ValueError("有効なドキュメントテキストまたはファイルを指定してください。")
+
+                cinema_project = transform_document_to_cinema(
+                    raw_text=raw_text,
+                    source_name=filename,
+                    style_preference=style_preference
+                )
+
+                resp_bytes = json.dumps({"success": True, "project": cinema_project}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp_bytes)))

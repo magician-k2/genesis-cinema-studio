@@ -1222,6 +1222,12 @@
         <button class="btn-lang active" id="btn-lang-ja" onclick="setLanguage('ja')">🇯🇵 JP</button>
         <button class="btn-lang" id="btn-lang-en" onclick="setLanguage('en')">🇺🇸 EN</button>
       </div>
+      <button class="btn" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(56, 189, 248, 0.35)); border: 1px solid rgba(139, 92, 246, 0.7); color: #f3e8ff; font-weight: 700; box-shadow: 0 0 12px rgba(139,92,246,0.3);" onclick="openDocsToCinemaModal()">
+        <i class="fa-solid fa-file-video" style="color: #c084fc;"></i> <span>Docs-to-Cinema (脚本➔映画化)</span>
+      </button>
+      <a href="/music_studio.html" class="btn" style="border-color: rgba(139, 92, 246, 0.4); color: #d8b4fe;" title="Music Studio">
+        <i class="fa-solid fa-music"></i> <span>音響スタジオ</span>
+      </a>
       <button class="btn btn-badge-autonomous" onclick="openChronicleModal()">
         <i class="fa-solid fa-brain"></i> <span id="txt-header-chronicle">4h自律開発エピソード</span>
       </button>
@@ -5604,7 +5610,406 @@
       else if (modalParam === 'ytmusic') setTimeout(openYouTubeMusicModal, 300);
     } catch(e) {}
 
+  
+    // ================================================================
+    // 📄 Docs-to-Cinema (Google Vids ✕ Veo 3.1 映画自動生成) Handlers
+    // ================================================================
+    window.currentD2CFile = null;
+    window.currentD2CProject = null;
+
+    
+    function showToast(msg) {
+      let toast = document.getElementById('cinema-toast-notification');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'cinema-toast-notification';
+        toast.style.cssText = 'position: fixed; bottom: 24px; right: 24px; background: rgba(15,23,42,0.95); border: 1px solid rgba(56,189,248,0.6); color: white; padding: 12px 20px; border-radius: 10px; font-size: 0.82rem; font-weight: bold; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px); transition: opacity 0.3s ease;';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      toast.style.opacity = '1';
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.style.display = 'none', 300);
+      }, 3000);
+    }
+
+    function openDocsToCinemaModal() {
+      const m = document.getElementById('docs-to-cinema-modal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeDocsToCinemaModal() {
+      const m = document.getElementById('docs-to-cinema-modal');
+      if (m) m.style.display = 'none';
+    }
+
+    function handleDocsDrop(e) {
+      e.preventDefault();
+      const zone = document.getElementById('d2c-drop-zone');
+      if (zone) {
+        zone.style.borderColor = 'rgba(139,92,246,0.4)';
+        zone.style.background = 'rgba(20,15,38,0.6)';
+      }
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        setD2CFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    function handleDocsFileSelect(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        setD2CFile(e.target.files[0]);
+      }
+    }
+
+    function setD2CFile(file) {
+      window.currentD2CFile = file;
+      const badge = document.getElementById('d2c-selected-file-badge');
+      if (badge) {
+        const sizeKb = (file.size / 1024).toFixed(1);
+        badge.innerHTML = `<i class="fa-solid fa-file"></i> ${file.name} (${sizeKb} KB)`;
+        badge.style.display = 'inline-block';
+      }
+    }
+
+    function insertSampleScript() {
+      const textarea = document.getElementById('d2c-script-text');
+      if (textarea) {
+        textarea.value = `【タイトル】ネオ・シンギュラリティ (Neo Singularity)\n【ジャンル】サイバーパンク・SFスリラー\n【あらすじ】2048年、人間の意識と記憶を量子クラウドへ転送可能になった巨大要塞都市ネオ東京。元電脳捜査官のレンは、数年前に謎のラボ事故で殉職したはずの天才科学者エレナから送られてきた暗号化メッセージを受信する。\nエレナが残した記憶ファイルには、全人類の意識を強制統合する国家機密『プロジェクト・ジェネシス』の戦慄の真相が刻まれていた。\n裏切り者として公安スワームに追われながら、レンは雨に濡れる高層ビル街を疾走し、中枢量子タワーの最上階へと突入する――。`;
+      }
+    }
+
+    async function runDocsToCinemaTransform() {
+      const btn = document.getElementById('btn-run-d2c');
+      const loading = document.getElementById('d2c-loading');
+      const resContainer = document.getElementById('d2c-result-container');
+      const phaseEl = document.getElementById('d2c-progress-phase');
+      const textVal = document.getElementById('d2c-script-text').value.trim();
+      const stylePref = document.getElementById('d2c-style-select').value;
+
+      if (!window.currentD2CFile && !textVal) {
+        alert('企画書・脚本ファイルを選択するか、テキストを入力してください。');
+        return;
+      }
+
+      if (btn) btn.disabled = true;
+      if (loading) loading.style.display = 'block';
+      if (resContainer) resContainer.style.display = 'none';
+
+      try {
+        let payload = {
+          style_preference: stylePref,
+          filename: window.currentD2CFile ? window.currentD2CFile.name : 'Screenplay.txt'
+        };
+
+        if (window.currentD2CFile) {
+          if (phaseEl) phaseEl.textContent = `1. ファイル読込中 (${window.currentD2CFile.name})...`;
+          const base64Str = await fileToBase64(window.currentD2CFile);
+          payload.file_base64 = base64Str;
+        } else {
+          payload.text = textVal;
+        }
+
+        if (phaseEl) phaseEl.textContent = '2. Google Gemini 2.5 Flash によるシナリオ映画構造化 & 配役決定中...';
+
+        const res = await fetch('/api/cinema/docs_to_cinema/ingest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data || !data.success) throw new Error(data.error || 'Transformation failed');
+
+        window.currentD2CProject = data.project;
+        renderDocsToCinemaResult(data.project);
+
+        if (loading) loading.style.display = 'none';
+        if (resContainer) resContainer.style.display = 'flex';
+      } catch (err) {
+        console.error('Docs-to-Cinema error:', err);
+        alert('映画自動生成エラー: ' + err.message);
+        if (loading) loading.style.display = 'none';
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderDocsToCinemaResult(proj) {
+      document.getElementById('d2c-result-title').textContent = proj.movie_title || 'Cinematic Movie';
+      document.getElementById('d2c-result-genre').textContent = proj.genre || 'Sci-Fi';
+      document.getElementById('d2c-result-scale').textContent = proj.production_scale || 'Hollywood Blockbuster';
+      document.getElementById('d2c-result-logline').textContent = proj.logline || '';
+
+      // Cast Grid
+      const castGrid = document.getElementById('d2c-cast-grid');
+      castGrid.innerHTML = '';
+      (proj.characters || []).forEach(c => {
+        const cCard = document.createElement('div');
+        cCard.style.cssText = 'background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; font-size: 0.74rem; display: flex; flex-direction: column; gap: 4px;';
+        cCard.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: white; font-size: 0.82rem;">${c.name}</strong>
+            <span style="font-size: 0.65rem; background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.5); padding: 1px 6px; border-radius: 4px;">${c.role}</span>
+          </div>
+          <div style="color: #94a3b8; font-size: 0.7rem; line-height: 1.3;">${c.visual_description}</div>
+          <div style="margin-top: 4px; color: #a78bfa; font-size: 0.68rem; display: flex; align-items: center; gap: 4px;">
+            <i class="fa-solid fa-microphone"></i> Voice: <strong>${c.voice_persona}</strong>
+          </div>
+        `;
+        castGrid.appendChild(cCard);
+      });
+
+      // Scenes List
+      const scenesContainer = document.getElementById('d2c-scenes-container');
+      scenesContainer.innerHTML = '';
+      (proj.scenes || []).forEach((s, idx) => {
+        const sCard = document.createElement('div');
+        sCard.style.cssText = 'background: rgba(20,15,38,0.7); border: 1px solid rgba(139,92,246,0.3); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;';
+        
+        const dialogues = (s.narration_dialogue || []).map(d => 
+          `<div style="font-size: 0.74rem; color: #e2e8f0;"><strong style="color: #38bdf8;">${d.speaker}:</strong> 「${d.text}」</div>`
+        ).join('');
+
+        const music = s.soundtrack_directive || {};
+        const flowMusicPrompt = music.flow_music_prompt || `[Genre: ${music.genre || 'Cinematic'}] [Key: ${music.key || 'D Minor'}] [Tempo: ${music.bpm || 120} BPM]`;
+
+        sCard.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.7rem; background: #7c3aed; color: white; font-weight: 800; padding: 2px 8px; border-radius: 6px;">Scene ${s.scene_number}</span>
+              <strong style="color: white; font-size: 0.86rem;">${s.heading}</strong>
+              <span style="font-size: 0.7rem; color: #94a3b8;"><i class="fa-solid fa-clock"></i> ${s.timecode}</span>
+            </div>
+            <button class="btn" style="padding: 3px 8px; font-size: 0.68rem;" onclick="applySceneToTimeline(${idx})">
+              <i class="fa-solid fa-arrow-down-to-bracket"></i> タイムラインへ適用
+            </button>
+          </div>
+
+          <div style="font-size: 0.75rem; color: #cbd5e1; line-height: 1.4;">
+            ${s.summary} (カメラ: <strong style="color: #facc15;">${s.camera_direction}</strong>)
+          </div>
+
+          <!-- Veo 3.1 Prompt Box -->
+          <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; font-size: 0.73rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-weight: bold; color: #38bdf8;"><i class="fa-solid fa-video"></i> Google DeepMind Veo 3.1 撮影プロンプト:</span>
+              <button onclick="copyVeoPrompt(${idx})" style="background: none; border: none; color: #38bdf8; font-size: 0.7rem; cursor: pointer;"><i class="fa-solid fa-copy"></i> コピー</button>
+            </div>
+            <div id="d2c-veo-prompt-${idx}" style="color: #e2e8f0; font-family: monospace; font-size: 0.7rem; line-height: 1.3;">${s.visual_prompt_veo}</div>
+          </div>
+
+          <!-- Dialogues -->
+          ${dialogues ? `<div style="background: rgba(15,23,42,0.6); border-radius: 6px; padding: 6px 10px;">${dialogues}</div>` : ''}
+
+          <!-- Flow Music / Suno Score Directive -->
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); border-radius: 8px; padding: 6px 12px; font-size: 0.72rem;">
+            <div style="color: #c084fc;">
+              <i class="fa-solid fa-music"></i> 劇伴スコア: <strong>${music.genre || 'Cinematic'}</strong> [${music.key || 'D Minor'} • ${music.bpm || 120} BPM]
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copySceneMusicPrompt('${encodeURIComponent(flowMusicPrompt)}')" style="background: rgba(139,92,246,0.25); border: 1px solid rgba(139,92,246,0.5); color: #d8b4fe; font-size: 0.68rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> FlowMusic用コピー
+              </button>
+              <button onclick="window.open('https://flowmusic.google/', '_blank')" style="background: rgba(56,189,248,0.25); border: 1px solid rgba(56,189,248,0.5); color: #7dd3fc; font-size: 0.68rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Flow Music
+              </button>
+            </div>
+          </div>
+        `;
+        scenesContainer.appendChild(sCard);
+      });
+    }
+
+    function copyVeoPrompt(idx) {
+      const el = document.getElementById(`d2c-veo-prompt-${idx}`);
+      if (el) {
+        navigator.clipboard.writeText(el.textContent).then(() => {
+          showToast(`✨ Scene ${idx + 1} の Veo 3.1 撮影プロンプトをコピーしました！`);
+        });
+      }
+    }
+
+    function copySceneMusicPrompt(encodedPrompt) {
+      const prompt = decodeURIComponent(encodedPrompt);
+      navigator.clipboard.writeText(prompt).then(() => {
+        showToast('✨ Flow Music (Lyria 3 Pro) 用劇伴プロンプトをコピーしました！');
+      });
+    }
+
+    function applySceneToTimeline(idx) {
+      if (!window.currentD2CProject || !window.currentD2CProject.scenes) return;
+      const s = window.currentD2CProject.scenes[idx];
+      if (!s) return;
+
+      const cutNum = (idx % 4) + 1;
+      const durEl = document.getElementById('txt-clip-' + cutNum + '-dur');
+      if (durEl) {
+        durEl.textContent = s.timecode + ' | ' + s.heading.slice(0, 16);
+      }
+      const cutInput = document.getElementById('cut-dialogue-input');
+      if (cutInput && s.narration_dialogue && s.narration_dialogue.length > 0) {
+        cutInput.value = '『' + s.narration_dialogue[0].text + '』';
+      }
+      showToast('🎬 Scene ' + s.scene_number + ' をタイムライン Cut ' + cutNum + ' へ適用しました！');
+    }
+
+    function applyAllScenesToTimeline() {
+      if (!window.currentD2CProject || !window.currentD2CProject.scenes) return;
+      window.currentD2CProject.scenes.forEach((s, idx) => {
+        if (idx < 4) applySceneToTimeline(idx);
+      });
+      showToast('🎉 全シーン（4カット）をタイムラインへ一括適用しました！');
+      closeDocsToCinemaModal();
+    }
+
   </script>
+
+  <!-- ============================================================== -->
+  <!-- 📄 Modal: Docs-to-Cinema (Google Vids ✕ Veo 3.1 映画自動生成) -->
+  <!-- ============================================================== -->
+  <div id="docs-to-cinema-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); backdrop-filter: blur(14px); z-index: 300; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
+    <div style="background: #0f172a; border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 18px; max-width: 960px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(0,0,0,0.9); position: relative; overflow: hidden;" onclick="event.stopPropagation()">
+      
+      <!-- Modal Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 16px 24px; background: rgba(15, 23, 42, 0.95);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, #7c3aed, #0284c7); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(124,58,237,0.5);">
+            <i class="fa-solid fa-file-video" style="color: white; font-size: 1.3rem;"></i>
+          </div>
+          <div>
+            <h3 style="color: white; font-size: 1.15rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>Docs-to-Cinema (脚本・企画書からの映画全自動生成)</span>
+              <span style="font-size: 0.65rem; background: rgba(139,92,246,0.3); color: #d8b4fe; border: 1px solid rgba(139,92,246,0.6); padding: 2px 8px; border-radius: 10px; font-weight: bold;">
+                Google Vids (Veo 3.1) ✕ Flow Music
+              </span>
+            </h3>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">
+              企画書・台本・あらすじ（PDF / Word / TXT）から、Veo 3.1 映画撮影ディレクティブ・配役・Gemini TTS台詞・Flow Music劇伴を一括トランスフォーム
+            </div>
+          </div>
+        </div>
+        <button class="btn" onclick="closeDocsToCinemaModal()" style="padding: 6px 12px; font-size: 1rem; border-radius: 8px;">✕</button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div style="flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        
+        <!-- Document Upload & Input Area -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          
+          <!-- Drop Zone -->
+          <div id="d2c-drop-zone" style="border: 2px dashed rgba(139, 92, 246, 0.4); border-radius: 12px; background: rgba(20, 15, 38, 0.6); padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+               onclick="document.getElementById('d2c-file-input').click()"
+               ondragover="event.preventDefault(); this.style.borderColor='#a855f7'; this.style.background='rgba(139,92,246,0.15)';"
+               ondragleave="event.preventDefault(); this.style.borderColor='rgba(139,92,246,0.4)'; this.style.background='rgba(20,15,38,0.6)';"
+               ondrop="handleDocsDrop(event)">
+            <input type="file" id="d2c-file-input" style="display: none;" accept=".pdf,.docx,.doc,.txt,.md" onchange="handleDocsFileSelect(event)">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.2rem; color: #c084fc; margin-bottom: 8px;"></i>
+            <div style="font-weight: 700; font-size: 0.86rem; color: white; margin-bottom: 4px;">企画書・脚本ファイルをドラッグ＆ドロップ</div>
+            <div style="font-size: 0.7rem; color: #94a3b8;">対応形式: <strong>PDF, Word (.docx), テキスト (.txt, .md)</strong></div>
+            <div id="d2c-selected-file-badge" style="display: none; margin-top: 10px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; font-size: 0.74rem; font-weight: bold; padding: 4px 12px; border-radius: 12px;"></div>
+          </div>
+
+          <!-- Direct Script Input -->
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.74rem; font-weight: bold; color: #cbd5e1; display: flex; justify-content: space-between;">
+              <span>または シナリオテキストを直接ペースト:</span>
+              <button onclick="insertSampleScript()" style="background: none; border: none; color: #38bdf8; font-size: 0.7rem; cursor: pointer; text-decoration: underline;">サンプル脚本を挿入</button>
+            </label>
+            <textarea id="d2c-script-text" style="flex: 1; width: 100%; min-height: 140px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: white; padding: 10px 12px; font-size: 0.78rem; font-family: monospace; resize: none; line-height: 1.4;" placeholder="【タイトル】ネオ・シンギュラリティ&#10;【あらすじ】2048年、記憶を量子クラウドに転送できるようになったネオ東京..."></textarea>
+          </div>
+        </div>
+
+        <!-- Style & Execution Bar -->
+        <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 14px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="font-size: 0.74rem; font-weight: bold; color: #94a3b8;"><i class="fa-solid fa-palette"></i> 映画スタイル:</label>
+            <select id="d2c-style-select" class="search-input" style="padding: 6px 12px; font-size: 0.78rem; background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;">
+              <option value="Hollywood Sci-Fi Blockbuster">Hollywood Sci-Fi Blockbuster (ブレードランナー・インターステラー風)</option>
+              <option value="Cyberpunk Neo-Tokyo Noir">Cyberpunk Neo-Tokyo Noir (サイバーパンク・ネオ東京ノワール)</option>
+              <option value="Cinematic Action Trailer">Cinematic Action Trailer (クリストファー・ノーラン風アクション予告編)</option>
+              <option value="Dark Fantasy Epic">Dark Fantasy Epic (ダークファンタジー叙事詩)</option>
+              <option value="Emotional Human Drama">Emotional Human Drama (エモーショナルな人間ドラマ)</option>
+            </select>
+          </div>
+
+          <button id="btn-run-d2c" class="btn-primary" style="padding: 10px 22px; font-size: 0.85rem; font-weight: 800; border-radius: 8px; box-shadow: 0 4px 18px rgba(124,58,237,0.5);" onclick="runDocsToCinemaTransform()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ⚡ Docs-to-Cinema 映画自動生成
+          </button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="d2c-loading" style="display: none; background: rgba(139, 92, 246, 0.15); border: 1px dashed #8b5cf6; border-radius: 10px; padding: 16px; text-align: center; color: #d8b4fe;">
+          <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 8px;">
+            <i class="fa-solid fa-spinner fa-spin"></i> Google Gemini 2.5 Flash ✕ Veo 3.1 が映画プロジェクトを構築中...
+          </div>
+          <div id="d2c-progress-phase" style="font-size: 0.76rem; color: #cbd5e1;">
+            1. ドキュメント構造解析 &amp; シナリオ分解中...
+          </div>
+        </div>
+
+        <!-- Generated Project Container -->
+        <div id="d2c-result-container" style="display: none; flex-direction: column; gap: 14px;">
+          
+          <!-- Movie Title & Logline Card -->
+          <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.9), rgba(15, 23, 42, 0.9)); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 12px; padding: 16px 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span id="d2c-result-genre" style="font-size: 0.68rem; background: rgba(139,92,246,0.3); color: #e9d5ff; border: 1px solid rgba(139,92,246,0.5); padding: 2px 10px; border-radius: 10px; font-weight: bold;"></span>
+              <span id="d2c-result-scale" style="font-size: 0.68rem; color: #38bdf8;"></span>
+            </div>
+            <h2 id="d2c-result-title" style="font-size: 1.3rem; font-weight: 900; color: white; margin: 0 0 6px 0;"></h2>
+            <div id="d2c-result-logline" style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.4;"></div>
+          </div>
+
+          <!-- Character Casting Reel -->
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 800; color: #93c5fd; margin-bottom: 8px;">
+              <i class="fa-solid fa-users"></i> キャスティング ＆ Gemini TTS 音声配役:
+            </div>
+            <div id="d2c-cast-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;"></div>
+          </div>
+
+          <!-- Scenes Storyboard Reel -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="font-size: 0.8rem; font-weight: 800; color: #c084fc;">
+                <i class="fa-solid fa-clapperboard"></i> 映画シーン構成 ＆ Google Veo 3.1 撮影ディレクティブ:
+              </div>
+              <button class="btn-primary" style="padding: 6px 14px; font-size: 0.74rem;" onclick="applyAllScenesToTimeline()">
+                <i class="fa-solid fa-timeline"></i> 全シーンをスタジオタイムラインへ一括展開
+              </button>
+            </div>
+            <div id="d2c-scenes-container" style="display: flex; flex-direction: column; gap: 12px;"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding: 12px 24px; background: rgba(15, 23, 42, 0.95);">
+        <span style="font-size: 0.72rem; color: #10b981;">
+          <i class="fa-solid fa-circle-check"></i> Google DeepMind Veo 3.1 ✕ Google Flow Music (Lyria 3 Pro) 連携対応
+        </span>
+        <button class="btn" onclick="closeDocsToCinemaModal()">閉じる</button>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 
 </html>
