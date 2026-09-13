@@ -400,14 +400,14 @@ Output a strictly valid JSON object matching this schema:
   "prompts_faithful": {{
     "suno_v6": "Production-ready Suno v6 prompt strictly reproducing the original genre. Include style tags [Style: ...], [Tempo: {bpm} BPM], [Key: {key}], [Instruments: ...], [Vocals: ...], and structured arrangement sections: [Intro], [Rave Stab / Verse], [Build], [Drop / Climax], [Breakdown], [Outro]. No generic orchestral descriptors.",
     "lyria_3_5": "Google DeepMind Lyria 3.5 structured prompt with genre, key, tempo, acoustic instrumentation anchors, and 30s-60s chronological timecode breakdown faithful to the original style.",
-    "minimax": "MiniMax Music prompt with exact genre tags, instruments, and style descriptor.",
+    "minimax": "MiniMax Music Prompt Producer dual-box format strictly containing:\n### 1. Music Description (Prompt / Style)\nGenre: [Accurate genre & sub-genre]\nTempo/Key: {bpm} BPM, {key}\nMood: [3-5 English adjectives]\nVocals: [Vocal timbre, gender, delivery, fx]\nInstruments: [Concrete iconic instruments, rhythm gear, synths]\nMix & Dynamics: [Production texture and section dynamics]\n\n### 2. Lyrics & Structure\n[Intro]\n(instrumental/atmosphere directive)\n[Verse 1]\n(minimal arrangement directive)\nLyric line...\n[Pre-Chorus]\n(build-up directive)\nLyric line...\n[Chorus]\n(full arrangement / harmony directive)\nLyric line...\n[Outro]\n(fade out directive)",
     "udio": "Udio style tags and prompt string."
   }},
 
   "prompts_cinematic_crossover": {{
     "suno_v6": "Suno v6 cinematic blockbuster trailer / hybrid orchestral crossover remix prompt that transforms this track's BPM ({bpm} BPM) and Key ({key}) into an epic movie trailer score (Hans Zimmer / Cyberpunk trailer style with massive brass, cinematic taiko/percussion, soaring strings, and trailer drops). Include structured sections: [Intro], [Rising Tension], [Trailer Hit / Drop], [Climax], [Outro].",
     "lyria_3_5": "Lyria 3.5 prompt for the cinematic orchestral crossover version.",
-    "minimax": "MiniMax Music cinematic crossover prompt.",
+    "minimax": "MiniMax Music cinematic crossover prompt containing both ### 1. Music Description (Prompt / Style) (Genre: Cinematic Hybrid Orchestral Trailer, Tempo/Key: {bpm} BPM, {key}, Mood, Vocals, Instruments, Mix & Dynamics) and ### 2. Lyrics & Structure ([Intro], [Rising Tension], [Trailer Hit / Drop], [Climax], [Outro] with parenthetical directives and lyric lines).",
     "udio": "Udio cinematic crossover prompt."
   }},
 
@@ -424,7 +424,7 @@ Output a strictly valid JSON object matching this schema:
             contents=prompt,
             config={"response_mime_type": "application/json"}
         )
-        data = json.loads(resp.text)
+        data = json.loads(resp.text, strict=False)
         if "detected_genre" in data and "prompts_faithful" in data:
             return data
     except Exception as e:
@@ -435,6 +435,55 @@ Output a strictly valid JSON object matching this schema:
     is_percussive = perc_ratio > 0.5
     genre = "Electronic / Dance" if (is_fast_tempo and is_percussive) else ("Cinematic & Ambient" if harm_ratio > 0.55 else "Modern Pop / Hybrid")
     
+    minimax_faithful = (
+        "### 1. Music Description (Prompt / Style)\n"
+        f"Genre: {genre}, Authentic Soundscape\n"
+        f"Tempo/Key: {bpm} BPM, {key}\n"
+        f"Mood: Energetic, driving, focused, immersive\n"
+        f"Vocals: Processed vocal elements, rhythmic chants, stereo delay\n"
+        f"Instruments: Analog synthesizer, punchy drum machine, deep bassline, syncopated percussion\n"
+        f"Mix & Dynamics: Crisp production, tight dynamic punch, wide stereo presence\n\n"
+        "### 2. Lyrics & Structure\n"
+        "[Intro]\n"
+        "(ambient synth pads, filtered percussion rising)\n\n"
+        "[Verse 1]\n"
+        "(stripped-down beat, bassline and vocal presence)\n"
+        "夜の鼓動が加速する\n"
+        "光の粒が流れてゆく\n\n"
+        "[Pre-Chorus]\n"
+        "(building snare rolls, rising synth arp)\n"
+        "解き放たれるシグナル\n\n"
+        "[Chorus]\n"
+        "(full arrangement, explosive beat, layered vocals)\n"
+        "響き渡るビートの海へ\n"
+        "限界を超えて突き進む\n\n"
+        "[Outro]\n"
+        "(filtered drum decay, fading synthesizer chords)"
+    )
+
+    minimax_crossover = (
+        "### 1. Music Description (Prompt / Style)\n"
+        f"Genre: Cinematic Hybrid Orchestral Trailer, Epic Film Score\n"
+        f"Tempo/Key: {bpm} BPM, {key}\n"
+        f"Mood: Epic, monumental, ominous, soaring, heroic\n"
+        f"Vocals: Ethereal choir swells, dramatic cinematic vocalizations\n"
+        f"Instruments: Massive brass braams, cinematic taiko drums, driving staccato strings, sub-bass drop\n"
+        f"Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range\n\n"
+        "### 2. Lyrics & Structure\n"
+        "[Intro]\n"
+        "(dark low drone, ticking metallic percussion)\n\n"
+        "[Rising Tension]\n"
+        "(staccato strings accelerating, ominous brass swells)\n"
+        "闇の向こうに目覚める光\n\n"
+        "[Trailer Hit / Drop]\n"
+        "(massive orchestral braam, explosive taiko impact)\n\n"
+        "[Climax]\n"
+        "(full symphonic brass, soaring choir, thunderous percussion)\n"
+        "運命を切り拓く 英雄の詩\n\n"
+        "[Outro]\n"
+        "(sub-bass decay, solitary cello fade-out)"
+    )
+
     return {
         "detected_genre": genre,
         "sub_genres": ["Synthesizer", "Bass", "Groove"],
@@ -445,13 +494,13 @@ Output a strictly valid JSON object matching this schema:
         "prompts_faithful": {
             "suno_v6": f"[Style: {genre}, {key}, {bpm}BPM] [Instruments: Analog synth, punchy percussion, deep bass] [Intro - 0:00] Atmospheric swell [Drop - 0:15] Driving beat at {bpm} BPM [Outro - 0:45] Sustained decay",
             "lyria_3_5": f"[Genre: {genre}] [Key: {key}] [Tempo: {bpm} BPM] Heavy bass and dynamic percussion.",
-            "minimax": f"{genre} track in {key}, tempo {bpm} BPM. Dynamic rhythm.",
+            "minimax": minimax_faithful,
             "udio": f"{genre}, {key}, {bpm} bpm, electronic"
         },
         "prompts_cinematic_crossover": {
             "suno_v6": f"[Style: Cinematic Hybrid Orchestral Trailer, {key}, {bpm}BPM] [Instruments: Massive brass braams, cinematic taiko, soaring strings, modular sub-bass] [Intro] Dark atmospheric drone [Rise] Ticking percussion building [Drop] Massive orchestral impact and choir [Climax] Full cinematic climax [Outro] Sub-bass decay",
             "lyria_3_5": f"[Genre: Cinematic Blockbuster Orchestral] [Key: {key}] [Tempo: {bpm} BPM] Massive orchestral brass and hybrid percussion.",
-            "minimax": f"Epic cinematic orchestral track in {key}, tempo {bpm} BPM.",
+            "minimax": minimax_crossover,
             "udio": f"cinematic trailer, orchestral, {key}, {bpm} bpm"
         },
         "veo_audio_directive": f"Scene Audio Sync: {bpm} BPM | {key} | {energy}"

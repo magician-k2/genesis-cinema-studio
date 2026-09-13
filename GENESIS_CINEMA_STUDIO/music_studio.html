@@ -982,24 +982,24 @@
         </div>
 
         
-        <!-- 🌟 Google Flow Music (Lyria 3 Pro) ✕ Suno v6 Studio Hub -->
+        <!-- 🌟 Google Flow Music (Lyria 3 Pro) ✕ Suno v6 ✕ MiniMax Music Studio Hub -->
         <div class="panel-card" id="flow-music-hub" style="border-color: rgba(139, 92, 246, 0.45); background: linear-gradient(145deg, rgba(20, 15, 42, 0.95), rgba(10, 12, 28, 0.95)); box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);">
           <div class="panel-header" style="border-color: rgba(139, 92, 246, 0.25);">
             <div class="panel-title" style="color: #c084fc;">
               <i class="fa-solid fa-wand-magic-sparkles"></i>
-              <span>Google Flow Music (Lyria 3 Pro) ✕ Suno v6 音楽生成スタジオ</span>
+              <span>Google Flow Music (Lyria 3 Pro) ✕ Suno v6 ✕ MiniMax Music 音楽生成スタジオ</span>
             </div>
             <span style="font-size: 0.65rem; background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(56,189,248,0.3)); color: #e9d5ff; border: 1px solid rgba(139,92,246,0.5); padding: 3px 10px; border-radius: 12px; font-weight: 800;">
-              Google Labs ✕ Lyria 3 Pro TPU Engine
+              Google Labs ✕ Lyria 3 Pro ✕ MiniMax Producer
             </span>
           </div>
 
           <div style="font-size: 0.76rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">
-            DeepMindの最高峰音楽生成モデル<strong>「Lyria 3 Pro」</strong>は、Google公式の<strong>Flow Music</strong> (Google Labs) 上のTPUクラウドで直接稼働します。<br>
+            DeepMindの最高峰音楽生成モデル<strong>「Lyria 3 Pro」</strong>、最高峰ボーカルディレクションの<strong>「Suno v6」</strong>、そして構造化プロンプトでガチャを排除する<strong>「MiniMax Music Producer」</strong>を完全統合。<br>
             GENESISで完全解剖した <strong>BPM (<span id="lyria-param-bpm">123.0</span>)</strong> ＆ <strong>調性 (<span id="lyria-param-key">G Major</span>)</strong>、実機シンセ・ドラムDNAを貼り付けるだけで、チープな電子音ではない<strong>本物のニューラルマスター楽曲</strong>を一発生成できます。
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 10px;">
             <!-- Flow Music Hub -->
             <div style="background: rgba(139, 92, 246, 0.12); border: 1px solid rgba(139, 92, 246, 0.35); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
               <div>
@@ -1032,6 +1032,27 @@
                 </button>
                 <button class="stem-btn" style="padding: 8px 10px; font-size: 0.74rem; background: rgba(59,130,246,0.25); color: #93c5fd;" onclick="copySunoStyleOnly()">
                   <i class="fa-solid fa-copy"></i> Style欄コピー
+                </button>
+              </div>
+            </div>
+
+            <!-- MiniMax Music Hub -->
+            <div style="background: rgba(236, 72, 153, 0.12); border: 1px solid rgba(236, 72, 153, 0.35); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px; font-weight: 800; color: #f472b6; font-size: 0.82rem; margin-bottom: 4px;">
+                  <i class="fa-solid fa-robot"></i> MiniMax Music Producer
+                </div>
+                <div style="font-size: 0.68rem; color: #94a3b8;">Description ✕ Lyrics 2枠分離・演奏指示( )対応</div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-action-primary" style="flex: 1; padding: 8px 10px; font-size: 0.74rem; justify-content: center; background: linear-gradient(135deg, #db2777, #be185d);" onclick="launchMiniMaxMusic()">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> MiniMax を開く
+                </button>
+                <button class="stem-btn" style="padding: 8px 8px; font-size: 0.72rem; background: rgba(236,72,153,0.25); color: #fbcfe8;" onclick="copyMiniMaxDescriptionOnly()" title="① Music Description欄コピー">
+                  <i class="fa-solid fa-copy"></i> ①Desc
+                </button>
+                <button class="stem-btn" style="padding: 8px 8px; font-size: 0.72rem; background: rgba(168,85,247,0.25); color: #e9d5ff;" onclick="copyMiniMaxLyricsOnly()" title="② Lyrics & 構成欄コピー">
+                  <i class="fa-solid fa-copy"></i> ②Lyrics
                 </button>
               </div>
             </div>
@@ -1915,12 +1936,84 @@
     window.activePromptTab = 'suno';     // Default to Suno v6!
 
     function setDefaultPrompts() {
+      const minimaxFaithful = `### 1. Music Description (Prompt / Style)
+Genre: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore
+Tempo/Key: 129.2 BPM, E Major
+Mood: Nostalgic, euphoric, relentless, anthemic
+Vocals: Pitched-up female vocal sample ("Anasthasia"), repetitive male vocal shouts, heavy plate reverb
+Instruments: Roland Alpha Juno Hoover synth (Mentasm), Roland TR-909 kick and snare, breakbeat drum rolls, modulated sub-bass
+Mix & Dynamics: 12-bit early digital crunch, analog distortion, stadium acoustics, massive build-up into explosive drop
+
+### 2. Lyrics & Structure
+[Intro]
+(TR-909 open hi-hats and filtered snare roll building up)
+
+[Verse 1]
+(relentless four-on-the-floor kick, rolling sub-bass and vocal chant)
+Hear the rhythm in the dark
+Electric pulse ignite the spark
+
+[Pre-Chorus]
+(rising pitch riser, rapid 16th-note snare fills)
+Feel the pressure overload
+Take control and break the code
+
+[Chorus]
+(full explosive arrangement, massive Hoover synth lead, anthemic vocal shout)
+Anasthasia! Screaming through the night!
+Rave dimension, blinding neon light!
+
+[Breakdown]
+(kick drops out, lush M1 organ chords and ethereal female vocal loop)
+Time stands still...
+
+[Outro]
+(fading Hoover synth modulation and TR-909 kick decay)`;
+
+      const minimaxCrossover = `### 1. Music Description (Prompt / Style)
+Genre: Cinematic Hybrid Orchestral Trailer, Epic Film Score
+Tempo/Key: 129.2 BPM, E Major
+Mood: Epic, monumental, ominous, soaring, heroic
+Vocals: Ethereal choir swells, dramatic cinematic vocalizations
+Instruments: Massive brass braams, cinematic taiko drums, driving staccato strings, sub-bass drop
+Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
+
+### 2. Lyrics & Structure
+[Intro]
+(dark low drone, ticking metallic percussion)
+
+[Rising Tension]
+(staccato strings accelerating, ominous brass swells)
+闇の向こうに目覚める光
+
+[Trailer Hit / Drop]
+(massive orchestral braam, explosive taiko impact)
+
+[Climax]
+(full symphonic brass, soaring choir, thunderous percussion)
+運命を切り拓く 英雄の詩
+
+[Outro]
+(sub-bass decay, solitary cello fade-out)`;
+
       window.promptsData = {
-        minimax: "A cinematic orchestral track in G Major, tempo 123 BPM. Steady & Cinematic dynamics. Featuring Dark, Deep & Gritty (Sub-bass, Cello, Low Moog Brass). Deep analog low-end pulse, evolving harmonic strings, dramatic riser transitions. Tags: [Cinematic], [G Major], [123BPM], [Orchestral], [Cyberpunk], [Dramatic Trailer]",
+        minimax: minimaxFaithful,
         suno: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore] [Tempo: 129.2 BPM] [Key: E Major] [Instruments: Roland Alpha Juno Hoover synth, Roland TR-909 drums, Korg M1 organ pad, deep sub-bass] [Vocals: Chopped rave vocal shouts ('Anasthasia!')] [Intro] Driving TR-909 beat [Drop] Massive Hoover synth lead [Breakdown] Ambient organ pad [Outro] Sub-bass tail",
         udio: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore, 129.2 BPM, E Major] Hoover synth, TR-909 beat, rave vocal shouts",
         lyria: "[Genre: 90s Rave Techno] [Key: E Major] [Tempo: 129.2 BPM] Roland Alpha Juno Hoover synth and Roland TR-909 drum machine.",
-        veo: "Scene Audio Sync: 129.2 BPM | E Major | Rave Energy | Cut 1 (0-3.5s): Ambient swell | Cut 2 (3.5-7.5s): 909 Beat entrance | Cut 3 (7.5-11.0s): Hoover Synth Climax | Cut 4 (11.0-15.0s): Impact resolve"
+        veo: "Scene Audio Sync: 129.2 BPM | E Major | Rave Energy | Cut 1 (0-3.5s): Ambient swell | Cut 2 (3.5-7.5s): 909 Beat entrance | Cut 3 (7.5-11.0s): Hoover Synth Climax | Cut 4 (11.0-15.0s): Impact resolve",
+        prompts_faithful: {
+          suno_v6: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore] [Tempo: 129.2 BPM] [Key: E Major] [Instruments: Roland Alpha Juno Hoover synth, Roland TR-909 drums, Korg M1 organ pad, deep sub-bass] [Vocals: Chopped rave vocal shouts ('Anasthasia!')] [Intro] Driving TR-909 beat [Drop] Massive Hoover synth lead [Breakdown] Ambient organ pad [Outro] Sub-bass tail",
+          lyria_3_5: "[Genre: 90s Rave Techno] [Key: E Major] [Tempo: 129.2 BPM] Roland Alpha Juno Hoover synth and Roland TR-909 drum machine.",
+          minimax: minimaxFaithful,
+          udio: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore, 129.2 BPM, E Major] Hoover synth, TR-909 beat, rave vocal shouts"
+        },
+        prompts_cinematic_crossover: {
+          suno_v6: "[Style: Cinematic Hybrid Orchestral Trailer, E Major, 129.2BPM] [Instruments: Massive brass braams, cinematic taiko, soaring strings, modular sub-bass] [Intro] Dark atmospheric drone [Rising Tension] Ticking percussion building [Trailer Hit / Drop] Massive orchestral impact and choir [Climax] Full cinematic climax [Outro] Sub-bass decay",
+          lyria_3_5: "[Genre: Cinematic Blockbuster Orchestral] [Key: E Major] [Tempo: 129.2 BPM] Massive orchestral brass and hybrid percussion.",
+          minimax: minimaxCrossover,
+          udio: "cinematic trailer, orchestral, E Major, 129.2 bpm"
+        }
       };
       updatePromptDisplay();
     }
@@ -2005,7 +2098,7 @@
         const modeLabel = (mode === 'faithful') ? '【🎯 原曲忠実再現】' : '【🎬 シネマ変容・Remix】';
         if (tab === 'suno') label.textContent = `${modeLabel} Suno v6 / Udio 用 [Style / Instruments / タイムコード構成タグ]`;
         else if (tab === 'lyria') label.textContent = `${modeLabel} Google Flow Music (Lyria 3 Pro) 専用プロンプト [Style / BPM / Key / Structure]`;
-        else if (tab === 'minimax') label.textContent = `${modeLabel} MiniMax Music 生成用キャプション & タグ`;
+        else if (tab === 'minimax') label.textContent = `${modeLabel} MiniMax Music Producer 用 [Description ✕ Lyrics&構造分離 2枠プロンプト]`;
         else if (tab === 'veo') label.textContent = 'Google Veo 3.1 映画同期ディレクティブ';
       }
 
@@ -2046,6 +2139,43 @@
               </button>
               <button onclick="copySunoLyricsOnly()" style="background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
                 ② Lyrics欄用コピー
+              </button>
+            </div>
+          `;
+        } else if (tab === 'minimax') {
+          sunoGuide.style.background = 'rgba(236, 72, 153, 0.12)';
+          sunoGuide.style.borderColor = 'rgba(236, 72, 153, 0.35)';
+          sunoGuide.innerHTML = `
+            <div style="color: #f472b6; line-height: 1.4;">
+              <i class="fa-solid fa-robot" style="color: #ec4899; margin-right: 4px;"></i>
+              <strong>MiniMax Music (Hailuo AI) への貼り付け場所：</strong>
+              <span style="color: #e2e8f0;">①「Music Description（スタイル欄）」にジャンル・BPM・楽器・質感</span> ＆ 
+              <span style="color: #e2e8f0;">②「Lyrics（歌詞・構成欄）」に [Intro] や (演奏指示) と歌詞</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copyMiniMaxDescriptionOnly()" style="background: rgba(236, 72, 153, 0.25); border: 1px solid rgba(236, 72, 153, 0.6); color: #fbcfe8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                ① Description欄用コピー
+              </button>
+              <button onclick="copyMiniMaxLyricsOnly()" style="background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                ② Lyrics欄用コピー
+              </button>
+              <button onclick="launchMiniMaxMusic()" style="background: rgba(236, 72, 153, 0.3); border: 1px solid rgba(236, 72, 153, 0.7); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> MiniMax を開く
+              </button>
+            </div>
+          `;
+        } else if (tab === 'veo') {
+          sunoGuide.style.background = 'rgba(16, 185, 129, 0.12)';
+          sunoGuide.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+          sunoGuide.innerHTML = `
+            <div style="color: #6ee7b7; line-height: 1.4;">
+              <i class="fa-solid fa-video" style="color: #10b981; margin-right: 4px;"></i>
+              <strong>Google Veo 3.1 映画同期ディレクティブ：</strong>
+              <span style="color: #e2e8f0;">BPM・キー・音圧ダイナミクスに合わせたシーン演出プロンプト</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copyActivePrompt()" style="background: rgba(16, 185, 129, 0.25); border: 1px solid rgba(16, 185, 129, 0.6); color: #a7f3d0; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> Veo指示コピー
               </button>
             </div>
           `;
@@ -2129,6 +2259,102 @@
           showToast('✨ Google Flow Music (Lyria 3 Pro) 用プロンプトをコピーしました！flowmusic.google に貼り付けて生成できます。');
         });
       }
+    }
+
+    // ================================================================
+    // 🌟 MiniMax Music Prompt Producer Helpers
+    // ================================================================
+    function launchMiniMaxMusic() {
+      copyMiniMaxDescriptionOnly();
+      window.open('https://hailuoai.video/create/music', '_blank');
+    }
+
+    function copyMiniMaxDescriptionOnly() {
+      let text = '';
+      if (window.promptsData) {
+        const mode = window.activePromptMode || 'faithful';
+        const pDict = (mode === 'faithful') ? window.promptsData.prompts_faithful : window.promptsData.prompts_cinematic_crossover;
+        if (pDict && pDict.minimax) {
+          text = pDict.minimax;
+        } else if (window.promptsData.minimax) {
+          text = window.promptsData.minimax;
+        }
+      }
+      if (!text) {
+        const box = document.getElementById('prompt-output-box');
+        if (box) text = box.value;
+      }
+
+      if (!text) return;
+
+      // Extract Description block
+      let descText = text;
+      const descMarker = text.indexOf('### 1. Music Description');
+      const lyricsMarker = text.indexOf('### 2. Lyrics');
+
+      if (descMarker !== -1 && lyricsMarker !== -1) {
+        const headerEnd = text.indexOf('\n', descMarker);
+        descText = text.substring(headerEnd !== -1 ? headerEnd + 1 : descMarker, lyricsMarker).trim();
+      } else if (lyricsMarker !== -1) {
+        descText = text.substring(0, lyricsMarker).trim();
+      } else {
+        // Fallback: take until first [Intro] or [Verse]
+        const firstBracket = text.search(/\[(Intro|Verse|Chorus|Hook|Rising Tension)/i);
+        if (firstBracket !== -1) {
+          descText = text.substring(0, firstBracket).trim();
+        }
+      }
+
+      descText = descText.replace(/^[\s#:\-]+/, '').trim();
+
+      navigator.clipboard.writeText(descText).then(() => {
+        showToast('✨ MiniMaxの「Music Description（スタイル・プロンプト）」欄用テキストをコピーしました！');
+      }).catch(() => {
+        showToast('✨ コピーしました！');
+      });
+    }
+
+    function copyMiniMaxLyricsOnly() {
+      let text = '';
+      if (window.promptsData) {
+        const mode = window.activePromptMode || 'faithful';
+        const pDict = (mode === 'faithful') ? window.promptsData.prompts_faithful : window.promptsData.prompts_cinematic_crossover;
+        if (pDict && pDict.minimax) {
+          text = pDict.minimax;
+        } else if (window.promptsData.minimax) {
+          text = window.promptsData.minimax;
+        }
+      }
+      if (!text) {
+        const box = document.getElementById('prompt-output-box');
+        if (box) text = box.value;
+      }
+
+      if (!text) return;
+
+      // Extract Lyrics & Structure block
+      let lyricsText = '';
+      const lyricsMarker = text.indexOf('### 2. Lyrics');
+
+      if (lyricsMarker !== -1) {
+        const markerEnd = text.indexOf('\n', lyricsMarker);
+        lyricsText = (markerEnd !== -1) ? text.substring(markerEnd).trim() : text.substring(lyricsMarker).trim();
+      } else {
+        const firstBracket = text.search(/\[(Intro|Verse|Chorus|Hook|Rising Tension)/i);
+        if (firstBracket !== -1) {
+          lyricsText = text.substring(firstBracket).trim();
+        } else {
+          lyricsText = text;
+        }
+      }
+
+      lyricsText = lyricsText.replace(/^[\s#:\-]+/, '').trim();
+
+      navigator.clipboard.writeText(lyricsText).then(() => {
+        showToast('✨ MiniMaxの「Lyrics（歌詞・構成）」欄用テキスト（演奏指示 ( ) ＆ 歌詞）をコピーしました！');
+      }).catch(() => {
+        showToast('✨ コピーしました！');
+      });
     }
 
 
