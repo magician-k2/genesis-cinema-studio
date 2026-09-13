@@ -153,7 +153,14 @@ Output JSON format matching this schema:
         "key": "D Minor",
         "genre": "Cinematic Cyberpunk Orchestral",
         "flow_music_prompt": "[Genre: Cinematic Cyberpunk] [Key: D Minor] [Tempo: 120 BPM] Heavy analog sub-bass, dramatic brass stabs, rising tension [Intro - 0:00]",
-        "suno_v6_prompt": "Style: Cinematic Cyberpunk Score, D Minor, 120 BPM [Intro] Ambient synth drone [Build] Heavy brass [Drop] Massive impact"
+        "suno_v6_prompt": "Style: Cinematic Cyberpunk Score, D Minor, 120 BPM [Intro] Ambient synth drone [Build] Heavy brass [Drop] Massive impact",
+        "minimax_prompt": "MiniMax Music Producer format with ### 1. Music Description (Genre, Tempo/Key: 120 BPM, D Minor, Mood, Vocals, Instruments, Mix & Dynamics) and ### 2. Lyrics & Structure with ( ) accompaniment directives",
+        "mpc_kit": {{
+          "drums": ["Cinematic Kick", "Cyber Snare", "High-Tech Hat", "Impact Perc"],
+          "bass": ["Sub Braam 808", "Reese Bass", "Drone Bass", "Sub Pulse"],
+          "vocals": ["Choir Swell", "Whisper Vocal", "Radio Filter Vox", "Vocal Chop"],
+          "melody": ["Anamorphic String", "Neon Arp", "Trailer Brass", "Dystopian Pad"]
+        }}
       }}
     }}
   ]
@@ -173,7 +180,7 @@ Output JSON format matching this schema:
                 "response_mime_type": "application/json"
             }
         )
-        cinema_data = json.loads(resp.text)
+        cinema_data = json.loads(resp.text, strict=False)
     except Exception as e_gemini:
         print(f"[DocsToCinema] Gemini structured generation fallback: {e_gemini}", file=sys.stderr)
 
@@ -213,7 +220,14 @@ Output JSON format matching this schema:
                         "key": "D Minor",
                         "genre": "Cinematic Hybrid Orchestral",
                         "flow_music_prompt": "[Genre: Cinematic Hybrid Orchestral] [Key: D Minor] [Tempo: 115 BPM] Atmospheric cello drone, deep 808 sub pulse [Intro - 0:00]",
-                        "suno_v6_prompt": "Style: Cinematic Hybrid Orchestral, D Minor, 115 BPM [Intro] Ambient strings and deep sub-bass"
+                        "suno_v6_prompt": "Style: Cinematic Hybrid Orchestral, D Minor, 115 BPM [Intro] Ambient strings and deep sub-bass",
+                        "minimax_prompt": "### 1. Music Description (Prompt / Style)\nGenre: Cinematic Hybrid Orchestral\nTempo/Key: 115 BPM, D Minor\nMood: Atmospheric, melancholic, expansive, cinematic\nVocals: Ethereal vocal textures, distant choir\nInstruments: Solo cello, acoustic strings, modular drone, sub-bass\nMix & Dynamics: Vast stereo reverb, warm analog saturation\n\n### 2. Lyrics & Structure\n[Intro]\n(atmospheric cello and wind ambiance)\n[Verse 1]\n(sub-bass pulse enters with slow string harmony)\n夜が明ける前の静寂\n[Outro]\n(fading cello harmonics)",
+                        "mpc_kit": {
+                            "drums": ["Deep Kick", "Soft Snare", "Ambient Shaker", "Low Taiko"],
+                            "bass": ["Sub 808", "Cello Bass", "Drone Bass", "Sub Pulse"],
+                            "vocals": ["Choir Drone", "Whisper Vocal", "Vocal Pad", "Vocal Sigh"],
+                            "melody": ["Solo Cello", "String Swell", "Pluck Arp", "Atmospheric Pad"]
+                        }
                     }
                 },
                 {
@@ -234,7 +248,14 @@ Output JSON format matching this schema:
                         "key": "D Minor",
                         "genre": "Action Trailer Thriller",
                         "flow_music_prompt": "[Genre: Action Trailer Thriller] [Key: D Minor] [Tempo: 128 BPM] Driving acoustic percussion, modular synth arpeggios, massive brass Braam [Build - 0:15]",
-                        "suno_v6_prompt": "Style: Action Trailer Thriller, D Minor, 128 BPM [Build] Syncopated taiko and ticking clock"
+                        "suno_v6_prompt": "Style: Action Trailer Thriller, D Minor, 128 BPM [Build] Syncopated taiko and ticking clock",
+                        "minimax_prompt": "### 1. Music Description (Prompt / Style)\nGenre: Action Trailer Thriller\nTempo/Key: 128 BPM, D Minor\nMood: Tense, urgent, driving, relentless\nVocals: Staccato vocal chants, breath accents\nInstruments: Modular synth arpeggio, orchestral braams, ticking percussion, sub-bass drop\nMix & Dynamics: Punchy compression, tight low-end, explosive dynamic build\n\n### 2. Lyrics & Structure\n[Rising Tension]\n(ticking metallic clock and modular synth rising)\n解き明かされる真実\n[Trailer Hit / Drop]\n(massive orchestral braam)\n[Outro]\n(rapid pulse decay)",
+                        "mpc_kit": {
+                            "drums": ["Trailer Hit", "Cyber Snare", "Ticking Clock", "Syncopated Taiko"],
+                            "bass": ["Braam Bass", "Modular Reese", "Distorted Sub", "Punch Bass"],
+                            "vocals": ["Staccato Shout", "Radio Filter Vox", "Vocal Glitch", "Chant Hit"],
+                            "melody": ["Fast Arp", "Staccato String", "Trailer Brass", "Cyber Lead"]
+                        }
                     }
                 },
                 {
@@ -255,7 +276,14 @@ Output JSON format matching this schema:
                         "key": "D Minor",
                         "genre": "Epic Hollywood Climax",
                         "flow_music_prompt": "[Genre: Epic Hollywood Climax] [Key: D Minor] [Tempo: 132 BPM] Full orchestral crescendo, explosive percussion, soaring strings [Climax - 0:35]",
-                        "suno_v6_prompt": "Style: Epic Hollywood Climax, D Minor, 132 BPM [Drop] Full orchestral climax and trailer impact"
+                        "suno_v6_prompt": "Style: Epic Hollywood Climax, D Minor, 132 BPM [Drop] Full orchestral climax and trailer impact",
+                        "minimax_prompt": "### 1. Music Description (Prompt / Style)\nGenre: Epic Hollywood Climax, Orchestral Hybrid\nTempo/Key: 132 BPM, D Minor\nMood: Monumental, heroic, soaring, emotional\nVocals: Grand operatic choir, soaring soprano vocalise\nInstruments: Full symphonic brass, massive taiko array, soaring violins, hybrid sub-bass\nMix & Dynamics: Wall of sound, maximum dynamic impact, epic acoustic depth\n\n### 2. Lyrics & Structure\n[Climax]\n(full orchestra, thunderous taiko, soaring choir)\n運命を切り拓く 英雄の詩\n[Outro]\n(epic orchestral decay and solo violin)",
+                        "mpc_kit": {
+                            "drums": ["Massive Taiko", "Epic Snare", "Cymbal Crash", "Thunder Impact"],
+                            "bass": ["Epic Sub 808", "Orchestral Tuba", "Hybrid Sub", "Low Moog"],
+                            "vocals": ["Choir Climax", "Heroic Soprano", "Vocal Harmony", "Adlib Cry"],
+                            "melody": ["Heroic Brass", "Soaring Strings", "Cinematic Lead", "Monumental Pad"]
+                        }
                     }
                 }
             ]

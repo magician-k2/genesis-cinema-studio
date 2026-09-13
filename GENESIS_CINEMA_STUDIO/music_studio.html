@@ -757,6 +757,9 @@
     </div>
 
     <div class="nav-actions">
+      <button class="stem-btn" style="background: linear-gradient(135deg, rgba(139,92,246,0.35), rgba(236,72,153,0.35)); border: 1px solid rgba(236,72,153,0.6); color: #fbcfe8; font-weight: 700; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 15px rgba(236,72,153,0.25);" onclick="openDocsToMusicModal()">
+        <i class="fa-solid fa-file-audio" style="color: #f472b6;"></i> <span>Docs-to-Music (脚本・企画書➔劇伴＆MPC)</span>
+      </button>
       <span style="font-size: 0.72rem; color: #10b981; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 6px;">
         <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> Local Engine Online
       </span>
@@ -787,6 +790,7 @@
 
       <div class="presets-row" id="presets-row-container">
         <span class="preset-label"><i class="fa-solid fa-bolt"></i> プリセット:</span>
+        <button class="preset-chip" style="border-color: #ec4899; background: rgba(236,72,153,0.2); color: #fbcfe8; font-weight: 800;" onclick="openDocsToMusicModal()"><i class="fa-solid fa-wand-magic-sparkles" style="color: #f472b6;"></i> 📄 脚本・企画書から劇伴＆MPCキット生成 (Docs-to-Music)</button>
         <button class="preset-chip active" id="preset-hans" onclick="setPreset('Hans Zimmer Interstellar Style', this)">🪐 ハンス・ジマー (Interstellar)</button>
         <button class="preset-chip" id="preset-cyberpunk" onclick="setPreset('Tokyo Neo Noir Cyberpunk 2077', this)">🌃 サイバー東京 2077</button>
         <button class="preset-chip" id="preset-synthwave" onclick="setPreset('80s Retro Synthwave Drive', this)">🏎️ 80s シンセウェイブ</button>
@@ -3182,6 +3186,361 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       setTimeout(loadSampleVaultList, 600);
     });
 
+  
+    // ================================================================
+    // 📄 Docs-to-Music & Sampling Studio Handlers
+    // ================================================================
+    window.currentD2MFile = null;
+    window.currentD2MProject = null;
+
+    function openDocsToMusicModal() {
+      const m = document.getElementById('docs-to-music-modal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeDocsToMusicModal() {
+      const m = document.getElementById('docs-to-music-modal');
+      if (m) m.style.display = 'none';
+    }
+
+    function handleDocsToMusicDrop(e) {
+      e.preventDefault();
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        setDocsToMusicFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    function handleDocsToMusicFileSelect(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        setDocsToMusicFile(e.target.files[0]);
+      }
+    }
+
+    function setDocsToMusicFile(file) {
+      window.currentD2MFile = file;
+      const badge = document.getElementById('d2m-selected-file-badge');
+      if (badge) {
+        const sizeKb = (file.size / 1024).toFixed(1);
+        badge.innerHTML = `<i class="fa-solid fa-file"></i> ${file.name} (${sizeKb} KB)`;
+        badge.style.display = 'inline-block';
+      }
+    }
+
+    function insertDocsToMusicSample() {
+      const textarea = document.getElementById('d2m-script-text');
+      if (textarea) {
+        textarea.value = `【タイトル】ネオ・シンギュラリティ (Neo Singularity)
+【ジャンル】サイバーパンク・SFスリラー
+【あらすじ】2048年、人間の意識と記憶を量子クラウドへ転送可能になった巨大要塞都市ネオ東京。元電脳捜査官のレンは、数年前に謎のラボ事故で殉職したはずの天才科学者エレナから送られてきた暗号化メッセージを受信する。
+エレナが残した記憶ファイルには、全人類の意識を強制統合する国家機密『プロジェクト・ジェネシス』の戦慄の真相が刻まれていた。
+裏切り者として公安スワームに追われながら、レンは雨に濡れる高層ビル街を疾走し、中枢量子タワーの最上階へと突入する――。`;
+      }
+    }
+
+    async function runDocsToMusicGeneration() {
+      const btn = document.getElementById('btn-run-d2m');
+      const loading = document.getElementById('d2m-loading');
+      const resContainer = document.getElementById('d2m-result-container');
+      const phaseEl = document.getElementById('d2m-progress-phase');
+      const textVal = document.getElementById('d2m-script-text').value.trim();
+      const stylePref = document.getElementById('d2m-style-select').value;
+
+      if (!window.currentD2MFile && !textVal) {
+        showToast('⚠️ 企画書・脚本ファイルを選択するか、テキストを入力してください。');
+        return;
+      }
+
+      if (btn) btn.disabled = true;
+      if (loading) loading.style.display = 'block';
+      if (resContainer) resContainer.style.display = 'none';
+
+      try {
+        let payload = {
+          style_preference: stylePref,
+          filename: window.currentD2MFile ? window.currentD2MFile.name : 'Screenplay.txt'
+        };
+
+        if (window.currentD2MFile) {
+          if (phaseEl) phaseEl.textContent = `1. ドキュメント読込中 (${window.currentD2MFile.name})...`;
+          const base64Str = await fileToBase64D2M(window.currentD2MFile);
+          payload.file_base64 = base64Str;
+        } else {
+          payload.text = textVal;
+        }
+
+        if (phaseEl) phaseEl.textContent = '2. Gemini 2.5 Flash による劇伴スコア ＆ 16-Pad MPCキット策定中...';
+
+        const res = await fetch('/api/cinema/docs_to_cinema/ingest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data || !data.success) throw new Error(data.error || 'Transformation failed');
+
+        window.currentD2MProject = data.project;
+        renderDocsToMusicResult(data.project);
+
+        if (loading) loading.style.display = 'none';
+        if (resContainer) resContainer.style.display = 'flex';
+      } catch (err) {
+        console.error('Docs-to-Music error:', err);
+        showToast('❌ 生成エラー: ' + err.message);
+        if (loading) loading.style.display = 'none';
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function fileToBase64D2M(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderDocsToMusicResult(proj) {
+      document.getElementById('d2m-result-title').textContent = proj.movie_title || 'Cinematic Film';
+      document.getElementById('d2m-result-genre').textContent = proj.genre || 'Cinematic';
+      document.getElementById('d2m-result-logline').textContent = proj.logline || '';
+
+      const list = document.getElementById('d2m-scenes-list');
+      list.innerHTML = '';
+
+      (proj.scenes || []).forEach((s, idx) => {
+        const music = s.soundtrack_directive || {};
+        const card = document.createElement('div');
+        card.style.cssText = 'background: rgba(15,23,42,0.85); border: 1px solid rgba(236,72,153,0.3); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;';
+
+        const mpcKit = music.mpc_kit || {
+          drums: ['Kick', 'Snare', 'Hat', 'Perc'],
+          bass: ['Sub 808', 'Reese', 'Drone', 'Pulse'],
+          vocals: ['Choir', 'Whisper', 'Vox', 'Chop'],
+          melody: ['Strings', 'Arp', 'Brass', 'Pad']
+        };
+
+        const drumTags = (mpcKit.drums || []).map(k => `<span style="background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.4); padding: 1px 6px; border-radius: 4px; font-size: 0.65rem;">${k}</span>`).join(' ');
+        const bassTags = (mpcKit.bass || []).map(k => `<span style="background: rgba(234,179,8,0.2); color: #fde047; border: 1px solid rgba(234,179,8,0.4); padding: 1px 6px; border-radius: 4px; font-size: 0.65rem;">${k}</span>`).join(' ');
+        const voxTags = (mpcKit.vocals || []).map(k => `<span style="background: rgba(6,182,212,0.2); color: #67e8f9; border: 1px solid rgba(6,182,212,0.4); padding: 1px 6px; border-radius: 4px; font-size: 0.65rem;">${k}</span>`).join(' ');
+        const melTags = (mpcKit.melody || []).map(k => `<span style="background: rgba(168,85,247,0.2); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.4); padding: 1px 6px; border-radius: 4px; font-size: 0.65rem;">${k}</span>`).join(' ');
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.68rem; background: #ec4899; color: white; font-weight: 800; padding: 2px 8px; border-radius: 6px;">Scene ${s.scene_number}</span>
+              <strong style="color: white; font-size: 0.85rem;">${s.heading}</strong>
+              <span style="font-size: 0.7rem; color: #94a3b8;">${s.timecode || ''}</span>
+            </div>
+            <button onclick="loadDocsSceneIntoStudioByIndex(${idx})" style="background: linear-gradient(135deg, #db2777, #7c3aed); border: none; color: white; font-weight: 800; font-size: 0.72rem; padding: 5px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 0 12px rgba(236,72,153,0.4);">
+              <i class="fa-solid fa-download"></i> スタジオ ＆ MPCパッドへロード
+            </button>
+          </div>
+
+          <div style="font-size: 0.74rem; color: #cbd5e1; line-height: 1.4;">
+            ${s.summary}
+          </div>
+
+          <!-- Soundtrack & Prompts Row -->
+          <div style="background: rgba(0,0,0,0.35); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.72rem;">
+            <div style="color: #f472b6;">
+              <i class="fa-solid fa-music"></i> <strong>${music.genre || 'Cinematic'}</strong> [${music.key || 'D Minor'} • ${music.bpm || 120} BPM]
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copySceneMiniMaxPrompt(${idx})" style="background: rgba(236,72,153,0.25); border: 1px solid rgba(236,72,153,0.6); color: #fbcfe8; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> MiniMax用コピー
+              </button>
+              <button onclick="copySceneSunoPrompt(${idx})" style="background: rgba(59,130,246,0.25); border: 1px solid rgba(59,130,246,0.6); color: #93c5fd; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> Suno用コピー
+              </button>
+              <button onclick="copySceneFlowMusicPrompt(${idx})" style="background: rgba(139,92,246,0.25); border: 1px solid rgba(139,92,246,0.6); color: #e9d5ff; font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> FlowMusic用コピー
+              </button>
+            </div>
+          </div>
+
+          <!-- MPC Kit Preview -->
+          <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 8px 12px; font-size: 0.7rem;">
+            <div style="color: #94a3b8; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+              <i class="fa-solid fa-table-cells"></i> 16-Pad MPC サンプラーキット構成:
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div><strong style="color: #ef4444;">Drums (1-4):</strong> ${drumTags}</div>
+              <div><strong style="color: #eab308;">Bass (Q-R):</strong> ${bassTags}</div>
+              <div><strong style="color: #06b6d4;">Vocals (A-F):</strong> ${voxTags}</div>
+              <div><strong style="color: #a855f7;">Melody (Z-V):</strong> ${melTags}</div>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function copySceneMiniMaxPrompt(idx) {
+      if (!window.currentD2MProject || !window.currentD2MProject.scenes) return;
+      const s = window.currentD2MProject.scenes[idx];
+      const prompt = (s.soundtrack_directive && s.soundtrack_directive.minimax_prompt) || s.soundtrack_directive.suno_v6_prompt || '';
+      navigator.clipboard.writeText(prompt).then(() => {
+        showToast(`✨ Scene ${idx + 1} の MiniMax Music プロンプトをコピーしました！`);
+      });
+    }
+
+    function copySceneSunoPrompt(idx) {
+      if (!window.currentD2MProject || !window.currentD2MProject.scenes) return;
+      const s = window.currentD2MProject.scenes[idx];
+      const prompt = (s.soundtrack_directive && s.soundtrack_directive.suno_v6_prompt) || '';
+      navigator.clipboard.writeText(prompt).then(() => {
+        showToast(`✨ Scene ${idx + 1} の Suno v6 プロンプトをコピーしました！`);
+      });
+    }
+
+    function copySceneFlowMusicPrompt(idx) {
+      if (!window.currentD2MProject || !window.currentD2MProject.scenes) return;
+      const s = window.currentD2MProject.scenes[idx];
+      const prompt = (s.soundtrack_directive && s.soundtrack_directive.flow_music_prompt) || '';
+      navigator.clipboard.writeText(prompt).then(() => {
+        showToast(`✨ Scene ${idx + 1} の Flow Music プロンプトをコピーしました！`);
+      });
+    }
+
+    function loadDocsSceneIntoStudioByIndex(idx) {
+      if (!window.currentD2MProject || !window.currentD2MProject.scenes) return;
+      const s = window.currentD2MProject.scenes[idx];
+      if (s) {
+        loadDocsSceneIntoStudio(s);
+        closeDocsToMusicModal();
+      }
+    }
+
+    function loadDocsSceneIntoStudio(scene) {
+      const music = scene.soundtrack_directive || {};
+      const bpm = music.bpm || 120.0;
+      const key = music.key || 'D Minor';
+      const genre = music.genre || 'Cinematic';
+
+      // Update Live Metrics Dashboard
+      const bpmEl = document.getElementById('val-bpm');
+      const keyEl = document.getElementById('val-key');
+      const energyEl = document.getElementById('val-energy');
+      const timbreEl = document.getElementById('val-timbre');
+      if (bpmEl) bpmEl.textContent = bpm.toFixed(1);
+      if (keyEl) keyEl.textContent = key;
+      if (energyEl) energyEl.textContent = 'Cinematic Arc';
+      if (timbreEl) timbreEl.textContent = genre;
+
+      // Update Header Hub parameters
+      const lyriaBpm = document.getElementById('lyria-param-bpm');
+      const lyriaKey = document.getElementById('lyria-param-key');
+      if (lyriaBpm) lyriaBpm.textContent = bpm.toFixed(1);
+      if (lyriaKey) lyriaKey.textContent = key;
+
+      // Update Prompts Data
+      const minimaxPrompt = music.minimax_prompt || (
+        `### 1. Music Description (Prompt / Style)
+` +
+        `Genre: ${genre}
+` +
+        `Tempo/Key: ${bpm} BPM, ${key}
+` +
+        `Mood: Epic, cinematic, immersive
+` +
+        `Vocals: Ambient cinematic vocal textures
+` +
+        `Instruments: Massive brass braams, cinematic taiko, driving strings, sub-bass
+` +
+        `Mix & Dynamics: High dynamic range, deep acoustic space
+
+` +
+        `### 2. Lyrics & Structure
+` +
+        `[Intro]
+(atmospheric ambient drone)
+[Climax]
+(explosive cinematic drop)
+[Outro]
+(decay)`
+      );
+
+      const sunoPrompt = music.suno_v6_prompt || `[Style: ${genre}, ${key}, ${bpm}BPM] [Intro] Cinematic drone [Drop] Massive impact [Outro] Decay`;
+      const flowMusicPrompt = music.flow_music_prompt || `[Genre: ${genre}] [Key: ${key}] [Tempo: ${bpm} BPM] Cinematic orchestra and hybrid percussion.`;
+
+      window.promptsData = {
+        minimax: minimaxPrompt,
+        suno: sunoPrompt,
+        lyria: flowMusicPrompt,
+        flow_music: flowMusicPrompt,
+        udio: `${genre}, ${key}, ${bpm} bpm`,
+        veo: scene.visual_prompt_veo || `Scene Audio Sync: ${bpm} BPM | ${key}`,
+        prompts_faithful: {
+          minimax: minimaxPrompt,
+          suno_v6: sunoPrompt,
+          lyria_3_5: flowMusicPrompt,
+          flow_music: flowMusicPrompt,
+          udio: `${genre}, ${key}, ${bpm} bpm`
+        },
+        prompts_cinematic_crossover: {
+          minimax: minimaxPrompt,
+          suno_v6: sunoPrompt,
+          lyria_3_5: flowMusicPrompt,
+          flow_music: flowMusicPrompt,
+          udio: `${genre}, ${key}, ${bpm} bpm`
+        }
+      };
+
+      updatePromptDisplay();
+
+      // Configure 16-Pad MPC Kit
+      const kit = music.mpc_kit || {};
+      const drums = kit.drums || ['Kick', 'Snare', 'Hat', 'Taiko'];
+      const bass = kit.bass || ['Sub 808', 'Reese', 'Drone', 'Pulse'];
+      const vocals = kit.vocals || ['Choir', 'Whisper', 'Vox', 'Chop'];
+      const melody = kit.melody || ['Cello', 'Arp', 'Brass', 'Pad'];
+
+      window.currentSlices = [
+        { id: 1, name: drums[0] || 'Kick Hit', stem: 'drums', key: '1', type: 'drum_kick' },
+        { id: 2, name: drums[1] || 'Snare Crack', stem: 'drums', key: '2', type: 'drum_snare' },
+        { id: 3, name: drums[2] || 'Hi-Hat Tick', stem: 'drums', key: '3', type: 'drum_hihat' },
+        { id: 4, name: drums[3] || 'Perc Loop', stem: 'drums', key: '4', type: 'drum_perc' },
+        { id: 5, name: bass[0] || 'Sub 808', stem: 'bass', key: 'Q', type: 'bass_808' },
+        { id: 6, name: bass[1] || 'Bass Synth', stem: 'bass', key: 'W', type: 'bass_sub' },
+        { id: 7, name: bass[2] || 'Drone Bass', stem: 'bass', key: 'E', type: 'bass_drone' },
+        { id: 8, name: bass[3] || 'Bass Riff', stem: 'bass', key: 'R', type: 'bass_pulse' },
+        { id: 9, name: vocals[0] || 'Vocal Swell', stem: 'vocals', key: 'A', type: 'vocal_swell' },
+        { id: 10, name: vocals[1] || 'Whisper Vox', stem: 'vocals', key: 'S', type: 'vocal_whisper' },
+        { id: 11, name: vocals[2] || 'Vocal Hook', stem: 'vocals', key: 'D', type: 'vocal_vox' },
+        { id: 12, name: vocals[3] || 'Vocal Chop', stem: 'vocals', key: 'F', type: 'vocal_chop' },
+        { id: 13, name: melody[0] || 'Anamorphic String', stem: 'melody', key: 'Z', type: 'melody_lead' },
+        { id: 14, name: melody[1] || 'Lead Stab', stem: 'melody', key: 'X', type: 'melody_arp' },
+        { id: 15, name: melody[2] || 'Trailer Brass', stem: 'melody', key: 'C', type: 'melody_brass' },
+        { id: 16, name: melody[3] || 'Ambient Pad', stem: 'melody', key: 'V', type: 'melody_pad' }
+      ];
+
+      renderPads();
+      showToast(`✨ Scene ${scene.scene_number || 1} の劇伴プロンプトと16-Pad MPCキットをスタジオにロードしました！`);
+    }
+
+    // Auto-detect scene passed from Docs-to-Cinema
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('load_scene') === '1' || urlParams.get('from_docs') === '1') {
+        const stored = localStorage.getItem('genesis_pending_music_scene');
+        if (stored) {
+          try {
+            const sceneData = JSON.parse(stored);
+            setTimeout(() => {
+              loadDocsSceneIntoStudio(sceneData);
+              localStorage.removeItem('genesis_pending_music_scene');
+            }, 600);
+          } catch (e) {
+            console.error('Failed to parse incoming music scene:', e);
+          }
+        }
+      }
+    });
+
   </script>
 
   <!-- ============================================================== -->
@@ -3395,6 +3754,114 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
           <i class="fa-solid fa-box-open" style="font-size: 2rem; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
           登録済みの音源がまだありません。<br>Pad上の <i class="fa-solid fa-bookmark" style="color: #facc15;"></i> アイコンを押して保存してください。
         </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ================================================================ -->
+  <!-- 📄 Modal: Docs-to-Music & Sampling Studio (脚本・企画書➔劇伴＆MPC) -->
+  <!-- ================================================================ -->
+  <div id="docs-to-music-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: linear-gradient(145deg, #0d111e, #161a2e); border: 1px solid rgba(236,72,153,0.4); border-radius: 18px; width: 100%; max-width: 960px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(236,72,153,0.2); overflow: hidden;">
+      
+      <!-- Modal Header -->
+      <div style="padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(20,15,38,0.5);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #ec4899, #8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; box-shadow: 0 0 15px rgba(236,72,153,0.4);">
+            <i class="fa-solid fa-file-audio"></i>
+          </div>
+          <div>
+            <div style="font-weight: 800; font-size: 1.05rem; color: #f8fafc; letter-spacing: -0.3px;">
+              Docs-to-Music ＆ Sampling Studio
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">
+              脚本・企画書・小説（PDF/Word/TXT）から、MiniMax・Suno・FlowMusic劇伴 ＆ 16-Pad MPCサンプラーキットを全自動生成
+            </div>
+          </div>
+        </div>
+        <button onclick="closeDocsToMusicModal()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #94a3b8; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; flex: 1;">
+        
+        <!-- Input Area -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          
+          <!-- Left: File Drop Zone -->
+          <div id="d2m-drop-zone" ondragover="event.preventDefault()" ondrop="handleDocsToMusicDrop(event)" style="border: 2px dashed rgba(236,72,153,0.4); border-radius: 12px; background: rgba(236,72,153,0.04); padding: 24px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; cursor: pointer;" onclick="document.getElementById('d2m-file-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.2rem; color: #ec4899;"></i>
+            <div>
+              <strong style="color: #f1f5f9; font-size: 0.88rem; display: block;">ドキュメントをドラッグ＆ドロップ</strong>
+              <span style="color: #94a3b8; font-size: 0.74rem;">PDF, DOCX, TXT, MD（最大 50MB）</span>
+            </div>
+            <input type="file" id="d2m-file-input" accept=".pdf,.docx,.txt,.md" style="display: none;" onchange="handleDocsToMusicFileSelect(event)">
+            <button class="stem-btn" style="padding: 6px 14px; font-size: 0.74rem; background: rgba(236,72,153,0.25); border-color: rgba(236,72,153,0.5); color: #fbcfe8;">
+              <i class="fa-solid fa-folder-open"></i> ファイルを選択
+            </button>
+            <div id="d2m-selected-file-badge" style="display: none; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.5); color: #6ee7b7; font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; font-weight: 700;"></div>
+          </div>
+
+          <!-- Right: Textarea / Quick Paste -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1;">または シナリオ・企画書テキストを直接ペースト:</label>
+              <button onclick="insertDocsToMusicSample()" style="background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.5); color: #d8b4fe; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-paste"></i> サンプル脚本を挿入
+              </button>
+            </div>
+            <textarea id="d2m-script-text" style="flex: 1; min-height: 120px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; color: #f8fafc; padding: 12px; font-size: 0.76rem; line-height: 1.4; resize: vertical; outline: none; font-family: inherit;" placeholder="あらすじ、脚本、シーン構成、または小説の一部をペーストしてください..."></textarea>
+          </div>
+
+        </div>
+
+        <!-- Style & Execution Options -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">劇伴スタイル:</label>
+            <select id="d2m-style-select" style="background: rgba(15,23,42,0.9); border: 1px solid rgba(255,255,255,0.18); color: white; padding: 6px 12px; border-radius: 8px; font-size: 0.76rem; outline: none;">
+              <option value="Cyberpunk Noir & Synthwave">🌃 サイバーパンク・ノワール & シンセ (Blade Runner / 2077)</option>
+              <option value="Hollywood Epic Orchestral">🪐 ハリウッドSF超大作 (Hans Zimmer / Interstellar)</option>
+              <option value="Action Thriller & Hybrid Trailer">🎬 アクション・スリラー & ハイブリッド劇伴</option>
+              <option value="Dark Fantasy & Epic Choral">⚔️ ダークファンタジー & 荘厳な合唱</option>
+              <option value="City Pop & Emotional Lo-Fi">☕ 都会の夜 & エモーショナルLo-Fi / シティポップ</option>
+              <option value="90s Rave Techno & Hardcore">⚡ 90s オールドスクールレイヴ・テクノ</option>
+            </select>
+          </div>
+          <button id="btn-run-d2m" onclick="runDocsToMusicGeneration()" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none; color: white; font-weight: 800; font-size: 0.84rem; padding: 10px 22px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(236,72,153,0.4);">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ⚡ 劇伴スコア ＆ 16-Pad MPCキット生成
+          </button>
+        </div>
+
+        <!-- Loading Phase Indicator -->
+        <div id="d2m-loading" style="display: none; background: rgba(236,72,153,0.12); border: 1px solid rgba(236,72,153,0.4); border-radius: 12px; padding: 20px; text-align: center;">
+          <div style="display: inline-block; width: 36px; height: 36px; border: 3px solid rgba(236,72,153,0.3); border-top-color: #ec4899; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 12px;"></div>
+          <div style="color: #fbcfe8; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px;">Docs-to-Music AI 解析中...</div>
+          <div id="d2m-progress-phase" style="font-size: 0.76rem; color: #cbd5e1;">1. ドキュメント構造解析 & シーン感情曲線抽出中...</div>
+        </div>
+
+        <!-- Results Area -->
+        <div id="d2m-result-container" style="display: none; flex-direction: column; gap: 16px;">
+          <div style="background: rgba(0,0,0,0.5); border: 1px solid rgba(139,92,246,0.3); border-radius: 12px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <h3 id="d2m-result-title" style="font-size: 1.1rem; font-weight: 900; color: #fff;">作品タイトル</h3>
+              <span id="d2m-result-genre" style="font-size: 0.72rem; background: rgba(236,72,153,0.25); border: 1px solid rgba(236,72,153,0.6); color: #fbcfe8; padding: 2px 10px; border-radius: 12px; font-weight: 800;">Genre</span>
+            </div>
+            <div id="d2m-result-logline" style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.4;">ログライン</div>
+          </div>
+
+          <div style="font-size: 0.85rem; font-weight: 800; color: #f472b6; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-layer-group"></i> シーン別 劇伴スコア ＆ MPCサンプリングキット:
+          </div>
+
+          <div id="d2m-scenes-list" style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Rendered Scenes -->
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
