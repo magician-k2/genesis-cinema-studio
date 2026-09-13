@@ -305,11 +305,11 @@
     <div style="display: flex; align-items: center; gap: 8px;">
       <span class="telemetry-pill" style="color: #10b981; border-color: rgba(16, 185, 129, 0.4);">
         <i class="fa-solid fa-circle-nodes"></i>
-        <span>MaleCNS 166k SNN</span>
+        <span id="malecns-pill-text">MaleCNS 166k SNN</span>
       </span>
       <span class="telemetry-pill" style="color: #a855f7; border-color: rgba(168, 85, 247, 0.4);">
         <i class="fa-solid fa-atom"></i>
-        <span>Q-NO Coherent</span>
+        <span id="qno-pill-text">Q-NO Coherent</span>
       </span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
@@ -575,12 +575,25 @@
     function rejectDiff() {
       alert('❌ 差分を破棄しました。');
     }
-    function triggerVoiceInput() {
-      alert('🎙️ 音声入力をスタンバイしました（Web Speech API）');
+    // Live MaleCNS v1.0 SNN Telemetry Polling
+    async function pollMaleCNSTelemetry() {
+      try {
+        const res = await fetch('/api/malecns/telemetry');
+        if (res.ok) {
+          const data = await res.json();
+          const pill = document.getElementById('malecns-pill-text');
+          if (pill && data.heading_compass_deg !== undefined) {
+            pill.textContent = `MaleCNS 166k (${data.heading_compass_deg}° / 40Hz)`;
+          }
+          const qnoPill = document.getElementById('qno-pill-text');
+          if (qnoPill && data.qubo_ground_energy !== undefined) {
+            qnoPill.textContent = `Q-NO (E:${data.qubo_ground_energy})`;
+          }
+        }
+      } catch (e) {}
     }
-    function triggerFileUpload() {
-      alert('📎 画像・設計書添付（マルチモーダルプロンプト）');
-    }
+    setInterval(pollMaleCNSTelemetry, 1000);
+    pollMaleCNSTelemetry();
   </script>
 </body>
 </html>

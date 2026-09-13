@@ -2019,6 +2019,11 @@ def api_antigravity_terminal():
     from core.neural_backbone import AntigravityRouter
     return jsonify(AntigravityRouter.handle_run_terminal(req))
 
+@app.route('/api/malecns/telemetry')
+def api_malecns_telemetry():
+    from core.neural_backbone import malecns_bus
+    return jsonify(malecns_bus.get_telemetry())
+
 def start_telepathy_background():
     """Starts telepathy engine on port 5000 in separate process or thread"""
     print("[*] Launching Telepathy Engine on Port 5000 in background...")

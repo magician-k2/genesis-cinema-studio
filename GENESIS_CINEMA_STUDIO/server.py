@@ -251,7 +251,29 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
 
-        if parsed.path == '/api/cinema/docs_to_cinema/projects':
+        if parsed.path == '/api/malecns/telemetry':
+            try:
+                from core.neural_backbone import malecns_bus
+                data = malecns_bus.get_telemetry()
+                resp_bytes = json.dumps(data, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/cinema/docs_to_cinema/projects':
             try:
                 from core.genesis_docs_to_cinema_engine import list_cinema_projects
                 projects = list_cinema_projects()
