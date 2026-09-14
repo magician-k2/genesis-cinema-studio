@@ -4,6 +4,7 @@
   <!-- 🧬 GENESIS Neural Theme & Organ Navigator Component Parts -->
   <link rel="stylesheet" href="parts/genesis_theme.css">
   <script src="parts/genesis_organ_nav.js"></script>
+  <script src="genesis_unified_cinema_audio_engine.js"></script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -3856,16 +3857,25 @@
     }
 
     // Cut Timeline Selection
-    function selectCut(idx) {
+    function selectCut(idx, broadcast = true) {
       currentCut = idx;
       document.querySelectorAll('.clip-box').forEach((box, i) => {
         box.classList.toggle('active', i === idx);
       });
-      document.getElementById('current-cut-idx').textContent = idx + 1;
-      document.getElementById('cut-dialogue-input').value = cutDialogues[idx] || "";
+      const cutIdxEl = document.getElementById('current-cut-idx');
+      if (cutIdxEl) cutIdxEl.textContent = idx + 1;
+      const dlgInput = document.getElementById('cut-dialogue-input');
+      if (dlgInput) dlgInput.value = cutDialogues[idx] || "";
       
-      const angles = [0, 90, 180, 270];
-      setAngle(angles[idx]);
+      const angles = [0, 90, 180, 270, 0];
+      if (typeof setAngle === 'function' && angles[idx] !== undefined) {
+        setAngle(angles[idx]);
+      }
+
+      // Sync cut selection to Music Studio via shared engine
+      if (window.genesisCinemaAudio && broadcast) {
+        window.genesisCinemaAudio.selectCut(idx, 'cinema_lite', true);
+      }
     }
 
     function speakCurrentDialogue() {
@@ -4829,15 +4839,31 @@
       }
     }
 
-    try {
-      const cinemaNervousBus = new BroadcastChannel('genesis_nervous_bus');
-      cinemaNervousBus.onmessage = (event) => {
-        if (event.data && event.data.type === 'CINEMA_STORYBOARD_SYNC' && event.data.storyboard) {
-          applyAudioToCinemaStoryboard(event.data.storyboard, true);
+    // Synaptic Nervous Bus Integration via Shared Engine
+    if (window.genesisCinemaAudio) {
+      window.genesisCinemaAudio.on('storyboard', (sb) => {
+        applyAudioToCinemaStoryboard(sb, true);
+      });
+      window.genesisCinemaAudio.on('cutselect', (data) => {
+        if (data && typeof data.cutIndex === 'number' && data.origin !== 'cinema_lite') {
+          selectCut(data.cutIndex, false);
         }
-      };
-    } catch(e) {
-      console.warn("BroadcastChannel error:", e);
+      });
+    } else {
+      try {
+        const cinemaNervousBus = new BroadcastChannel('genesis_nervous_bus');
+        cinemaNervousBus.onmessage = (event) => {
+          if (event.data && event.data.type === 'CINEMA_STORYBOARD_SYNC' && event.data.storyboard) {
+            applyAudioToCinemaStoryboard(event.data.storyboard, true);
+          } else if (event.data && event.data.type === 'CUT_SELECT_SYNC' && typeof event.data.cutIndex === 'number') {
+            if (event.data.origin !== 'cinema_lite') {
+              selectCut(event.data.cutIndex, false);
+            }
+          }
+        };
+      } catch(e) {
+        console.warn("BroadcastChannel error:", e);
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {

@@ -4,6 +4,7 @@
   <!-- 🧬 GENESIS Neural Theme & Organ Navigator Component Parts -->
   <link rel="stylesheet" href="parts/genesis_theme.css">
   <script src="parts/genesis_organ_nav.js"></script>
+  <script src="genesis_unified_cinema_audio_engine.js"></script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -3753,34 +3754,39 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
           sub_bass_ratio: 0.36
         };
 
-        const payload = {
-          features: features,
-          track_title: trackTitle,
-          scene_context: "雨のサイバーパンク新宿 首都高チェイス",
-          total_duration_sec: totalDur
-        };
-
-        const res = await fetch('/api/music/to_cinema_storyboard', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (!data || !data.success) {
-          throw new Error(data.error || 'Failed to generate cinema storyboard');
+        // Use shared GenesisCinemaAudioEngine if available
+        let data;
+        if (window.genesisCinemaAudio && typeof window.genesisCinemaAudio.generateStoryboard === 'function') {
+          data = await window.genesisCinemaAudio.generateStoryboard({
+            features: features,
+            trackTitle: trackTitle,
+            sceneContext: "雨のサイバーパンク新宿 首都高チェイス",
+            durationSec: totalDur
+          });
+        } else {
+          const payload = {
+            features: features,
+            track_title: trackTitle,
+            scene_context: "雨のサイバーパンク新宿 首都高チェイス",
+            total_duration_sec: totalDur
+          };
+          const res = await fetch('/api/music/to_cinema_storyboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          data = await res.json();
+          if (!data || !data.success) {
+            throw new Error(data?.error || 'Failed to generate cinema storyboard');
+          }
+          try {
+            const bc = new BroadcastChannel('genesis_nervous_bus');
+            bc.postMessage({ type: 'CINEMA_STORYBOARD_SYNC', storyboard: data });
+          } catch(e) {}
         }
 
         window.activeCinemaStoryboard = data;
         localStorage.setItem('genesis_active_storyboard', JSON.stringify(data));
-
-        // Broadcast to cinema studio and other windows via Nervous Bus
-        try {
-          const bc = new BroadcastChannel('genesis_nervous_bus');
-          bc.postMessage({ type: 'CINEMA_STORYBOARD_SYNC', storyboard: data });
-        } catch(e) {
-          console.warn('BroadcastChannel error:', e);
-        }
 
         // Update Cinematic Look HUD
         if (data.cinematic_look) {
@@ -3800,28 +3806,32 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         renderCutsTimeline(data.storyboard_cuts || []);
         selectActiveCut(0);
 
-        // Update Veo & Gemini Omni / Agentic Video Prompt Tabs
+        // Update Veo & Gemini Omni / Agentic Video Prompt Tabs via shared engine
         if (!window.promptsData) window.promptsData = {};
-        const fullPromptSequence = (data.storyboard_cuts || []).map(c =>
-          `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
-          `Shot: ${c.shot_type} | Motion: ${c.camera_motion}\n` +
-          `Prompt: ${c.video_generation_prompt}\n`
-        ).join('\n');
-
-        const omniPromptSequence = data.gemini_omni_script || (data.storyboard_cuts || []).map(c =>
-          `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
-          `Omni Prompt: ${c.gemini_omni_prompt}\n` +
-          `Agentic Role: ${c.agentic_video_spec?.agent_role || 'Cinematography Agent'} | Anchor: ${c.agentic_video_spec?.perceptual_anchor || 'Facial Expression'}\n`
-        ).join('\n\n');
-
-        window.promptsData.veo = fullPromptSequence;
-        window.promptsData.agentic = omniPromptSequence;
+        if (window.genesisCinemaAudio) {
+          const formatted = window.genesisCinemaAudio.formatPrompts(data);
+          window.promptsData.veo = formatted.veo;
+          window.promptsData.agentic = formatted.agentic;
+        } else {
+          const fullPromptSequence = (data.storyboard_cuts || []).map(c =>
+            `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
+            `Shot: ${c.shot_type} | Motion: ${c.camera_motion}\n` +
+            `Prompt: ${c.video_generation_prompt}\n`
+          ).join('\n');
+          const omniPromptSequence = data.gemini_omni_script || (data.storyboard_cuts || []).map(c =>
+            `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
+            `Omni Prompt: ${c.gemini_omni_prompt}\n` +
+            `Agentic Role: ${c.agentic_video_spec?.agent_role || 'Cinematography Agent'} | Anchor: ${c.agentic_video_spec?.perceptual_anchor || 'Facial Expression'}\n`
+          ).join('\n\n');
+          window.promptsData.veo = fullPromptSequence;
+          window.promptsData.agentic = omniPromptSequence;
+        }
         if (typeof switchPromptTab === 'function') {
           switchPromptTab('veo');
         }
 
         if (statusEl) {
-          statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> 5カット映画コンテ同期完了 (${totalDur}秒 NLE)`;
+          statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> 5カット映画コンテ同期完了 (${totalDur}秒 NLE ✕ 共有エンジン)`;
         }
         showToast(`🎬 映画コンテ5カット ＆ ${data.cinematic_look.lut_preset} を全自動生成しました！`);
       } catch(err) {
@@ -3867,7 +3877,7 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       }).join('');
     }
 
-    function selectActiveCut(idx) {
+    function selectActiveCut(idx, broadcast = true) {
       window.activeCutIndex = idx;
       const cuts = window.activeCinemaStoryboard?.storyboard_cuts;
       if (!cuts || !cuts[idx]) return;
@@ -3902,6 +3912,11 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         } else if (window.activePromptTab === 'agentic') {
           promptBox.value = `${cut.gemini_omni_prompt}\n\n[Agentic Video Spec]\nRole: ${cut.agentic_video_spec?.agent_role || 'Cinematography Agent'}\nCamera: ${cut.agentic_video_spec?.camera_motion}\nFraming: ${cut.agentic_video_spec?.shot_framing}\nAnchor: ${cut.agentic_video_spec?.perceptual_anchor}\nLighting: ${cut.agentic_video_spec?.lighting_look}`;
         }
+      }
+
+      // Broadcast cut selection via shared engine
+      if (window.genesisCinemaAudio && broadcast) {
+        window.genesisCinemaAudio.selectCut(idx, 'music_studio', true);
       }
     }
 
@@ -3972,6 +3987,37 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
             statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> 保存済み映画コンテを同期表示中 (${data.storyboard_cuts?.length || 5}カット)`;
           }
         } catch(e) {}
+      }
+
+      // Synaptic Nervous Bus Listeners via Shared Engine
+      if (window.genesisCinemaAudio) {
+        window.genesisCinemaAudio.on('cutselect', (data) => {
+          if (data && typeof data.cutIndex === 'number' && data.origin !== 'music_studio') {
+            selectActiveCut(data.cutIndex, false);
+          }
+        });
+        window.genesisCinemaAudio.on('storyboard', (sb) => {
+          if (sb && sb.storyboard_cuts) {
+            window.activeCinemaStoryboard = sb;
+            if (sb.cinematic_look) {
+              const look = sb.cinematic_look;
+              const lensEl = document.getElementById('cine-lens-val');
+              const lutEl = document.getElementById('cine-lut-val');
+              const lgtEl = document.getElementById('cine-lighting-val');
+              const grainEl = document.getElementById('cine-grain-val');
+              if (lensEl) lensEl.textContent = `${look.lens_choice} (${look.shutter_speed})`;
+              if (lutEl) lutEl.textContent = look.lut_preset;
+              if (lgtEl) lgtEl.textContent = look.lighting_setup;
+              if (grainEl) grainEl.textContent = `${look.film_grain} (${look.cinematic_rhythm})`;
+            }
+            renderCutsTimeline(sb.storyboard_cuts || []);
+            selectActiveCut(0, false);
+            const statusEl = document.getElementById('cuts-sync-status');
+            if (statusEl) {
+              statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> 映画スタジオから最新コンテを受信同期 (${sb.storyboard_cuts.length}カット)`;
+            }
+          }
+        });
       }
 
       // Drag and Drop Audio Ingestion Support on Ingest Card
