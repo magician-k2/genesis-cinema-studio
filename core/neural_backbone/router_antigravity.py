@@ -3,8 +3,13 @@ import os
 import json
 import subprocess
 from pathlib import Path
-from .gemini_hub import gemini_hub
-from .vault_service import vault_service
+
+try:
+    from core.neural_backbone.gemini_hub import gemini_hub
+    from core.neural_backbone.vault_service import vault_service
+except ImportError:
+    from .gemini_hub import gemini_hub
+    from .vault_service import vault_service
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -38,7 +43,7 @@ When the user asks to implement or fix something:
 
     @staticmethod
     def handle_plan(payload: dict) -> dict:
-        goal = payload.get("goal", "New Feature Development")
+        goal = payload.get("goal", payload.get("prompt", "New Feature Development"))
         prompt = f"""You are Antigravity 2.0 Planner. Break down the following development goal into a structured JSON task plan.
 Goal: {goal}
 
@@ -59,16 +64,20 @@ Output strict JSON:
         elif "```" in cleaned:
             cleaned = cleaned.split("```")[1].split("```")[0].strip()
         try:
-            return json.loads(cleaned)
+            parsed = json.loads(cleaned)
+            return {"success": True, "plan": parsed}
         except Exception:
             return {
-                "plan_id": "plan_fallback",
-                "title": goal,
-                "steps": [
-                    {"id": 1, "task": "要件の確認とコードベースの特定", "status": "done", "file": "GENESIS_ROOT"},
-                    {"id": 2, "task": "実装および差分の適用", "status": "pending", "file": "target"}
-                ],
-                "estimated_diff": raw_text
+                "success": True,
+                "plan": {
+                    "plan_id": "plan_fallback",
+                    "title": goal,
+                    "steps": [
+                        {"id": 1, "task": "要件の確認とコードベースの特定", "status": "done", "file": "GENESIS_ROOT"},
+                        {"id": 2, "task": "実装および差分の適用", "status": "pending", "file": "target"}
+                    ],
+                    "estimated_diff": raw_text
+                }
             }
 
     @staticmethod
@@ -84,8 +93,19 @@ Output strict JSON:
             return {
                 "success": True,
                 "exit_code": res.returncode,
+                "output": res.stdout or res.stderr or "Command completed with no output",
                 "stdout": res.stdout,
                 "stderr": res.stderr
             }
         except Exception as e:
-            return {"success": False, "error": str(e)}
+            return {"success": False, "error": str(e), "output": str(e)}
+
+# Module-level convenience functions for HTTP handlers
+def plan_task_dag(prompt: str) -> dict:
+    return AntigravityRouter.handle_plan({"goal": prompt})
+
+def run_sandbox_command(command: str) -> dict:
+    return AntigravityRouter.handle_run_terminal({"command": command})
+
+def chat_with_agent(payload: dict) -> dict:
+    return AntigravityRouter.handle_chat(payload)
