@@ -2240,6 +2240,42 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(err_bytes)
                 return
+
+        elif parsed.path == '/api/music/to_cinema_storyboard':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                features = payload.get('features', {})
+                track_title = payload.get('track_title', 'GENESIS Track')
+                scene_context = payload.get('scene_context', 'サイバー東京ノワール')
+                duration_sec = payload.get('duration_sec', 60.0)
+
+                from core.genesis_audio_to_cinema_director import generate_synchronized_cinema_storyboard
+                result = generate_synchronized_cinema_storyboard(
+                    features=features,
+                    track_title=track_title,
+                    scene_context=scene_context,
+                    total_duration_sec=duration_sec
+                )
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
         elif parsed.path == '/api/antigravity/plan':
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
@@ -2297,6 +2333,42 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 payload = json.loads(body) if body else {}
                 res = chat_with_agent(payload)
                 resp_bytes = json.dumps(res, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🎵 Audio-to-Cinema Synchronized Storyboard Generation
+        elif parsed.path == '/api/music/to_cinema_storyboard':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                from core.genesis_audio_to_cinema_director import generate_synchronized_cinema_storyboard
+                payload = json.loads(body) if body else {}
+                features = payload.get("features", {})
+                track_title = payload.get("track_title", "GENESIS Master Track")
+                scene_context = payload.get("scene_context", "サイバー東京ノワール")
+                total_duration_sec = float(payload.get("total_duration_sec", 60.0))
+                
+                result = generate_synchronized_cinema_storyboard(
+                    features=features,
+                    track_title=track_title,
+                    scene_context=scene_context,
+                    total_duration_sec=total_duration_sec
+                )
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp_bytes)))

@@ -4717,6 +4717,140 @@
     }
 
     // ==============================================================
+    // 🎵 Audio-to-Cinema Synchronized Storyboard Receiver
+    // ==============================================================
+    function applyAudioToCinemaStoryboard(sb, showToastMsg = true) {
+      if (!sb || !sb.storyboard_cuts || !sb.storyboard_cuts.length) return;
+      console.log("🎬 Syncing Audio-to-Cinema Storyboard:", sb);
+
+      const locCandidates = [
+        "/assets/harajuku_straight_street_perfect.jpg",
+        "/assets/shibuya_109_telephoto.jpg",
+        "/assets/space_deep_nebula.jpg",
+        "/assets/moon_crater_surface.jpg",
+        "/assets/harajuku_straight_street_perfect.jpg"
+      ];
+      const defaultCamMap = {
+        "Extreme Wide Establishing Shot (EWS)": "dolly-in",
+        "Medium Full Shot (MFS) Tracking": "pan-right",
+        "Close-Up (CU) & Dutch Angle Jib": "dutch",
+        "360-degree Orbit & Low-Angle Dynamic Hero Shot": "dolly-in",
+        "Wide Low-Angle Locked-Off Shot": "fix"
+      };
+
+      const mappedCuts = sb.storyboard_cuts.map((c, i) => {
+        return {
+          idx: i,
+          name: `${c.cut_id}: ${c.section}`,
+          duration: c.duration_sec,
+          location: locCandidates[i % locCandidates.length],
+          actor: "ren",
+          acting: {
+            expression: c.energy_level > 70 ? "surprise" : (c.energy_level > 40 ? "serious" : "smile"),
+            gaze: "camera",
+            angle: String((i * 90) % 360),
+            lipsync: true
+          },
+          dialogue: {
+            text: `『${c.dramatic_intent}』`,
+            delay: 0.2,
+            wait: 0.5
+          },
+          camera: {
+            motion: defaultCamMap[c.shot_type] || "dolly-in",
+            dof: c.energy_level > 70 ? 2 : 4
+          },
+          lighting: {
+            source: c.energy_level > 60 ? "back" : "front",
+            shadow: c.energy_level > 60 ? "spot" : "front"
+          },
+          environment: {
+            time: c.energy_level > 70 ? "sunset" : "day",
+            weather: "clear",
+            aspect: "cinemascope"
+          },
+          shot_type: c.shot_type,
+          camera_motion: c.camera_motion,
+          video_generation_prompt: c.video_generation_prompt,
+          musical_role: c.musical_role,
+          energy_level: c.energy_level
+        };
+      });
+
+      storyboardCuts = mappedCuts;
+      calcTotalRuntime();
+
+      // Dynamically re-render clips-grid for the 5 cuts
+      const grid = document.querySelector('.clips-grid');
+      if (grid) {
+        grid.style.gridTemplateColumns = `repeat(${mappedCuts.length}, 1fr)`;
+        const sprites = [
+          "/characters/ren/front.png",
+          "/characters/ren/right.png",
+          "/characters/ren/back.png",
+          "/characters/ren/left.png",
+          "/characters/ren/front.png"
+        ];
+        grid.innerHTML = mappedCuts.map((cut, idx) => `
+          <div class="clip-box ${idx === 0 ? 'active' : ''}" onclick="selectCut(${idx})">
+            <div class="clip-label"><i class="fa-solid fa-play"></i> <span id="txt-clip-${idx+1}-lbl">${cut.name}</span></div>
+            <img class="clip-thumb" src="${sprites[idx % sprites.length]}" alt="Cut ${idx+1}">
+            <div class="clip-duration" id="txt-clip-${idx+1}-dur">${cut.duration}秒 | ⚡${cut.energy_level}%</div>
+          </div>
+        `).join('');
+      }
+
+      // Update timeline header & runtime
+      const titleEl = document.getElementById('txt-timeline-title');
+      if (titleEl) {
+        titleEl.innerHTML = `🎵 音楽同期・${mappedCuts.length}カット映画タイムライン (${sb.track_title || 'GENESIS'} | ${sb.bpm}BPM ${sb.key})`;
+      }
+
+      // Update Look details in Studio card
+      if (sb.cinematic_look) {
+        const look = sb.cinematic_look;
+        const cardBody = document.getElementById('txt-card2-body');
+        if (cardBody) {
+          cardBody.innerHTML = `
+            ・<strong>LUT / ルック</strong>: <span style="color: #f59e0b; font-weight: bold;">${look.lut_preset}</span><br>
+            ・<strong>レンズ＆シャッター</strong>: <span style="color: #38bdf8;">${look.lens_choice} (${look.shutter_speed})</span><br>
+            ・<strong>照明設計</strong>: <span>${look.lighting_setup}</span><br>
+            ・<strong>楽曲テンポ＆キー</strong>: <span>${sb.bpm} BPM / ${sb.key} (${look.cinematic_rhythm})</span><br>
+            <span style="color: #f59e0b; font-size: 0.7rem; font-weight: bold;">👉 音楽ディレクター同期済み (${mappedCuts.length}カット連動中)</span>
+          `;
+        }
+      }
+
+      renderTimelineStoryboardBadges();
+      selectCut(0);
+
+      if (showToastMsg && typeof showToast === 'function') {
+        showToast(`🎵 音楽ディレクターから楽曲同期${mappedCuts.length}カット（${sb.track_title}）を自動ロードしました！`);
+      }
+    }
+
+    try {
+      const cinemaNervousBus = new BroadcastChannel('genesis_nervous_bus');
+      cinemaNervousBus.onmessage = (event) => {
+        if (event.data && event.data.type === 'CINEMA_STORYBOARD_SYNC' && event.data.storyboard) {
+          applyAudioToCinemaStoryboard(event.data.storyboard, true);
+        }
+      };
+    } catch(e) {
+      console.warn("BroadcastChannel error:", e);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const cachedStoryboard = localStorage.getItem('genesis_active_storyboard');
+      if (cachedStoryboard) {
+        try {
+          const sb = JSON.parse(cachedStoryboard);
+          applyAudioToCinemaStoryboard(sb, false);
+        } catch(e) {}
+      }
+    });
+
+    // ==============================================================
     // 🎬 短編動画完パケ出力 ＆ Google Veo 3.1 連携レコーディングエンジン
     // ==============================================================
     let masterVideoRecorder = null;
