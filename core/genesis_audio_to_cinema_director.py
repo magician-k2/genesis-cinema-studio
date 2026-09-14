@@ -193,8 +193,9 @@ def generate_synchronized_cinema_storyboard(features: dict, track_title: str = "
     bpm = features.get("bpm", 120.0)
     key = features.get("key", "D Minor")
     
-    # Enrich each section with ready-to-render AI Video Prompts (Veo 3.1 & Runway Gen-3)
+    # Enrich each section with ready-to-render AI Video Prompts (Veo 3.1, Gemini Omni 1.1 Flash, Agentic Video)
     storyboard_cuts = []
+    omni_script_lines = []
     for idx, sec in enumerate(sections, 1):
         prompt_veo = (
             f"Cinematic 35mm film still, {sec['shot_type']}, {sec['camera_motion']}. "
@@ -204,6 +205,25 @@ def generate_synchronized_cinema_storyboard(features: dict, track_title: str = "
             f"Masterpiece 8K resolution, photorealistic ARRI Alexa LF aesthetic, authentic depth of field."
         )
         
+        prompt_omni = (
+            f"[{int(sec['start_sec']//60):02d}:{int(sec['start_sec']%60):02d} - {int(sec['end_sec']//60):02d}:{int(sec['end_sec']%60):02d}] "
+            f"Audio-Driven Visual Action: {sec['dramatic_intent']}. "
+            f"Framing: {sec['shot_type']} ✕ {sec['camera_motion']}. "
+            f"Optics: {look['lens_choice']}, {look['shutter_speed']}. Grade: {look['lut_preset']}. "
+            f"Acoustic Synchronizer: Beat transients aligned to camera motion at {bpm}BPM in {key} (Energy: {sec['energy_level']}%)."
+        )
+        omni_script_lines.append(prompt_omni)
+
+        agentic_spec = {
+            "agent_role": f"Cinematography Agent ({sec['section']})",
+            "camera_motion": sec['camera_motion'],
+            "shot_framing": sec['shot_type'],
+            "actor_action": f"Protagonist Ren enacting '{sec['dramatic_intent']}'",
+            "perceptual_anchor": "Deep eye contact, dynamic coat flare, authentic lens flare",
+            "time_window_sec": [sec['start_sec'], sec['end_sec']],
+            "lighting_look": look['lighting_setup']
+        }
+
         storyboard_cuts.append({
             "cut_id": f"CUT_{idx:02d}",
             "section": sec["section"],
@@ -216,7 +236,9 @@ def generate_synchronized_cinema_storyboard(features: dict, track_title: str = "
             "dramatic_intent": sec["dramatic_intent"],
             "shot_type": sec["shot_type"],
             "camera_motion": sec["camera_motion"],
-            "video_generation_prompt": prompt_veo
+            "video_generation_prompt": prompt_veo,
+            "gemini_omni_prompt": prompt_omni,
+            "agentic_video_spec": agentic_spec
         })
 
     return {
@@ -227,6 +249,13 @@ def generate_synchronized_cinema_storyboard(features: dict, track_title: str = "
         "key": key,
         "cinematic_look": look,
         "storyboard_cuts": storyboard_cuts,
+        "gemini_omni_script": "\n\n".join(omni_script_lines),
+        "agentic_video_plan": {
+            "director_model": "Google Gemini Omni 1.1 Flash ✕ Agentic Video Orchestrator",
+            "temporal_grid": f"{len(storyboard_cuts)} cuts spanning {total_duration_sec}s",
+            "look_preset": look['lut_preset'],
+            "audio_timbre": look['timbre_summary']
+        },
         "director_note": f"Audio timbre successfully translated into {look['lut_preset']} with {len(storyboard_cuts)} synchronized cuts."
     }
 

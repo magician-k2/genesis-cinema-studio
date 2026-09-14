@@ -778,8 +778,9 @@
     <!-- 1. Hero Ingestion & Analysis Section -->
     <div class="ingest-card">
       <div class="ingest-title">
-        <i class="fa-brands fa-youtube" style="color: #ef4444;"></i>
-        <span>YouTube Music / 音声ファイルから直感サンプリング＆プロンプト生成</span>
+        <i class="fa-solid fa-robot" style="color: #ec4899; margin-right: 3px;"></i>
+        <i class="fa-brands fa-youtube" style="color: #ef4444; margin-right: 6px;"></i>
+        <span>MiniMax Music (Hailuo) ✕ YouTube Music ✕ 音声ファイルから直感サンプリング＆映画コンテ自動化</span>
       </div>
 
       <div class="ingest-input-row">
@@ -793,7 +794,11 @@
       </div>
 
       <div class="presets-row" id="presets-row-container">
-        <span class="preset-label"><i class="fa-solid fa-bolt"></i> プリセット:</span>
+        <span class="preset-label"><i class="fa-solid fa-bolt"></i> プリセット & 読込:</span>
+        <input type="file" id="minimax-file-input" accept="audio/*" style="display: none;" onchange="handleMiniMaxFileUpload(event)">
+        <button class="preset-chip" style="border: 1.5px solid #ec4899; background: linear-gradient(135deg, rgba(236,72,153,0.35), rgba(168,85,247,0.35)); color: #fdf2f8; font-weight: 800; box-shadow: 0 0 14px rgba(236,72,153,0.3);" onclick="document.getElementById('minimax-file-input').click()">
+          <i class="fa-solid fa-robot" style="color: #f472b6;"></i> 🤖 MiniMax音楽読込 (MP3/WAV/Hailuo音源)
+        </button>
         <button class="preset-chip" style="border-color: #ec4899; background: rgba(236,72,153,0.2); color: #fbcfe8; font-weight: 800;" onclick="openDocsToMusicModal()"><i class="fa-solid fa-wand-magic-sparkles" style="color: #f472b6;"></i> 📄 脚本・企画書から劇伴＆MPCキット生成 (Docs-to-Music)</button>
         <button class="preset-chip active" id="preset-hans" onclick="setPreset('Hans Zimmer Interstellar Style', this)">🪐 ハンス・ジマー (Interstellar)</button>
         <button class="preset-chip" id="preset-cyberpunk" onclick="setPreset('Tokyo Neo Noir Cyberpunk 2077', this)">🌃 サイバー東京 2077</button>
@@ -1219,6 +1224,9 @@
               </button>
               <button class="tab-btn" id="tab-btn-veo" onclick="switchPromptTab('veo')">
                 <i class="fa-solid fa-video"></i> Veo 3.1 映画同期
+              </button>
+              <button class="tab-btn" id="tab-btn-agentic" onclick="switchPromptTab('agentic')">
+                <i class="fa-solid fa-brain" style="color: #c084fc;"></i> Agentic Video (Gemini Omni 1.1 Flash)
               </button>
             </div>
 
@@ -1689,16 +1697,25 @@
       }
     }
 
-    // File Upload Handler
+    // MiniMax & Local Audio File Upload Handlers
+    async function handleMiniMaxFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      await processAudioFileIngestion(file, 'MiniMax Music (Hailuo AI) Master Track');
+    }
+
     async function handleLocalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
+      await processAudioFileIngestion(file, 'Local Audio Master');
+    }
 
+    async function processAudioFileIngestion(file, contextTitle = 'MiniMax Audio Master') {
       const btn = document.getElementById('btn-run-separate');
       const loading = document.getElementById('ingest-loading');
       if (btn) btn.disabled = true;
       if (loading) {
-        document.getElementById('loading-msg').textContent = `${file.name} をアップロード＆ステム分離解析中...`;
+        document.getElementById('loading-msg').textContent = `🤖 ${file.name} を解析中（音色・楽曲構成分解 ＆ 4ステム分離 ＆ 16-Pad MPC展開）...`;
         loading.style.display = 'block';
       }
 
@@ -1711,19 +1728,32 @@
             body: JSON.stringify({
               filename: file.name,
               audio_base64: e.target.result,
-              context: 'Local Audio Master'
+              context: contextTitle
             })
           });
           const data = await res.json();
           if (!data || !data.success) throw new Error(data.error || 'Analysis failed');
 
           document.getElementById('track-name-display').textContent = file.name;
+          window.currentTrackTitle = file.name;
+
+          // 1. Update Features & Metrics
+          if (data.features) {
+            window.currentAudioFeatures = data.features;
+            document.getElementById('val-bpm').textContent = data.features.bpm.toFixed(1);
+            document.getElementById('val-key').textContent = data.features.key;
+            document.getElementById('val-energy').textContent = data.features.energy;
+            document.getElementById('val-timbre').textContent = data.features.timbre;
+            document.getElementById('mpc-status-screen').textContent = `ACTIVE • ${data.features.bpm} BPM • ${data.features.key}`;
+          }
+
           if (data.duration_sec) {
             window.songDuration = data.duration_sec;
             const timeEl = document.getElementById('time-display');
             if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
           }
 
+          // 2. Decode Stems
           const ctx = getAudioContext();
           if (data.stems) {
             await Promise.all(Object.entries(data.stems).map(async ([stemName, b64Data]) => {
@@ -1739,6 +1769,8 @@
               if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
             }
           }
+
+          // 3. MPC 16-Pad Slicing
           if (data.slices) {
             window.currentSlices = data.slices;
             renderPads();
@@ -1749,13 +1781,22 @@
               } catch (err) {}
             }));
           }
+
+          // 4. Update Prompts
           if (data.prompts) {
             window.promptsData = data.prompts;
             updatePromptDisplay();
           }
-          alert(`✨ ローカルファイル [${file.name}] のステム分離＆サンプラー割り当てが完了しました！`);
+
+          // 5. 🎬 AUTOMATICALLY TRIGGER AUDIO-TO-CINEMA DIRECTOR (VEO 3.1 ✕ GEMINI OMNI 1.1 FLASH)
+          if (typeof generateCinemaStoryboard === 'function') {
+            await generateCinemaStoryboard();
+          }
+
+          showToast(`🤖 ${file.name} を読み込み、音色・構成解析 ＆ 映画コンテ5カットを全自動同期しました！`);
         } catch (err) {
-          alert('アップロード解析エラー: ' + err.message);
+          console.error('Upload analysis error:', err);
+          showToast(`❌ アップロード解析エラー: ${err.message}`);
         } finally {
           if (btn) btn.disabled = false;
           if (loading) loading.style.display = 'none';
@@ -2176,7 +2217,25 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       const mode = window.activePromptMode || 'faithful';
 
       let promptVal = '';
-      if (window.promptsData) {
+      if (tab === 'agentic') {
+        promptVal = window.promptsData?.agentic || window.activeCinemaStoryboard?.gemini_omni_script || '';
+        if (!promptVal && window.activeCinemaStoryboard?.storyboard_cuts) {
+          promptVal = window.activeCinemaStoryboard.storyboard_cuts.map(c =>
+            `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
+            `Omni Prompt: ${c.gemini_omni_prompt || c.video_generation_prompt}\n` +
+            `Agentic Role: ${c.agentic_video_spec?.agent_role || 'Cinematography Agent'} | Anchor: ${c.agentic_video_spec?.perceptual_anchor || 'Facial Expression'}\n`
+          ).join('\n\n');
+        }
+      } else if (tab === 'veo') {
+        promptVal = window.promptsData?.veo || '';
+        if (!promptVal && window.activeCinemaStoryboard?.storyboard_cuts) {
+          promptVal = window.activeCinemaStoryboard.storyboard_cuts.map(c =>
+            `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
+            `Shot: ${c.shot_type} | Motion: ${c.camera_motion}\n` +
+            `Prompt: ${c.video_generation_prompt}\n`
+          ).join('\n');
+        }
+      } else if (window.promptsData) {
         const pf = window.promptsData.prompts_faithful || {};
         const pc = window.promptsData.prompts_cinematic_crossover || {};
 
@@ -2205,6 +2264,7 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         else if (tab === 'lyria') label.textContent = `${modeLabel} Google Flow Music (Lyria 3 Pro) 専用プロンプト [Style / BPM / Key / Structure]`;
         else if (tab === 'minimax') label.textContent = `${modeLabel} MiniMax Music Producer 用 [Description ✕ Lyrics&構造分離 2枠プロンプト]`;
         else if (tab === 'veo') label.textContent = 'Google Veo 3.1 映画同期ディレクティブ';
+        else if (tab === 'agentic') label.textContent = 'Google Gemini Omni 1.1 Flash ✕ Agentic Video 自律ディレクター指示 [タイムスタンプ＆音色連動]';
       }
 
       // Update guide banner based on tab
@@ -2281,6 +2341,21 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
             <div style="display: flex; gap: 6px;">
               <button onclick="copyActivePrompt()" style="background: rgba(16, 185, 129, 0.25); border: 1px solid rgba(16, 185, 129, 0.6); color: #a7f3d0; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
                 <i class="fa-solid fa-copy"></i> Veo指示コピー
+              </button>
+            </div>
+          `;
+        } else if (tab === 'agentic') {
+          sunoGuide.style.background = 'rgba(168, 85, 247, 0.15)';
+          sunoGuide.style.borderColor = 'rgba(168, 85, 247, 0.45)';
+          sunoGuide.innerHTML = `
+            <div style="color: #d8b4fe; line-height: 1.4;">
+              <i class="fa-solid fa-brain" style="color: #c084fc; margin-right: 4px;"></i>
+              <strong>Google Gemini Omni 1.1 Flash ✕ Agentic Video 自律ディレクター指示：</strong>
+              <span style="color: #e2e8f0;">MiniMax音色・楽曲構成タイムスタンプ連動 マルチモーダル動画生成＆自律カメラ指示</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button onclick="copyActivePrompt()" style="background: rgba(168, 85, 247, 0.3); border: 1px solid rgba(168, 85, 247, 0.7); color: #f3e8ff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> Omni指示コピー
               </button>
             </div>
           `;
@@ -3725,7 +3800,7 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         renderCutsTimeline(data.storyboard_cuts || []);
         selectActiveCut(0);
 
-        // Update Veo Prompt Tab & switch to it
+        // Update Veo & Gemini Omni / Agentic Video Prompt Tabs
         if (!window.promptsData) window.promptsData = {};
         const fullPromptSequence = (data.storyboard_cuts || []).map(c =>
           `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
@@ -3733,7 +3808,14 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
           `Prompt: ${c.video_generation_prompt}\n`
         ).join('\n');
 
+        const omniPromptSequence = data.gemini_omni_script || (data.storyboard_cuts || []).map(c =>
+          `[${c.cut_id}: ${c.section} (${c.timecode})]\n` +
+          `Omni Prompt: ${c.gemini_omni_prompt}\n` +
+          `Agentic Role: ${c.agentic_video_spec?.agent_role || 'Cinematography Agent'} | Anchor: ${c.agentic_video_spec?.perceptual_anchor || 'Facial Expression'}\n`
+        ).join('\n\n');
+
         window.promptsData.veo = fullPromptSequence;
+        window.promptsData.agentic = omniPromptSequence;
         if (typeof switchPromptTab === 'function') {
           switchPromptTab('veo');
         }
@@ -3812,10 +3894,14 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         detail.textContent = `${cut.shot_type} ✕ ${cut.camera_motion} | 役割: ${cut.musical_role} | ⚡ エネルギー: ${cut.energy_level}%`;
       }
 
-      // Update prompt box if active tab is veo
+      // Update prompt box if active tab is veo or agentic
       const promptBox = document.getElementById('prompt-output-box');
-      if (promptBox && window.activePromptTab === 'veo') {
-        promptBox.value = cut.video_generation_prompt;
+      if (promptBox) {
+        if (window.activePromptTab === 'veo') {
+          promptBox.value = cut.video_generation_prompt;
+        } else if (window.activePromptTab === 'agentic') {
+          promptBox.value = `${cut.gemini_omni_prompt}\n\n[Agentic Video Spec]\nRole: ${cut.agentic_video_spec?.agent_role || 'Cinematography Agent'}\nCamera: ${cut.agentic_video_spec?.camera_motion}\nFraming: ${cut.agentic_video_spec?.shot_framing}\nAnchor: ${cut.agentic_video_spec?.perceptual_anchor}\nLighting: ${cut.agentic_video_spec?.lighting_look}`;
+        }
       }
     }
 
@@ -3886,6 +3972,34 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
             statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #10b981;"></i> 保存済み映画コンテを同期表示中 (${data.storyboard_cuts?.length || 5}カット)`;
           }
         } catch(e) {}
+      }
+
+      // Drag and Drop Audio Ingestion Support on Ingest Card
+      const ingestCard = document.querySelector('.ingest-card');
+      if (ingestCard) {
+        ingestCard.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          ingestCard.style.borderColor = '#ec4899';
+          ingestCard.style.boxShadow = '0 0 25px rgba(236,72,153,0.35)';
+        });
+        ingestCard.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          ingestCard.style.borderColor = '';
+          ingestCard.style.boxShadow = '';
+        });
+        ingestCard.addEventListener('drop', (e) => {
+          e.preventDefault();
+          ingestCard.style.borderColor = '';
+          ingestCard.style.boxShadow = '';
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            if (file.type.startsWith('audio/') || file.name.endsWith('.mp3') || file.name.endsWith('.wav')) {
+              processAudioFileIngestion(file, 'MiniMax / Drag-and-Drop Audio Master');
+            } else {
+              showToast('⚠️ 音声ファイル（MP3 / WAV / MiniMax音源）をドロップしてください');
+            }
+          }
+        });
       }
     });
 

@@ -15,7 +15,6 @@
   function detectActiveOrgan() {
     const path = window.location.pathname.toLowerCase();
     if (path.includes('mobile_antigravity')) return 'mobile';
-    const path = window.location.pathname.toLowerCase();
     if (path.includes('music')) return 'music';
     if (path.includes('character')) return 'character';
     if (path.includes('storyboard')) return 'storyboard';
