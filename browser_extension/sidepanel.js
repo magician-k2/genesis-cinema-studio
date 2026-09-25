@@ -119,6 +119,17 @@ class SidePanelXAIEngine {
     }
 
     onLiveGeminiPromptReceived(prompt) {
+        if (!prompt) return;
+        prompt = prompt.trim();
+        const now = Date.now();
+        if (prompt === this.lastReceivedPrompt && (now - (this.lastReceivedTime || 0)) < 2500) {
+            return;
+        }
+        this.lastReceivedPrompt = prompt;
+        this.lastReceivedTime = now;
+        this.currentSessionId = (this.currentSessionId || 0) + 1;
+        const sessionId = this.currentSessionId;
+
         const queryTextEl = document.getElementById('live-query-text');
         if (queryTextEl) {
             queryTextEl.innerText = prompt;
@@ -126,12 +137,12 @@ class SidePanelXAIEngine {
         }
         const clockEl = document.getElementById('sync-clock');
         if (clockEl) {
-            const now = new Date();
-            clockEl.innerText = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')} SYNCED`;
+            const date = new Date();
+            clockEl.innerText = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')} SYNCED`;
         }
 
-        // アニメーション実行
-        this.runSynchronizedSession(prompt);
+        // アニメーション実行 (セッションID付き)
+        this.runSynchronizedSession(prompt, sessionId);
     }
 
     screenToWorld(sx, sy) {
@@ -300,7 +311,7 @@ class SidePanelXAIEngine {
         }
     }
 
-    async runSynchronizedSession(prompt) {
+    async runSynchronizedSession(prompt, sessionId) {
         this.clearChronicle();
         this.addChronicleLog("T+000ms", `🎯 Geminiから受信: 『${prompt.slice(0, 22)}...』`, "local");
 
@@ -308,7 +319,8 @@ class SidePanelXAIEngine {
         this.currentDAG = dag;
 
         await new Promise(r => setTimeout(r, 100));
-        this.addChronicleLog("T+085ms", `🔍 クエリ意図分解 & 探索スコープ設定`, "gemini");
+        if (sessionId && this.currentSessionId !== sessionId) return;
+        this.addChronicleLog("T+085ms", `🔍 クエリ意図分解 & 探索スコープ設定: [${dag.domain.slice(0, 24)}...]`, "gemini");
 
         this.nodes = [this.centerNode];
         this.links = [];
@@ -325,6 +337,7 @@ class SidePanelXAIEngine {
         const angleSpan = endAngle - startAngle;
 
         for (let i = 0; i < pCount; i++) {
+            if (sessionId && this.currentSessionId !== sessionId) return;
             const n = peripheryNodes[i];
             const t = pCount === 1 ? 0.5 : (i / (pCount - 1));
             const angle = startAngle + t * angleSpan;
@@ -342,6 +355,7 @@ class SidePanelXAIEngine {
         }
 
         await new Promise(r => setTimeout(r, 120));
+        if (sessionId && this.currentSessionId !== sessionId) return;
         this.addChronicleLog("T+460ms", `⚡ [ハエの脳 SNN] ${dag.pruned_branches} 本の迷走仮説を即座に枝刈り！`, "prune");
 
         const interNodes = dag.nodes.filter(n => n.layer === 'intermediate');
@@ -371,6 +385,7 @@ class SidePanelXAIEngine {
         });
 
         await new Promise(r => setTimeout(r, 350));
+        if (sessionId && this.currentSessionId !== sessionId) return;
         this.centerNode.subLabel = dag.root_cause;
         this.centerNode.pulse = 1.0;
         this.addChronicleLog("T+780ms", `🎯 [μTRON CORE] 三者エビデンスが100%合致！真因確定`, "core");
@@ -522,6 +537,91 @@ class SidePanelXAIEngine {
         const pLower = prompt.toLowerCase();
         const randId = Math.random().toString(36).substring(2, 8).toUpperCase();
         const randHash = Math.random().toString(16).substring(2, 10).toUpperCase();
+
+        if (pLower.includes("脳") || pLower.includes("生体") || pLower.includes("機械脳") || pLower.includes("ニューロ") || pLower.includes("シナプス")) {
+            return {
+                domain: "生体脳模倣 ✕ 非同期イベント駆動SNN ✕ メモリ一体型ニューロモルフィック自律知能アーキテクチャ",
+                confidence: 0.998,
+                elapsed_ms: 1.2,
+                root_cause: "フォン・ノイマン型ボトルネック打破: 非同期スパイク通信 & 局所シナプス可塑性(STDP) & メモリ・演算一体化",
+                action_plan: "イベント駆動型SNNハードウェア配備 ＆ シナプス荷重インメモリ演算 ＆ 局所STDP則の実装",
+                receipt_id: `RCPT-XAI-${randId}`,
+                proof_hash: `SHA256:${randHash}`,
+                pruned_branches: 34,
+                nodes: [
+                    {
+                        id: "symptom_1",
+                        label: "Nature_Neuromorphic_In-Memory_Computing_2026.pdf",
+                        data_name: "Nature: Sub-20W Neuromorphic In-Memory Computing (2026)",
+                        layer: "periphery",
+                        source_category: "web",
+                        source: "Google Search Grounding (Web)",
+                        color: "#10b981",
+                        snippet: "Event-driven spiking neural architecture achieves biological brain energy efficiency (<20W).",
+                        harvested_content: "生体脳が20Wという超低消費電力で高度な思考を実現する核心は、クロック信号を排除した非同期スパイク発火にあることを実証した最新論文。"
+                    },
+                    {
+                        id: "symptom_2",
+                        label: "Drosophila_MaleCNS_Connectome_FlyWire.spec",
+                        data_name: "Princeton FlyWire: 139,255 Neurons & 50M Synapses Wiring",
+                        layer: "periphery",
+                        source_category: "gemini_knowledge",
+                        source: "Gemini 3.8 Parametric Memory",
+                        color: "#c084fc",
+                        snippet: "LPTC visual flow integration + Local dendritic STDP synaptic plasticity rules.",
+                        harvested_content: "ショウジョウバエ全脳コネクトームの完全配線データ。視覚流と運動反射を局所シナプスで直接結合させる生体知能の配線仕様。"
+                    },
+                    {
+                        id: "symptom_3",
+                        label: "neuro_mesh_engine.py:128",
+                        data_name: "GENESIS SNN Spiking Core: Leaky Integrate-and-Fire (LIF) Synapse Matrix",
+                        layer: "periphery",
+                        source_category: "local_data",
+                        source: "Local Workspace / AST",
+                        color: "#38bdf8",
+                        snippet: "class SpikingNeuronLayer: membrane_potential += weight * spike_input; decay = 0.95",
+                        harvested_content: "生体ニューロンの膜電位積分発火（LIFモデル）と局所STDP（スパイクタイミング依存可塑性）を実装したローカルソースコード証拠。"
+                    },
+                    {
+                        id: "symptom_4",
+                        label: "Neuromorphic_Memristor_Array_Spec.json",
+                        data_name: "Hardware In-Memory Computing: 4T1R Crossbar Memristor Synapse Weights",
+                        layer: "periphery",
+                        source_category: "local_data",
+                        source: "Local Workspace / Telemetry",
+                        color: "#ef4444",
+                        snippet: "conductance_matrix: [1024, 1024]; non_volatile_analog_state: true; latency: 0.8ns",
+                        harvested_content: "メモリと演算を物理的に一体化し、フォン・ノイマン型バス遅延をゼロにするクロスバー・アナログシナプス抵抗アレイ規格。"
+                    },
+                    {
+                        id: "intermediate_1",
+                        label: "ハエの脳 SNN 反射: クロック同期フォン・ノイマン型CPU/GPUの完全棄却",
+                        layer: "intermediate",
+                        authority: "MaleCNS SNN Layer",
+                        pruned_branches: 22,
+                        color: "#8b5cf6",
+                        details: "定周期クロック通信では消費電力が数kWに達し生体脳の再現が不可能なため、即座に枝刈り。"
+                    },
+                    {
+                        id: "intermediate_2",
+                        label: "グローバル誤差逆伝播の棄却 ＆ 局所STDP学習則への収束",
+                        layer: "intermediate",
+                        authority: "μTRON Core Protocol",
+                        pruned_branches: 12,
+                        color: "#8b5cf6",
+                        details: "生体脳には存在しないバックプロパゲーションを破棄し、前後のスパイク時間差だけで局所学習する生物学的妥当性に合致。"
+                    }
+                ],
+                links: [
+                    { source: "symptom_1", target: "intermediate_1" },
+                    { source: "symptom_2", target: "intermediate_1" },
+                    { source: "symptom_3", target: "intermediate_2" },
+                    { source: "symptom_4", target: "intermediate_2" },
+                    { source: "intermediate_1", target: "core_root_cause" },
+                    { source: "intermediate_2", target: "core_root_cause" }
+                ]
+            };
+        }
 
         if (pLower.includes("量子") || pLower.includes("rsa") || pLower.includes("暗号") || pLower.includes("shor")) {
             return {

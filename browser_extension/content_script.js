@@ -6,12 +6,16 @@ console.log("[GENESIS XAI] Content Script Active on:", window.location.href);
 function setupGeminiLiveCapture() {
     let lastTypedText = "";
     let lastSentText = "";
+    let lastSentTime = 0;
 
     function sendPromptToSidePanel(text) {
         if (!text) return;
         text = text.trim();
-        if (text.length < 2 || text === lastSentText) return;
+        const now = Date.now();
+        if (text.length < 2) return;
+        if (text === lastSentText && (now - lastSentTime) < 2500) return;
         lastSentText = text;
+        lastSentTime = now;
         console.log("[GENESIS XAI] Sending Prompt to SidePanel:", text);
 
         try {
