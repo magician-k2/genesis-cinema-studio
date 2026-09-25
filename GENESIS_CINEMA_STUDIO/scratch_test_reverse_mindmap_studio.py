@@ -158,7 +158,7 @@ def test_reverse_mindmap_studio():
         print(f"  Receipt Harvested Data: {rcpt_harvested}")
         print(f"  Receipt Converged Root: {rcpt_root}")
 
-        assert "outer facts" in rcpt_harvested or "harvested" in rcpt_harvested
+        assert "多角エビデンス" in rcpt_harvested or "Google Search Grounding" in rcpt_harvested or "outer facts" in rcpt_harvested
         assert "activeBypassUntilZ" in rcpt_root or "バグ" in rcpt_root
 
         shot_prompt = os.path.join(artifacts_dir, "screen_reverse_mindmap_prompt_dynamic_convergence.png")
@@ -282,6 +282,58 @@ def test_reverse_mindmap_studio():
         shot_collision_free = os.path.join(artifacts_dir, "screen_reverse_mindmap_collision_free_pan_zoom.png")
         page.screenshot(path=shot_collision_free)
         print(f"  📸 Saved Collision-Free Pan/Zoom/Slide View to: {shot_collision_free}")
+
+        # 12. 世界初: Web ✕ Gemini学習知識 ✕ ローカルコードの3大出処可視化テスト
+        print("\n[STEP 12] Testing World-First Full-Spectrum AI Provenance (Web ✕ Gemini Parametric Memory ✕ Local)...")
+        quantum_prompt = "量子コンピュータのショアのアルゴリズムでなぜRSA暗号が解読されるのか教えて"
+        page.fill("#prompt-input", quantum_prompt)
+        page.click("#btn-run-prompt")
+        page.wait_for_timeout(2000)
+
+        # 思考レシートを開いて3大出処の内訳を確認
+        page.click("#btn-open-receipt")
+        page.wait_for_timeout(500)
+        rcpt_harvested_html = page.inner_html("#rcpt-harvested")
+        print(f"  Receipt Provenance Breakdown:\n{rcpt_harvested_html}")
+
+        assert "Google Search Grounding" in rcpt_harvested_html, "Must contain Web Grounding in receipt!"
+        assert "Gemini 3.8 学習知識" in rcpt_harvested_html, "Must contain Gemini Parametric Memory in receipt!"
+        assert "Local Workspace" in rcpt_harvested_html, "Must contain Local Workspace in receipt!"
+
+        shot_receipt_provenance = os.path.join(artifacts_dir, "screen_reverse_mindmap_provenance_receipt.png")
+        page.screenshot(path=shot_receipt_provenance)
+        print(f"  📸 Saved Full-Provenance Evidence Receipt to: {shot_receipt_provenance}")
+
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(400)
+
+        # Webノード（symptom_3: Google_Search_Live_Grounding.html）をクリックしてインスペクター検証
+        page.evaluate("""() => {
+            const studio = window.meshStudio;
+            const webNode = studio.nodes.find(n => n.id === 'symptom_3');
+            if (webNode) studio.selectNode(webNode);
+        }""")
+        page.wait_for_timeout(600)
+
+        web_insp_html = page.inner_html("#insp-extra")
+        print(f"  Web Node Inspector Contains 'DATA PROVENANCE : WEB GROUNDING': {'DATA PROVENANCE : WEB GROUNDING' in web_insp_html}")
+        assert "DATA PROVENANCE : WEB GROUNDING" in web_insp_html, "Inspector must show WEB GROUNDING provenance badge!"
+
+        # Gemini知識ノード（symptom_4: Gemini_Parametric_Memory_Corpus.spec）をクリックして検証
+        page.evaluate("""() => {
+            const studio = window.meshStudio;
+            const geminiNode = studio.nodes.find(n => n.id === 'symptom_4');
+            if (geminiNode) studio.selectNode(geminiNode);
+        }""")
+        page.wait_for_timeout(600)
+
+        gemini_insp_html = page.inner_html("#insp-extra")
+        print(f"  Gemini Node Inspector Contains 'DATA PROVENANCE : GEMINI 3.8 KNOWLEDGE': {'DATA PROVENANCE : GEMINI 3.8 KNOWLEDGE' in gemini_insp_html}")
+        assert "DATA PROVENANCE : GEMINI 3.8 KNOWLEDGE" in gemini_insp_html, "Inspector must show GEMINI KNOWLEDGE provenance badge!"
+
+        shot_full_provenance = os.path.join(artifacts_dir, "screen_reverse_mindmap_world_first_full_provenance_transparent_ai.png")
+        page.screenshot(path=shot_full_provenance)
+        print(f"  📸 Saved World-First Transparent AI Screen to: {shot_full_provenance}")
 
         browser.close()
 

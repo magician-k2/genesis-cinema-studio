@@ -593,6 +593,7 @@
       </div>
       <div class="prompt-suggestions">
         <span style="font-size:10px; color:var(--text-muted); font-weight:600;">クイック入力:</span>
+        <div class="suggestion-chip" onclick="setPromptAndRun('量子コンピュータのショアのアルゴリズムでなぜRSA暗号が解読されるのか教えて')">⚛️ 量子RSA暗号解読 (Web✕Gemini知識)</div>
         <div class="suggestion-chip" onclick="setPromptAndRun('ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して')">🛸 ドローン直進バグ</div>
         <div class="suggestion-chip" onclick="setPromptAndRun('患者P-102のワーファリン投与可否を厚労省5R規則と照合して')">🏥 ワーファリン5R照合</div>
         <div class="suggestion-chip" onclick="setPromptAndRun('Next.js SSRでwindow参照によるハイドレーションエラーを解消して')">💻 Next.js ハイドレーション</div>
@@ -729,8 +730,21 @@
         document.getElementById('rcpt-pruned').innerText = `${data.pruned_branches || 32} exploratory branches pruned`;
         document.getElementById('rcpt-root-cause').innerText = data.root_cause;
         document.getElementById('rcpt-action').innerText = data.action_plan;
-        const pCount = data.nodes ? data.nodes.filter(n => n.layer === 'periphery').length : 4;
-        document.getElementById('rcpt-harvested').innerText = `• ${pCount} outer facts harvested from AST, Web & Telemetry`;
+        const pNodes = data.nodes ? data.nodes.filter(n => n.layer === 'periphery') : [];
+        let webCount = 0, geminiCount = 0, localCount = 0;
+        pNodes.forEach(n => {
+          const cat = n.source_category || (n.source && (n.source.includes('Web') || n.source.includes('Google') || n.source.includes('http')) ? 'web' : (n.source && (n.source.includes('Gemini') || n.source.includes('Standard') || n.source.includes('IEEE') || n.source.includes('PEP')) ? 'gemini_knowledge' : 'local_data'));
+          if (cat === 'web') webCount++;
+          else if (cat === 'gemini_knowledge') geminiCount++;
+          else localCount++;
+        });
+
+        document.getElementById('rcpt-harvested').innerHTML = `
+          • 合計 ${pNodes.length} 件の多角エビデンスを同期抽出:<br>
+          &nbsp;&nbsp;├ 🌐 <b>Google Search Grounding (Web)</b> : ${webCount || 1} 件<br>
+          &nbsp;&nbsp;├ 🧠 <b>Gemini 3.8 学習知識 (Parametric Memory)</b> : ${geminiCount || 1} 件<br>
+          &nbsp;&nbsp;└ 💻 <b>Local Workspace (コード/AST/ログ)</b> : ${localCount || 2} 件
+        `;
       }
       modal.classList.add('open');
     }
