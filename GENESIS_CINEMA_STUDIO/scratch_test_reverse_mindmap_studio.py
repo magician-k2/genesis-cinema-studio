@@ -130,6 +130,44 @@ def test_reverse_mindmap_studio():
         page.screenshot(path=shot_med)
         print(f"  📸 Saved Clinical AI Scenario View to: {shot_med}")
 
+        # 7. プロンプト入力からの動的データ収集・判断・答えの導出テスト
+        print("\n[STEP 7] Testing Dynamic Prompt Analysis, Data Harvesting & Convergence...")
+        test_prompt = "ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して"
+        page.fill("#prompt-input", test_prompt)
+        page.click("#btn-run-prompt")
+        
+        # 段階的アニメーションの完了を待機 (約1.5秒)
+        page.wait_for_timeout(2000)
+
+        prompt_title = page.inner_text("#hud-scenario-title")
+        prompt_pruned = page.inner_text("#hud-pruned")
+        prompt_conf = page.inner_text("#hud-confidence")
+        print(f"  After Prompt Execution:")
+        print(f"    Domain: {prompt_title}")
+        print(f"    Pruned Branches: {prompt_pruned}")
+        print(f"    Confidence: {prompt_conf}")
+
+        assert "自律ドローン" in prompt_title or "ドローン" in prompt_title, f"Expected Drone domain, got: {prompt_title}"
+        assert "branches" in prompt_pruned, f"Expected pruned branches, got: {prompt_pruned}"
+
+        # 思考レシートを開いて、プロンプトに対応した証拠が出力されているか確認
+        page.click("#btn-open-receipt")
+        page.wait_for_timeout(500)
+        rcpt_harvested = page.inner_text("#rcpt-harvested")
+        rcpt_root = page.inner_text("#rcpt-root-cause")
+        print(f"  Receipt Harvested Data: {rcpt_harvested}")
+        print(f"  Receipt Converged Root: {rcpt_root}")
+
+        assert "outer facts" in rcpt_harvested or "harvested" in rcpt_harvested
+        assert "activeBypassUntilZ" in rcpt_root or "バグ" in rcpt_root
+
+        shot_prompt = os.path.join(artifacts_dir, "screen_reverse_mindmap_prompt_dynamic_convergence.png")
+        page.screenshot(path=shot_prompt)
+        print(f"  📸 Saved Dynamic Prompt Convergence View to: {shot_prompt}")
+
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(300)
+
         browser.close()
 
     print("\n========================================================")

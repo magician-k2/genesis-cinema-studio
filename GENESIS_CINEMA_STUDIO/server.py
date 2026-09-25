@@ -1366,6 +1366,32 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
 
+        # 🌟 GENESIS The Convergent Mesh: Dynamic Prompt Reverse MindMap Analysis
+        if parsed.path == '/api/reverse_mindmap/analyze':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                prompt = payload.get('prompt', '')
+                dag = reverse_mindmap_engine.analyze_prompt_and_converge(prompt)
+                resp_bytes = json.dumps(dag, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
         # ⚡ GENESIS Universal Synapse: Spike Emission Endpoint
         if parsed.path == '/api/synapse/spike':
             content_length = int(self.headers.get('Content-Length', 0))
