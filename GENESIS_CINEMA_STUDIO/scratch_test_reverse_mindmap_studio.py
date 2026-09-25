@@ -168,6 +168,36 @@ def test_reverse_mindmap_studio():
         page.keyboard.press("Escape")
         page.wait_for_timeout(300)
 
+        # 8. Python循環参照プロンプトの検証 & 具体的データ名・コード抜粋・ファクトのインスペクター検証
+        print("\n[STEP 8] Testing Python Circular Import Prompt & Concrete Data/Snippet Inspector...")
+        python_prompt = "Pythonコードの循環インポート例外の真因を特定して"
+        page.fill("#prompt-input", python_prompt)
+        page.click("#btn-run-prompt")
+        page.wait_for_timeout(2000)
+
+        # 外周ノード（symptom_1: genesis_mainframe_core.py:42）をクリック
+        page.evaluate("""() => {
+            const studio = window.meshStudio;
+            const node = studio.nodes.find(n => n.id === 'symptom_1');
+            if (node) studio.selectNode(node);
+        }""")
+        page.wait_for_timeout(500)
+
+        insp_html = page.inner_html("#insp-extra")
+        insp_title = page.inner_text("#insp-title")
+        print(f"  Selected Node Title: {insp_title}")
+        print(f"  Inspector Contains 'genesis_mainframe_core.py': {'genesis_mainframe_core.py' in insp_html}")
+        print(f"  Inspector Contains Code Snippet: {'from core.reverse_mindmap_engine' in insp_html}")
+        print(f"  Inspector Contains Harvested Fact: {'抽出された核心事実' in insp_html}")
+
+        assert "genesis_mainframe_core.py" in insp_title or "genesis_mainframe_core.py" in insp_html
+        assert "from core.reverse_mindmap_engine" in insp_html, "Must display concrete code snippet in inspector!"
+        assert "抽出された核心事実" in insp_html, "Must display extracted factual evidence!"
+
+        shot_snippet = os.path.join(artifacts_dir, "screen_reverse_mindmap_concrete_code_snippet_inspector.png")
+        page.screenshot(path=shot_snippet)
+        print(f"  📸 Saved Concrete Data & Code Snippet View to: {shot_snippet}")
+
         browser.close()
 
     print("\n========================================================")
