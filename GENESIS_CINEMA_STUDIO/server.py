@@ -6,6 +6,7 @@ import urllib.request
 import json
 import os
 import sys
+import shutil
 
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
@@ -13,8 +14,8 @@ if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(encoding='utf-8')
 
 PORT = 8080
-API_KEY = 'AIzaSyBkhM10sDbZGHmeBfeMGC6cgeIVr9qPvUk'
-DIRECTORY = r'G:\マイドライブ\GENESIS_ROOT\GENESIS_CINEMA_STUDIO'
+API_KEY = os.environ.get('GEMINI_API_KEY', '')
+DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 VAULT_FILE = os.path.join(DIRECTORY, 'locations_vault.json')
 PROPS_VAULT_FILE = os.path.join(DIRECTORY, 'props_vault.json')
 SCENES_VAULT_FILE = os.path.join(DIRECTORY, 'scenes_vault.json')
@@ -22,6 +23,18 @@ MEDIA_VAULT_FILE = os.path.join(DIRECTORY, 'media_vault.json')
 MEDIA_UPLOAD_DIR = os.path.join(DIRECTORY, 'media_vault_uploads')
 if not os.path.exists(MEDIA_UPLOAD_DIR):
     os.makedirs(MEDIA_UPLOAD_DIR, exist_ok=True)
+
+import socket
+def get_local_lan_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
 
 # Initialize Character Matting & 4-View Engine
 ROOT_DIR = os.path.dirname(DIRECTORY)
@@ -40,7 +53,19 @@ qno = QuantumNervousOrchestrator()
 matting_engine = CharacterMattingEngine(vault_dir=os.path.join(DIRECTORY, 'characters'))
 mocap_engine = MocapPoseTransferEngine(root_dir=ROOT_DIR)
 aerial_engine = AerialFlightSwarmEngine()
+from core.genesis_malecns_cybernetic_engine import malecns_engine
 
+# 🧬 GENESIS Universal Neuromorphic Synapse & Neocortex Engine
+from core.genesis_universal_synapse import SynapseRelay, NeuralSpike
+from core.genesis_neocortex_engine import GenesisNeocortexEngine
+from core.genesis_organ_genesis import OrganGenesisEngine
+from core.genesis_drive_loader import drive_loader
+from core.telepathy_exam_engine import telepathy_engine
+
+synapse_relay = SynapseRelay()
+neocortex_engine = GenesisNeocortexEngine()
+organ_genesis_engine = OrganGenesisEngine()
+from core.reverse_mindmap_engine import reverse_mindmap_engine
 
 # 🎙️ Google DeepMind Gemini Native Audio TTS Engine (gemini-2.5-flash-preview-tts)
 import hashlib
@@ -193,7 +218,7 @@ def generate_ai_character_turnaround(prompt_text: str, metadata: dict):
     import io
     from google import genai
 
-    api_key = os.environ.get('GEMINI_API_KEY', 'AIzaSyBycrf1yVVcARNepmrblZJYtAxtKEUN92s')
+    api_key = os.environ.get('GEMINI_API_KEY', '')
     client = genai.Client(api_key=api_key)
 
     char_name = metadata.get('name', '')
@@ -251,11 +276,296 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
 
-        if parsed.path == '/api/malecns/telemetry':
+        # ⚡ GENESIS Default Redirect to Unified Cockpit
+        if parsed.path in ('/', '/cockpit', '/unified'):
+            self.send_response(302)
+            self.send_header('Location', '/genesis_unified_cockpit.html')
+            self.end_headers()
+            return
+
+        # 🌟 GENESIS The Convergent Mesh (Reverse MindMap Causal DAG) API
+        if parsed.path == '/api/reverse_mindmap':
             try:
-                from core.neural_backbone import malecns_bus
-                data = malecns_bus.get_telemetry()
-                resp_bytes = json.dumps(data, ensure_ascii=False).encode('utf-8')
+                query_params = urllib.parse.parse_qs(parsed.query)
+                scenario_key = query_params.get('scenario', ['swe_bench_bug'])[0]
+                dag = reverse_mindmap_engine.get_preset_scenario(scenario_key)
+                resp_bytes = json.dumps(dag, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 📁 Chrome Bookmarks Download Endpoint
+        if parsed.path == '/api/bookmarks/download':
+            bm_path = os.path.join(DIRECTORY, 'genesis_bookmarks.html')
+            if os.path.exists(bm_path):
+                with open(bm_path, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Content-Disposition', 'attachment; filename="genesis_bookmarks.html"')
+                self.send_header('Content-Length', str(len(content)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(content)
+                return
+
+        # 🫀 GENESIS Dynamic Organ Registry (Google Drive Decoupled Loader)
+        if parsed.path == '/api/organs/registry':
+            try:
+                registry_data = drive_loader.get_registry_summary()
+                resp_bytes = json.dumps(registry_data, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 📱 Local Network Device Sync & QR Launcher Endpoint
+        if parsed.path == '/api/network/ip':
+            local_ip = get_local_lan_ip()
+            info = {
+                "success": True,
+                "ip": local_ip,
+                "port": PORT,
+                "mobile_pwa_url": f"http://{local_ip}:{PORT}/mobile_antigravity_pwa.html",
+                "nedo_cockpit_url": f"http://{local_ip}:{PORT}/nedo_geniac_physical_ai_cockpit.html",
+                "unified_cockpit_url": f"http://{local_ip}:{PORT}/genesis_unified_cockpit.html",
+                "sandbox_url": f"http://{local_ip}:{PORT}/organs/_sandbox/organ_dev_sandbox.html"
+            }
+            resp_bytes = json.dumps(info, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
+        # 🎓 単位認定試験 7科目一覧取得 API
+        if parsed.path in ('/api/quiz/courses', '/api/telepathy/courses'):
+            courses = telepathy_engine.get_available_courses()
+            resp_bytes = json.dumps({"success": True, "courses": courses}, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
+        # 🎓 単位認定試験 1問1答演習問題取得 API
+        if parsed.path in ('/api/quiz/get_quizzes', '/api/telepathy/quizzes'):
+            q_params = urllib.parse.parse_qs(parsed.query)
+            subject = q_params.get('subject', [telepathy_engine.current_subject])[0]
+            limit = int(q_params.get('limit', [50])[0])
+            result = telepathy_engine.get_quizzes_for_subject(subject, limit=limit)
+            resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
+        # 📸 実戦復習アーカイブ問題取得 API
+        if parsed.path == '/api/review/quizzes':
+            q_params = urllib.parse.parse_qs(parsed.query)
+            subject = q_params.get('subject', [telepathy_engine.current_subject])[0]
+            result = telepathy_engine.get_review_quizzes_from_archives(subject)
+            resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
+        # 🧠 テレパシー思考ステータス取得 API
+        if parsed.path == '/api/telepathy/status':
+            resp = {
+                "success": True,
+                "current_subject": telepathy_engine.current_subject,
+                "last_thought": telepathy_engine.last_telepathy_thought
+            }
+            resp_bytes = json.dumps(resp, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
+        # 🎯 テレパシー対象科目変更 API
+        if parsed.path in ('/api/telepathy/set_subject', '/set_subject'):
+            q_params = urllib.parse.parse_qs(parsed.query)
+            sub = q_params.get('subject', [''])[0]
+            if sub:
+                telepathy_engine.set_current_subject(sub)
+            resp_bytes = json.dumps({"success": True, "subject": telepathy_engine.current_subject}, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
+        # 🗄️ 成果物共有管理 (Shared Vault DAM) サマリー API
+        if parsed.path == '/api/vault/summary':
+            try:
+                outputs_dir = os.path.join(ROOT_DIR, 'outputs')
+                captures_dir = os.path.join(ROOT_DIR, 'captures')
+                vault_files = []
+                for root_scan, _, files in os.walk(outputs_dir):
+                    for f in files:
+                        if not f.startswith('.'):
+                            p = os.path.join(root_scan, f)
+                            rel = os.path.relpath(p, ROOT_DIR).replace('\\', '/')
+                            vault_files.append({
+                                "name": f,
+                                "path": f"/{rel}",
+                                "size_kb": round(os.path.getsize(p) / 1024, 1),
+                                "category": os.path.basename(root_scan),
+                                "modified": os.path.getmtime(p)
+                            })
+                vault_files.sort(key=lambda x: x['modified'], reverse=True)
+                summary_data = {
+                    "success": True,
+                    "total_outputs": len(vault_files),
+                    "categories": list(set(f["category"] for f in vault_files)),
+                    "recent_assets": vault_files[:30]
+                }
+                resp_bytes = json.dumps(summary_data, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🧠 GENESIS Neocortex: Shared Experience & Synesthetic State
+        if parsed.path == '/api/synapse/experience':
+            try:
+                summary = neocortex_engine.get_experience_summary()
+                resp_bytes = json.dumps({"success": True, "neocortex": summary}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🧬 GENESIS Organ Genesis: List Available Code Genes
+        elif parsed.path == '/api/synapse/genes':
+            try:
+                genes = organ_genesis_engine.list_genes()
+                resp_bytes = json.dumps({"success": True, "genes": genes}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🧬 GENESIS Organ Genesis: Synthesize / Evolve New Organ Application
+        elif parsed.path == '/api/organ/evolve':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                organ_name = payload.get("organ_name", "Evolved Organ")
+                description = payload.get("description", "Autonomously evolved specialized organ")
+                genes = payload.get("selected_genes", ["GENE_UNIVERSAL_SYNAPSE"])
+                result = organ_genesis_engine.synthesize_new_organ_template(organ_name, description, genes)
+                target_path = os.path.join(DIRECTORY, result["filename"])
+                with open(target_path, 'w', encoding='utf-8') as f:
+                    f.write(result["html_code"])
+                resp = {
+                    "success": True,
+                    "organ_name": organ_name,
+                    "filename": result["filename"],
+                    "url": f"/{result['filename']}",
+                    "genes_used": genes
+                }
+                resp_bytes = json.dumps(resp, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/malecns/telemetry':
+            try:
+                telemetry = malecns_engine.process_cycle()
+                resp_bytes = json.dumps({"success": True, "telemetry": telemetry}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp_bytes)))
@@ -313,6 +623,172 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(resp_bytes)
             return
 
+        elif parsed.path == '/api/music/cache/list':
+            cache_dir = os.path.join(os.path.dirname(__file__), "cache_audio")
+            tracks = []
+            if os.path.exists(cache_dir):
+                for fname in os.listdir(cache_dir):
+                    if fname.endswith('.title'):
+                        key = fname[:-6]
+                        title_path = os.path.join(cache_dir, fname)
+                        meta_path = os.path.join(cache_dir, f"{key}.meta.json")
+                        mp3_path = os.path.join(cache_dir, f"{key}.mp3")
+
+                        title = ""
+                        try:
+                            with open(title_path, 'r', encoding='utf-8') as tf:
+                                title = tf.read().strip()
+                        except Exception:
+                            title = key
+
+                        track_info = {
+                            "key": key,
+                            "title": title or key,
+                            "has_meta": os.path.exists(meta_path),
+                            "has_mp3": os.path.exists(mp3_path),
+                            "mp3_size": os.path.getsize(mp3_path) if os.path.exists(mp3_path) else 0,
+                            "mtime": os.path.getmtime(title_path) if os.path.exists(title_path) else 0,
+                            "bpm": 120.0,
+                            "key_sig": "C Major",
+                            "duration_sec": 30.0,
+                            "energy": "Medium",
+                            "timbre": "Acoustic / Synth",
+                            "sections_count": 0,
+                            "has_stems": False,
+                            "has_slices": False
+                        }
+
+                        if os.path.exists(meta_path):
+                            try:
+                                with open(meta_path, 'r', encoding='utf-8') as mf:
+                                    meta = json.load(mf)
+                                track_info["title"] = meta.get("track_title") or track_info["title"]
+                                track_info["duration_sec"] = meta.get("duration_sec") or 30.0
+                                feat = meta.get("features") or {}
+                                track_info["bpm"] = feat.get("bpm", 120.0)
+                                track_info["key_sig"] = feat.get("key", "C Major")
+                                track_info["energy"] = feat.get("energy", "Dynamic")
+                                track_info["timbre"] = feat.get("timbre", "Rich")
+                                if "sections" in meta:
+                                    track_info["sections_count"] = len(meta["sections"])
+                                elif "prompts" in meta and "sections" in meta["prompts"]:
+                                    track_info["sections_count"] = len(meta["prompts"]["sections"])
+                                track_info["has_stems"] = bool(meta.get("stems"))
+                                track_info["has_slices"] = bool(meta.get("slices"))
+                            except Exception:
+                                pass
+
+                        tracks.append(track_info)
+
+            tracks.sort(key=lambda t: t["mtime"], reverse=True)
+            resp_bytes = json.dumps({"success": True, "count": len(tracks), "tracks": tracks}, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
+            return
+
+        elif parsed.path == '/api/music/cache/audio':
+            qs = urllib.parse.parse_qs(parsed.query)
+            key = qs.get('key', [''])[0].strip()
+            cache_dir = os.path.join(os.path.dirname(__file__), "cache_audio")
+            mp3_path = os.path.join(cache_dir, f"{key}.mp3")
+            if os.path.exists(mp3_path) and os.path.isfile(mp3_path):
+                file_size = os.path.getsize(mp3_path)
+                self.send_response(200)
+                self.send_header('Content-Type', 'audio/mpeg')
+                self.send_header('Content-Length', str(file_size))
+                self.send_header('Accept-Ranges', 'bytes')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                with open(mp3_path, 'rb') as f:
+                    shutil.copyfileobj(f, self.wfile)
+                return
+            else:
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(b'{"error": "Audio file not found"}')
+                return
+
+        # 🧬 GENESIS Music DNA Demo Endpoint
+        elif parsed.path == '/api/music/dna/demo':
+            try:
+                from core.genesis_music_dna_producer_engine import generate_synthetic_techno_demo, analyze_and_produce_full_dna
+                demo_path = generate_synthetic_techno_demo()
+                result = analyze_and_produce_full_dna(demo_path, api_key=API_KEY)
+                result["audio_url"] = "/cache_audio/demo_techno_132bpm.wav"
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🎛️ GENESIS UVR5 4-Stem Demo Endpoint
+        elif parsed.path == '/api/music/stems/demo':
+            try:
+                from core.genesis_music_dna_producer_engine import generate_synthetic_techno_demo
+                from core.genesis_uvr5_stem_engine import separate_stems_auto
+                demo_path = generate_synthetic_techno_demo()
+                result = separate_stems_auto(demo_path)
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🎹 GENESIS Audio-to-MIDI Demo Endpoint
+        elif parsed.path == '/api/music/midi/demo':
+            try:
+                from core.genesis_music_dna_producer_engine import generate_synthetic_techno_demo
+                from core.genesis_audio_to_midi_engine import transcribe_audio_to_midi_package
+                demo_path = generate_synthetic_techno_demo()
+                result = transcribe_audio_to_midi_package(demo_path, bpm=129.2)
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
         # ⚛️ Quantum Nervous Orchestrator (Q-NO) Status Endpoint
         elif parsed.path == '/api/qno/status':
             self.send_response(200)
@@ -321,6 +797,18 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             status_data = qno.get_topology_status()
             self.wfile.write(json.dumps(status_data, ensure_ascii=False).encode('utf-8'))
+            return
+
+        # 🪰 MaleCNS 166k Bio-Cybernetic Engine Ommatidia Endpoints
+        elif parsed.path == '/api/malecns/ommatidia':
+            layout = malecns_engine.get_ommatidia_layout()
+            resp_bytes = json.dumps({"success": True, "count": len(layout), "ommatidia": layout}, ensure_ascii=False).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Content-Length', str(len(resp_bytes)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(resp_bytes)
             return
         
         # 1. 🌐 Cloud Street View Gateway Endpoint
@@ -877,9 +1365,116 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
-        
+
+        # ⚡ GENESIS Universal Synapse: Spike Emission Endpoint
+        if parsed.path == '/api/synapse/spike':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                spike = NeuralSpike.from_dict(payload)
+                synapse_relay.fire(spike)
+                resp = {"success": True, "synapse_id": spike.synapse_id, "spike_type": spike.spike_type}
+                resp_bytes = json.dumps(resp, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🧠 単位認定試験テレパシー: 0.3s 即時画面判定キャプチャ推論 API
+        elif parsed.path in ('/api/telepathy/capture', '/capture_solve'):
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length) if content_length > 0 else b""
+            try:
+                import base64
+                image_bytes = None
+                monitor_info = {}
+                # Check if JSON with base64
+                if body.startswith(b'{'):
+                    payload = json.loads(body.decode('utf-8'))
+                    if "image_base64" in payload:
+                        b64_str = payload["image_base64"]
+                        if "," in b64_str:
+                            b64_str = b64_str.split(",", 1)[1]
+                        image_bytes = base64.b64decode(b64_str)
+                    monitor_info = payload.get("monitor", {})
+                else:
+                    image_bytes = body
+
+                if not image_bytes:
+                    raise ValueError("No image bytes provided")
+
+                result = telepathy_engine.process_telepathy_click_capture(image_bytes, monitor_info)
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"status": "ERROR", "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🧬 GENESIS Organ Genesis: Synthesize / Evolve New Organ Application
+        elif parsed.path == '/api/organ/evolve':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                organ_name = payload.get("organ_name", "Evolved Organ")
+                description = payload.get("description", "Autonomously evolved specialized organ")
+                genes = payload.get("selected_genes", ["GENE_UNIVERSAL_SYNAPSE"])
+                result = organ_genesis_engine.synthesize_new_organ_template(organ_name, description, genes)
+                target_path = os.path.join(DIRECTORY, result["filename"])
+                with open(target_path, 'w', encoding='utf-8') as f:
+                    f.write(result["html_code"])
+                resp = {
+                    "success": True,
+                    "organ_name": organ_name,
+                    "filename": result["filename"],
+                    "url": f"/{result['filename']}",
+                    "genes_used": genes
+                }
+                resp_bytes = json.dumps(resp, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
         # 🏛️ Save New Asset Item to Media Vault
-        if parsed.path == '/api/media_vault':
+        elif parsed.path == '/api/media_vault':
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8')
             try:
@@ -2039,6 +2634,222 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(err_bytes)
                 return
 
+        # 🔗 YouTube Music / YouTube URL Ingestion, DNA Extraction & Stem Separation
+        elif parsed.path == '/api/music/dna/youtube':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                url_or_query = payload.get('url', '').strip()
+                genre_hint = payload.get('genre_hint', 'Detroit Hypnotic Techno')
+                if not url_or_query:
+                    url_or_query = "Ken Ishii Extra"
+
+                from core.genesis_youtube_music_analyzer import download_and_cache_youtube_audio
+                from core.genesis_music_dna_producer_engine import analyze_and_produce_full_dna
+                from core.genesis_uvr5_stem_engine import separate_stems_auto
+                from core.genesis_audio_to_midi_engine import transcribe_audio_to_midi_package
+
+                mp3_path, title, _ = download_and_cache_youtube_audio(url_or_query)
+                cache_filename = os.path.basename(mp3_path)
+                audio_url = f"/cache_audio/{cache_filename}"
+
+                # 1. DNA analysis
+                dna = analyze_and_produce_full_dna(mp3_path, api_key=API_KEY)
+                dna["title"] = title
+                dna["audio_url"] = audio_url
+
+                # 2. UVR5 Stems
+                stems_res = separate_stems_auto(mp3_path)
+                dna["stems"] = stems_res.get("stems", {})
+
+                # 3. Audio-to-MIDI
+                try:
+                    bpm_val = dna.get("bpm", 130.0)
+                    midi_res = transcribe_audio_to_midi_package(mp3_path, bpm=bpm_val)
+                    dna["midi_files"] = midi_res.get("midi_files", {})
+                except Exception as me:
+                    dna["midi_error"] = str(me)
+
+                resp_bytes = json.dumps(dna, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🧬 GENESIS Music DNA Ingestion, Reverse-Engineering & MiniMax Prompt Producer
+        elif parsed.path == '/api/music/dna/analyze':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                b64_data = payload.get('audio_base64', '')
+                audio_path = payload.get('audio_path', '')
+                youtube_url = (payload.get('youtube_url', '') or payload.get('url', '')).strip()
+                filename = payload.get('filename', 'analyzed_techno_track.wav')
+                genre_hint = payload.get('genre_hint', 'Melodic Hypnotic Techno')
+
+                import base64
+                from core.genesis_music_dna_producer_engine import analyze_and_produce_full_dna, generate_synthetic_techno_demo
+                from core.genesis_uvr5_stem_engine import separate_stems_auto
+                from core.genesis_audio_to_midi_engine import transcribe_audio_to_midi_package
+
+                cache_dir = os.path.join(DIRECTORY, "cache_audio")
+                os.makedirs(cache_dir, exist_ok=True)
+
+                if youtube_url:
+                    from core.genesis_youtube_music_analyzer import download_and_cache_youtube_audio
+                    target_path, ytitle, _ = download_and_cache_youtube_audio(youtube_url)
+                    filename = ytitle
+                    audio_url = f"/cache_audio/{os.path.basename(target_path)}"
+                elif b64_data:
+                    if ',' in b64_data:
+                        b64_data = b64_data.split(',', 1)[1]
+                    raw_bytes = base64.b64decode(b64_data)
+                    safe_name = f"dna_upload_{int(time.time() * 1000)}.wav"
+                    target_path = os.path.join(cache_dir, safe_name)
+                    with open(target_path, 'wb') as f:
+                        f.write(raw_bytes)
+                    audio_url = f"/cache_audio/{safe_name}"
+                elif audio_path and os.path.exists(audio_path):
+                    target_path = audio_path
+                    audio_url = f"/cache_audio/{os.path.basename(audio_path)}"
+                else:
+                    target_path = generate_synthetic_techno_demo()
+                    audio_url = "/cache_audio/demo_techno_132bpm.wav"
+
+                result = analyze_and_produce_full_dna(target_path, api_key=API_KEY)
+                result["audio_url"] = audio_url
+                result["filename"] = filename
+                result["title"] = filename
+
+                # Auto-generate 4 stems
+                try:
+                    stems_res = separate_stems_auto(target_path)
+                    result["stems"] = stems_res.get("stems", {})
+                except Exception as se:
+                    result["stems_error"] = str(se)
+
+                # Auto-generate MIDI
+                try:
+                    bpm_val = result.get("bpm", 130.0)
+                    midi_res = transcribe_audio_to_midi_package(target_path, bpm=bpm_val)
+                    result["midi_files"] = midi_res.get("midi_files", {})
+                except Exception as me:
+                    result["midi_error"] = str(me)
+
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🎛️ GENESIS UVR5 4-Stem Audio Separation Endpoint
+        elif parsed.path == '/api/music/stems/separate':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                b64_data = payload.get('audio_base64', '')
+                audio_path = payload.get('audio_path', '')
+                filename = payload.get('filename', 'uploaded_track.wav')
+
+                from core.genesis_uvr5_stem_engine import separate_stems_auto
+                from core.genesis_music_dna_producer_engine import generate_synthetic_techno_demo
+                cache_dir = os.path.join(DIRECTORY, "cache_audio")
+                os.makedirs(cache_dir, exist_ok=True)
+
+                if b64_data:
+                    import base64
+                    if ',' in b64_data:
+                        b64_data = b64_data.split(',', 1)[1]
+                    raw_bytes = base64.b64decode(b64_data)
+                    safe_name = f"stem_upload_{int(time.time() * 1000)}.wav"
+                    target_path = os.path.join(cache_dir, safe_name)
+                    with open(target_path, 'wb') as f:
+                        f.write(raw_bytes)
+                elif audio_path and os.path.exists(audio_path):
+                    target_path = audio_path
+                else:
+                    target_path = generate_synthetic_techno_demo()
+
+                result = separate_stems_auto(target_path)
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        # 🎹 GENESIS Audio-to-MIDI Export Endpoint
+        elif parsed.path == '/api/music/midi/export':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                audio_path = payload.get('audio_path', '')
+                bpm = float(payload.get('bpm', 130.0))
+
+                from core.genesis_music_dna_producer_engine import generate_synthetic_techno_demo
+                from core.genesis_audio_to_midi_engine import transcribe_audio_to_midi_package
+
+                if not audio_path or not os.path.exists(audio_path):
+                    audio_path = generate_synthetic_techno_demo()
+
+                result = transcribe_audio_to_midi_package(audio_path, bpm=bpm)
+                resp_bytes = json.dumps(result, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
         elif parsed.path == '/api/music/generate_lyria':
             content_length = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
@@ -2145,6 +2956,110 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                     json.dump(samples, f, ensure_ascii=False, indent=2)
 
                 resp_bytes = json.dumps({"success": True, "deleted_id": sample_id, "remaining": len(samples)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/music/cache/load':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                key = payload.get('key', '').strip()
+                cache_dir = os.path.join(os.path.dirname(__file__), "cache_audio")
+                analysis_path = os.path.join(cache_dir, f"{key}.analysis.json")
+                mp3_path = os.path.join(cache_dir, f"{key}.mp3")
+                meta_path = os.path.join(cache_dir, f"{key}.meta.json")
+
+                # 1. Ultra-fast direct memory recall if analysis is already cached
+                if os.path.exists(analysis_path):
+                    with open(analysis_path, 'r', encoding='utf-8') as af:
+                        analysis_data = json.load(af)
+                    resp_bytes = json.dumps({"success": True, "data": analysis_data, "source": "cache_instant"}, ensure_ascii=False).encode('utf-8')
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Content-Length', str(len(resp_bytes)))
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(resp_bytes)
+                    return
+
+                # 2. If MP3 exists in cache, run fast local stem separation without YouTube download
+                if os.path.exists(mp3_path):
+                    from core.genesis_youtube_music_analyzer import analyze_and_separate_stems
+                    result = analyze_and_separate_stems(mp3_path, scene_context="Cyberpunk & Cinema Blockbuster")
+                    # Save analysis cache
+                    try:
+                        with open(analysis_path, 'w', encoding='utf-8') as af:
+                            json.dump(result, af, ensure_ascii=False)
+                    except Exception:
+                        pass
+                    resp_bytes = json.dumps({"success": True, "data": result, "source": "cache_analyzed"}, ensure_ascii=False).encode('utf-8')
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Content-Length', str(len(resp_bytes)))
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(resp_bytes)
+                    return
+
+                # 3. Fallback to basic meta
+                if os.path.exists(meta_path):
+                    with open(meta_path, 'r', encoding='utf-8') as mf:
+                        meta = json.load(mf)
+                    resp_bytes = json.dumps({"success": True, "data": meta, "source": "meta_only"}, ensure_ascii=False).encode('utf-8')
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.send_header('Content-Length', str(len(resp_bytes)))
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(resp_bytes)
+                    return
+
+                self.send_response(404)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": "Cached song not found"}, ensure_ascii=False).encode('utf-8'))
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}, ensure_ascii=False).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/music/cache/delete':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                key = payload.get('key', '').strip()
+                cache_dir = os.path.join(os.path.dirname(__file__), "cache_audio")
+                deleted = []
+                for ext in ['.title', '.meta.json', '.mp3']:
+                    fpath = os.path.join(cache_dir, f"{key}{ext}")
+                    if os.path.exists(fpath):
+                        os.remove(fpath)
+                        deleted.append(ext)
+
+                resp_bytes = json.dumps({"success": True, "deleted": deleted}, ensure_ascii=False).encode('utf-8')
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Content-Length', str(len(resp_bytes)))
@@ -2386,6 +3301,101 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(err_bytes)
                 return
 
+        # 🪰 MaleCNS Bio-Cybernetic Engine Control Endpoints
+        elif parsed.path == '/api/malecns/inject_goal':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                target_deg = float(payload.get("target_heading_deg", 0.0))
+                malecns_engine.set_target_heading(target_deg)
+                resp_bytes = json.dumps({"success": True, "target_heading_deg": target_deg}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/malecns/simulate_step':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                vis = payload.get("vis_stimuli")
+                ir = payload.get("ir_stimuli")
+                sonar_l = float(payload.get("sonar_left_dist", 5.0))
+                sonar_r = float(payload.get("sonar_right_dist", 5.0))
+                imu = payload.get("imu_gyro_rates", [0.0, 0.0, 0.0])
+                dt = float(payload.get("delta_time", 0.001))
+
+                telemetry = malecns_engine.process_cycle(
+                    vis_stimuli=vis,
+                    ir_stimuli=ir,
+                    sonar_left_dist=sonar_l,
+                    sonar_right_dist=sonar_r,
+                    imu_gyro_rates=imu,
+                    delta_time=dt
+                )
+                resp_bytes = json.dumps({"success": True, "telemetry": telemetry}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
+        elif parsed.path == '/api/malecns/quantum_optimize':
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length).decode('utf-8') if content_length > 0 else "{}"
+            try:
+                payload = json.loads(body) if body else {}
+                lux = float(payload.get("ambient_lux", 1.0))
+                fog = float(payload.get("fog_density", 0.0))
+                noise = float(payload.get("sonar_noise", 0.0))
+
+                opt_result = quantum_gemma_engine.optimize_malecns_sensor_fusion(
+                    ambient_lux=lux,
+                    fog_density=fog,
+                    sonar_noise=noise
+                )
+
+                # Dynamically apply optimal weights to the MaleCNS reflex loop
+                w = opt_result["weights"]
+                malecns_engine.set_sensor_weights(w["vis_weight"], w["ir_weight"], w["sonar_weight"])
+
+                resp_bytes = json.dumps({"success": True, "optimization": opt_result}, ensure_ascii=False).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(resp_bytes)))
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(resp_bytes)
+                return
+            except Exception as e:
+                err_bytes = json.dumps({"success": False, "error": str(e)}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(err_bytes)
+                return
+
         self.send_response(404)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
@@ -2394,7 +3404,7 @@ class GenesisCinemaHandler(http.server.SimpleHTTPRequestHandler):
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     daemon_threads = True
-    allow_reuse_address = True
+    allow_reuse_address = (os.name != 'nt')
 
 if __name__ == '__main__':
     with ThreadedHTTPServer(("", PORT), GenesisCinemaHandler) as httpd:
