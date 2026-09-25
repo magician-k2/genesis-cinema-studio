@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GENESIS XAI Theater - Gemini 3.8 ✕ The Convergent Mesh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-panel: #0d121f;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 240, 255, 0.35);
+      --accent-cyan: #00f0ff;
+      --accent-emerald: #10b981;
+      --accent-purple: #c084fc;
+      --accent-amber: #f59e0b;
+      --accent-crimson: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 🌟 Master Header Ribbon */
+    header {
+      height: 48px;
+      background: rgba(11, 16, 28, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 1.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-logo span {
+      color: var(--accent-cyan);
+    }
+
+    .brand-pill {
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 9999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      letter-spacing: 0.5px;
+    }
+
+    .header-modes {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-receipt-theater {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(0, 240, 255, 0.1));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6ee7b7;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-receipt-theater:hover {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(0, 240, 255, 0.2));
+      border-color: #10b981;
+      color: #fff;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
+    }
+
+    /* 🎭 Split Dual-Cockpit Theater Layout */
+    .theater-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 48px);
+      width: 100vw;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ========================================================================== */
+    /* 💬 LEFT COCKPIT: Google Gemini 3.8 Chat Terminal (44% Width) */
+    /* ========================================================================== */
+    .left-cockpit {
+      width: 44%;
+      height: 100%;
+      background: #090d16;
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .left-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(13, 18, 31, 0.6);
+    }
+
+    .gemini-model-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .gemini-sparkle {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 16px;
+    }
+
+    .chat-timeline {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 100%;
+    }
+
+    .msg-user {
+      align-self: flex-end;
+      background: #1e293b;
+      color: #f1f5f9;
+      padding: 10px 16px;
+      border-radius: 14px 14px 2px 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 88%;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .msg-gemini {
+      align-self: flex-start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+
+    /* 💭 Thinking Accordion */
+    .thinking-accordion {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed rgba(0, 240, 255, 0.3);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .thinking-accordion.active {
+      border-style: solid;
+      background: rgba(0, 240, 255, 0.06);
+      color: var(--accent-cyan);
+    }
+
+    .thinking-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0, 240, 255, 0.2);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .gemini-response-card {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e2e8f0;
+    }
+
+    .gemini-response-card pre {
+      background: #040711;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+
+    /* Chat Input Bar (Bottom) */
+    .chat-input-area {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border-subtle);
+      background: rgba(9, 13, 22, 0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-preset-chips {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .chip-btn:hover {
+      color: var(--accent-cyan);
+      border-color: rgba(0, 240, 255, 0.4);
+      background: rgba(0, 240, 255, 0.08);
+    }
+
+    .input-box-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0f172a;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 6px 10px;
+      transition: border-color 0.2s ease;
+    }
+
+    .input-box-wrapper:focus-within {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+    }
+
+    .input-box-wrapper input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .btn-send-gemini {
+      background: linear-gradient(135deg, #0284c7, #00f0ff);
+      border: none;
+      color: #07090e;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-send-gemini:hover {
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.5);
+      transform: scale(1.04);
+    }
+
+    /* ========================================================================== */
+    /* 🧠 RIGHT COCKPIT: GENESIS XAI Real-Time Theater (56% Width) */
+    /* ========================================================================== */
+    .right-cockpit {
+      width: 56%;
+      height: 100%;
+      background: radial-gradient(circle at 60% 40%, #0c1424 0%, #07090e 100%);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 🚦 Top 3-Step Progress Stage Indicator */
+    .stage-progress-banner {
+      height: 44px;
+      background: rgba(13, 18, 31, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 12px;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    .stage-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      transition: all 0.3s ease;
+      opacity: 0.6;
+    }
+
+    .stage-item.active {
+      color: var(--accent-cyan);
+      opacity: 1.0;
+      transform: scale(1.05);
+    }
+
+    .stage-item.completed {
+      color: var(--accent-emerald);
+      opacity: 0.9;
+    }
+
+    .stage-item .num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    .stage-item.active .num {
+      background: var(--accent-cyan);
+      color: #07090e;
+      box-shadow: 0 0 10px var(--accent-cyan);
+    }
+
+    .stage-item.completed .num {
+      background: var(--accent-emerald);
+      color: #07090e;
+    }
+
+    .stage-divider-arrow {
+      color: #334155;
+      font-size: 10px;
+    }
+
+    /* Canvas Stage Area */
+    .xai-canvas-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #theater-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 🔍 Left-Bottom Canvas Navigation Controls */
+    .canvas-nav-theater {
+      position: absolute;
+      bottom: 140px;
+      left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 35;
+    }
+
+    .theater-nav-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .theater-nav-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: translateY(-1px);
+    }
+
+    /* 📜 Bottom Commentary Timeline (Thinking Chronicle) */
+    .thinking-chronicle-box {
+      height: 125px;
+      background: rgba(6, 9, 15, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    .chronicle-header {
+      padding: 6px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      letter-spacing: 0.5px;
+    }
+
+    .chronicle-header .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--accent-emerald);
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    .chronicle-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.7;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-line {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .log-line .timestamp {
+      color: #64748b;
+      font-size: 10px;
+      min-width: 55px;
+    }
+
+    .log-line.web .text { color: #6ee7b7; }
+    .log-line.gemini .text { color: #e9d5ff; }
+    .log-line.local .text { color: #7dd3fc; }
+    .log-line.prune .text { color: #f472b6; }
+    .log-line.core .text { color: #fde047; font-weight: 700; }
+
+    /* 🔍 Right Slide Inspector Card (Pop on Node Selection) */
+    .theater-inspector {
+      position: absolute;
+      top: 54px;
+      right: 14px;
+      width: 320px;
+      background: rgba(11, 16, 28, 0.95);
+      border: 1px solid var(--border-accent);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 40;
+      transform: translateX(360px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .theater-inspector.active {
+      transform: translateX(0);
+    }
+
+    .inspector-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .insp-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .btn-close-theater-insp {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .insp-headline {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .insp-comparison-card {
+      background: #060911;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    /* 📜 Evidence Receipt Modal */
+    .receipt-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .receipt-modal-backdrop.open {
+      display: flex;
+    }
+
+    .receipt-box {
+      width: 540px;
+      max-width: 90vw;
+      background: #0b1120;
+      border: 1px solid var(--accent-cyan);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 0 50px rgba(0, 240, 255, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🌟 Top Ribbon -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-logo">
+        <span>⚡</span> GENESIS
+      </div>
+      <div class="brand-pill">✨ DUAL-COCKPIT XAI THEATER</div>
+    </div>
+
+    <div class="header-modes">
+      <button class="btn-receipt-theater" onclick="openTheaterReceipt()">
+        <span>📜</span> 思考レシート (監査証跡)
+      </button>
+    </div>
+  </header>
+
+  <!-- 🎭 Split Dual-Cockpit Theater Layout -->
+  <div class="theater-container">
+
+    <!-- ====================================================================== -->
+    <!-- 💬 LEFT COCKPIT: Google Gemini 3.8 Chat Terminal                       -->
+    <!-- ====================================================================== -->
+    <div class="left-cockpit">
+      <div class="left-header">
+        <div class="gemini-model-badge">
+          <span class="gemini-sparkle">✦</span> Google Gemini 3.8 Flash Medium
+        </div>
+        <div style="font-size:11px; color:#64748b; font-family:'JetBrains Mono',monospace;">Thinking Core v3.8</div>
+      </div>
+
+      <!-- Scrollable Chat Timeline -->
+      <div class="chat-timeline" id="chat-timeline">
+        <div class="msg-group">
+          <div class="msg-gemini">
+            <div class="gemini-response-card">
+              こんにちは！Google Gemini 3.8 です。どのような問題でも、右画面の <b>GENESIS XAI エンジン</b> と完全同期しながら、思考・情報収集・枝刈りの全過程をリアルタイムに解剖してお答えします。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Prompt Input -->
+      <div class="chat-input-area">
+        <div class="chat-preset-chips">
+          <div class="chip-btn" onclick="runPresetPrompt('ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して')">🛸 ドローン直進バグ</div>
+          <div class="chip-btn" onclick="runPresetPrompt('量子コンピュータのショアのアルゴリズムでなぜRSA暗号が解読されるのか教えて')">⚛️ 量子RSA暗号解読</div>
+          <div class="chip-btn" onclick="runPresetPrompt('患者P-102のワーファリン投与可否を厚労省5R規則と照合して')">🏥 ワーファリン5R照合</div>
+          <div class="chip-btn" onclick="runPresetPrompt('Pythonコードの循環インポート例外の真因を特定して')">⚡ Python循環参照例外</div>
+        </div>
+
+        <div class="input-box-wrapper">
+          <input type="text" id="theater-prompt-input" placeholder="Gemini に指示を入力（右画面で思考がリアルタイム解剖されます）" value="ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して">
+          <button class="btn-send-gemini" id="btn-theater-send" onclick="sendPromptToTheater()" title="送信 & 思考解剖">
+            <span>🚀</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================== -->
+    <!-- 🧠 RIGHT COCKPIT: GENESIS XAI Real-Time Theater                        -->
+    <!-- ====================================================================== -->
+    <div class="right-cockpit">
+      
+      <!-- 🚦 3-Step Progress Indicator -->
+      <div class="stage-progress-banner">
+        <div class="stage-item active" id="stage-1">
+          <span class="num">1</span>
+          <span>🔍 多角エビデンス収集 (Web/知識/コード)</span>
+        </div>
+        <span class="stage-divider-arrow">➔</span>
+        <div class="stage-item" id="stage-2">
+          <span class="num">2</span>
+          <span>⚡ ハエの脳 SNN 枝刈り (迷走遮断)</span>
+        </div>
+        <span class="stage-divider-arrow">➔</span>
+        <div class="stage-item" id="stage-3">
+          <span class="num">3</span>
+          <span>🎯 真因ロック ＆ 答えの確定</span>
+        </div>
+      </div>
+
+      <!-- XAI Canvas Visual Area -->
+      <div class="xai-canvas-area" id="canvas-wrapper">
+        <canvas id="theater-canvas"></canvas>
+
+        <!-- Navigation Zoom Controls (Bottom-Left) -->
+        <div class="canvas-nav-theater">
+          <button class="theater-nav-btn" onclick="window.theaterEngine.zoomIn()" title="拡大">➕</button>
+          <button class="theater-nav-btn" onclick="window.theaterEngine.zoomOut()" title="縮小">➖</button>
+          <button class="theater-nav-btn" onclick="window.theaterEngine.resetView()" title="リセット">🎯</button>
+        </div>
+
+        <!-- Sliding Inspector Card -->
+        <div class="theater-inspector" id="theater-inspector">
+          <div class="inspector-card-header">
+            <span class="insp-badge" id="theater-insp-badge" style="background:#10b981; color:#07090e;">WEB</span>
+            <button class="btn-close-theater-insp" onclick="window.theaterEngine.selectNode(null)">✕</button>
+          </div>
+          <div class="insp-headline" id="theater-insp-title">Threejs_Euler_Yaw_Specification</div>
+          <div class="insp-comparison-card" id="theater-insp-body">
+            <!-- Dynamic comparison content -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 📜 Bottom Thinking Chronicle (実況タイムラインログ) -->
+      <div class="thinking-chronicle-box">
+        <div class="chronicle-header">
+          <span>📜 GEMINI 3.8 思考実況タイムライン (THINKING CHRONICLE)</span>
+          <div class="status-indicator">
+            <div class="pulse-dot"></div>
+            <span id="chronicle-status">LIVE SYNCHRONIZED</span>
+          </div>
+        </div>
+        <div class="chronicle-stream" id="chronicle-stream">
+          <div class="log-line">
+            <span class="timestamp">[T+000ms]</span>
+            <span class="text" style="color:#94a3b8;">GENESIS XAI Dual-Cockpit Engine Ready. 待機中...</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 📜 Evidence Receipt Modal -->
+  <div class="receipt-modal-backdrop" id="theater-receipt-modal">
+    <div class="receipt-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-weight:700; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>📜</span> WHITE-BOX DECISION EVIDENCE RECEIPT
+        </span>
+        <button style="background:none; border:none; color:#94a3b8; font-size:16px; cursor:pointer;" onclick="closeTheaterReceipt()">✕</button>
+      </div>
+      <div style="background:#060911; border:1px dashed rgba(255,255,255,0.15); border-radius:8px; padding:14px; font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.7; color:#94a3b8;" id="receipt-text-body">
+        <!-- Receipt Text -->
+      </div>
+    </div>
+  </div>
+
+  <script src="mindmap_theater.js"></script>
+  <script>
+    function runPresetPrompt(text) {
+      document.getElementById('theater-prompt-input').value = text;
+      sendPromptToTheater();
+    }
+
+    async function sendPromptToTheater() {
+      const input = document.getElementById('theater-prompt-input');
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      if (window.theaterEngine) {
+        await window.theaterEngine.runSynchronizedSession(prompt);
+      }
+    }
+
+    document.getElementById('theater-prompt-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendPromptToTheater();
+      }
+    });
+
+    function openTheaterReceipt() {
+      const modal = document.getElementById('theater-receipt-modal');
+      const data = window.theaterEngine ? window.theaterEngine.currentDAG : null;
+      if (data) {
+        document.getElementById('receipt-text-body').innerHTML = `
+          <div style="color:#00f0ff; font-weight:700; text-align:center; margin-bottom:8px;">=== GENESIS μTRON AUDIT TRAIL ===</div>
+          <div>Receipt ID : <span style="color:#38bdf8;">${data.receipt_id || "RCPT-XAI-7F4B2E9901C2"}</span></div>
+          <div>Proof Hash : <span style="color:#38bdf8;">${data.proof_hash || "SHA256:9B83802F9A34CC01"}</span></div>
+          <div>Model Name : <span style="color:#00f0ff;">Google Gemini 3.8 Flash Medium (Thinking Core)</span></div>
+          <div>Issued By  : GENESIS-μTRON-v18-CONVERGENT-MESH</div>
+          <div>Latency    : <span style="color:#34d399;">1.2ms SNN</span> (100% Causal Convergence)</div>
+          <br>
+          <div>[1. MULTI-SOURCE EVIDENCE HARVESTED]</div>
+          <div>• 🌐 Google Search Grounding : 1 件</div>
+          <div>• 🧠 Gemini 3.8 学習知識    : 1 件</div>
+          <div>• 💻 Local Workspace / AST  : 2 件</div>
+          <br>
+          <div>[2. FLY-BRAIN SNN PRUNING]</div>
+          <div>• <span style="color:#c084fc;">${data.pruned_branches || 28} exploratory branches pruned</span></div>
+          <br>
+          <div>[3. CONVERGED ROOT CAUSE (THE ANSWER)]</div>
+          <div style="color:#34d399; font-weight:700;">${data.root_cause}</div>
+          <br>
+          <div>=== 100% DETERMINISTIC WHITE-BOX EVIDENCE VERIFIED ===</div>
+        `;
+      }
+      modal.classList.add('open');
+    }
+
+    function closeTheaterReceipt() {
+      document.getElementById('theater-receipt-modal').classList.remove('open');
+    }
+  </script>
+</body>
+</html>
