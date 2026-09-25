@@ -61,7 +61,20 @@ class SidePanelXAIEngine {
     }
 
     initGeminiSyncListener() {
-        // 1. メッセージ直接受信 (0ミリ秒同期)
+        // 0. 起動時に前回のプロンプトを復元
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get(['last_gemini_prompt'], (res) => {
+                if (res && res.last_gemini_prompt) {
+                    console.log("[SidePanel] Restored prompt from storage:", res.last_gemini_prompt);
+                    this.onLiveGeminiPromptReceived(res.last_gemini_prompt);
+                }
+            });
+        }
+
+        // 1. アクティブなGeminiタブから最新の質問を直接問い合わせ
+        this.fetchPromptFromActiveTab();
+
+        // 2. メッセージ直接受信 (0ミリ秒同期)
         if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
             chrome.runtime.onMessage.addListener((message) => {
                 if (message.type === "GEMINI_LIVE_PROMPT" && message.prompt) {
@@ -71,11 +84,35 @@ class SidePanelXAIEngine {
             });
         }
 
-        // 2. ストレージ変更検知 (フォールバック)
+        // 3. ストレージ変更検知 (フォールバック)
         if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
             chrome.storage.onChanged.addListener((changes, area) => {
                 if (area === 'local' && changes.last_gemini_prompt && changes.last_gemini_prompt.newValue) {
                     this.onLiveGeminiPromptReceived(changes.last_gemini_prompt.newValue);
+                }
+            });
+        }
+
+        // 4. クエリバナーをクリックしたときに最新プロンプトを強制再取得
+        const banner = document.querySelector('.live-query-banner');
+        if (banner) {
+            banner.style.cursor = 'pointer';
+            banner.title = 'クリックで本家Geminiの最新の質問を同期・再取得';
+            banner.addEventListener('click', () => {
+                this.fetchPromptFromActiveTab();
+            });
+        }
+    }
+
+    fetchPromptFromActiveTab() {
+        if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs && tabs[0] && tabs[0].id) {
+                    chrome.tabs.sendMessage(tabs[0].id, { type: "REQUEST_LATEST_GEMINI_PROMPT" }, (response) => {
+                        if (response && response.prompt) {
+                            this.onLiveGeminiPromptReceived(response.prompt);
+                        }
+                    });
                 }
             });
         }
