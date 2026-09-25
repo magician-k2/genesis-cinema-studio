@@ -1055,9 +1055,45 @@ function closeReceiptModal() {
     if (modal) modal.classList.remove('open');
 }
 
+function toggleAnimeVisibility(forceShow = null) {
+    const body = document.body;
+    const btn = document.getElementById('btn-toggle-anime');
+    const isCurrentlyHidden = body.classList.contains('anime-hidden');
+    const shouldHide = forceShow !== null ? !forceShow : !isCurrentlyHidden;
+
+    if (shouldHide) {
+        body.classList.add('anime-hidden');
+        if (btn) {
+            btn.innerHTML = '👁️ アニメ表示';
+            btn.title = 'アニメーション画面を再表示する';
+            btn.style.borderColor = 'var(--accent-cyan)';
+            btn.style.color = 'var(--accent-cyan)';
+        }
+        try { localStorage.setItem('genesis_anime_hidden', 'true'); } catch (e) {}
+    } else {
+        body.classList.remove('anime-hidden');
+        if (btn) {
+            btn.innerHTML = '👁️ アニメ非表示';
+            btn.title = 'アニメーションを非表示にしてログを最大化';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+        }
+        try { localStorage.removeItem('genesis_anime_hidden'); } catch (e) {}
+        if (window.sideEngine) window.sideEngine.resize();
+    }
+}
+
 function setPanelPreset(preset) {
     const chronicle = document.getElementById('chronicle-container');
     if (!chronicle) return;
+
+    if (preset === 'full') {
+        toggleAnimeVisibility(false); // アニメ非表示
+        return;
+    }
+
+    // 通常プリセットはアニメ表示状態に戻す
+    toggleAnimeVisibility(true);
 
     if (preset === 'anime') {
         // アニメ大（ログは最小限の120px）
@@ -1194,4 +1230,9 @@ function fallbackCopyText(text) {
 
 window.addEventListener('DOMContentLoaded', () => {
     window.sideEngine = new SidePanelXAIEngine();
+    try {
+        if (localStorage.getItem('genesis_anime_hidden') === 'true') {
+            toggleAnimeVisibility(false); // アニメ非表示で起動
+        }
+    } catch (e) {}
 });

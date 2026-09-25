@@ -164,6 +164,18 @@
       display: block;
     }
 
+    /* 👁️ アニメ非表示モード（ログ100%全画面） */
+    body.anime-hidden .canvas-container,
+    body.anime-hidden .panel-splitter {
+      display: none !important;
+    }
+
+    body.anime-hidden .chronicle-container {
+      height: auto !important;
+      flex: 1 !important;
+      max-height: none !important;
+    }
+
     /* 🔍 Zoom Controls */
     .zoom-controls {
       position: absolute;
@@ -490,6 +502,7 @@
       <span id="gemini-sync-status">Gemini 同期中</span>
     </div>
     <div class="header-actions">
+      <button class="icon-btn" id="btn-toggle-anime" onclick="toggleAnimeVisibility()" title="アニメーションの表示/非表示を切り替え">👁️ アニメ非表示</button>
       <button class="icon-btn" onclick="openReceiptModal()" title="思考レシート表示">📜 監査票</button>
       <a class="icon-btn" id="btn-fullscreen-out" href="http://localhost:8080/mindmap_interactive_studio.html" target="_blank" title="全画面シアターで開く">↗️</a>
     </div>
@@ -542,6 +555,7 @@
         <button class="preset-btn" onclick="setPanelPreset('anime')" title="アニメ大">📊 30%</button>
         <button class="preset-btn" onclick="setPanelPreset('half')" title="均等">⚖️ 50%</button>
         <button class="preset-btn" onclick="setPanelPreset('log')" title="ログ大">📜 75%</button>
+        <button class="preset-btn" onclick="setPanelPreset('full')" title="ログ全開（アニメ非表示）">📜 100%</button>
         <button class="gdocs-btn" onclick="exportToGoogleDocs()" title="思考ログとエビデンスをGoogleドキュメントに保存">
           <span>📄 Google Docs 保存</span>
         </button>
