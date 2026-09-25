@@ -1365,9 +1365,18 @@
     let obstacles = [];
     let glassWallMesh, fireVictimMesh, victimPersonGroup;
     let victimVitalRing, victimBeaconBeam, rescueScanBeam;
-    let isRescueActive = false;
+    let isRescueActive = true;
+    Object.defineProperty(window, 'isRescueActive', {
+      get: () => isRescueActive,
+      set: (val) => { isRescueActive = val; }
+    });
     let rescueCompleted = false;
+    Object.defineProperty(window, 'rescueCompleted', {
+      get: () => rescueCompleted,
+      set: (val) => { rescueCompleted = val; }
+    });
     let rescueTargetPos = new THREE.Vector3(10, 0, -18);
+    window.rescueTargetPos = rescueTargetPos;
     let rescueVitalBpm = 72;
     let rescueArriveTimer = 0;
     let cityMeshes = [];
@@ -1505,6 +1514,7 @@
     // =========================================================================
     let currentZoneSize = 150.0; // AI推奨最適探査エリア: 150m四方 (150m × 150m, 22,500㎡)
     let rescueZone = {
+      active: true,
       size: 150.0,
       minX: -75.0,
       maxX: 75.0,
@@ -1708,12 +1718,22 @@
     let failedStallZ = 0;
 
     let position = new THREE.Vector3(0, 2.5, 0);
+    window.position = position;
     let velocity = new THREE.Vector3(0, 0, -1.0);
     let rotation = new THREE.Euler(0, 0, 0);
+    window.rotation = rotation;
     let angularVel = new THREE.Vector3(0, 0, 0);
     let currentPitch = -0.08;
     let currentRoll = 0.0;
     let speed = CRUISE_SPEED_AIR;
+    Object.defineProperty(window, 'flightState', {
+      get: () => flightState,
+      set: (val) => { flightState = val; }
+    });
+    Object.defineProperty(window, 'speed', {
+      get: () => speed,
+      set: (val) => { speed = val; }
+    });
     let targetSpeed = CRUISE_SPEED_AIR;
     let headingRad = 0;
     let envTemp = 24.2;
@@ -2171,8 +2191,10 @@
 
       const vGroundY = getTerrainHeight(10, -18);
       victimPersonGroup.position.set(10, vGroundY, -18);
-      victimPersonGroup.visible = false;
+      victimPersonGroup.visible = true;
       scene.add(victimPersonGroup);
+      window.victimPersonGroup = victimPersonGroup;
+      window.victimVitalRing = victimVitalRing;
 
       // Dynamic Rescue Scan Beam (機体と熱源を結ぶ索敵スキャンレーザー)
       const scanPts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(10, vGroundY + 1.0, -18)];
@@ -2180,8 +2202,9 @@
       const scanMat = new THREE.LineDashedMaterial({ color: 0xf59e0b, dashSize: 0.6, gapSize: 0.3, transparent: true, opacity: 0.85 });
       rescueScanBeam = new THREE.Line(scanGeo, scanMat);
       rescueScanBeam.computeLineDistances();
-      rescueScanBeam.visible = false;
+      rescueScanBeam.visible = true;
       scene.add(rescueScanBeam);
+      window.rescueScanBeam = rescueScanBeam;
 
       // Fire Flame Group
       const fireGeo = new THREE.SphereGeometry(1.8, 16, 16);
@@ -3688,12 +3711,13 @@
         flightState = 'CRUISE';
       }
 
-      // 1. 要救助者を機体の周囲・全方位のランダム座標に配置 (自立索敵の見せ場！)
-      // 正面直線だけでなく、斜め左右 (X: -16m 〜 +16m) の路地裏やビルの間、起伏高台にランダム出現！
-      const sideOffset = (Math.random() - 0.5) * 32.0; // -16m 〜 +16m
-      const forwardDist = 18.0 + Math.random() * 30.0;  // 18m 〜 48m 前方
-      const rx = Math.max(-17.0, Math.min(17.0, position.x + sideOffset));
-      const rz = position.z - forwardDist;
+      // 1. 要救助者を機体の周囲・全方位360°のランダム座標に配置 (自律探査の見せ場！)
+      // 単なる前方直線ではなく、自機から18m〜45m離れた全周360度（東・西・南・北の路地や広場）に出現！
+      const zHalf = (typeof rescueZone !== 'undefined' && rescueZone.size) ? (rescueZone.size * 0.5 - 6.0) : 65.0;
+      const angle = Math.random() * Math.PI * 2.0;
+      const dist = 18.0 + Math.random() * 28.0;
+      const rx = Math.max(-zHalf, Math.min(zHalf, position.x + Math.sin(angle) * dist));
+      const rz = Math.max(-zHalf, Math.min(zHalf, position.z + Math.cos(angle) * dist));
       const ry = getTerrainHeight(rx, rz);
 
       rescueTargetPos.set(rx, ry, rz);
@@ -6436,14 +6460,17 @@
       const lptcRes = calculateLPTCOpticalFlowTorque();
       const gapRes = calculateGapSeekingAttractionField();
       if (vehicleMode === 'AIR' && flightState === 'CRUISE') {
-        // LPTC センタリング操舵トルクをロール・ヨー姿勢に注入 (壁からの自動等距離維持)
+        // ロール・ピッチの姿勢安定化は常に適用 (風圧・近接壁による自然なバンク姿勢)
         currentRoll += lptcRes.torqueRoll * 0.15;
-        rotation.y += lptcRes.torqueYaw * 0.08;
         currentPitch += lptcRes.torquePitch * 0.10;
 
-        // Gap Seeking 引力場バイアスを注入
-        if (Math.abs(gapRes.attractionForce) > 0.1) {
-          rotation.y += (gapRes.bestGapAngle - rotation.y) * (gapRes.attractionForce * 0.03);
+        // 🎯 救助対象（熱源）を追跡していない通常巡航時のみ、大通り等距離センタリング＆Gap引力場を操舵に注入
+        const isActivelyTrackingVictim = (isRescueActive && !rescueCompleted);
+        if (!isActivelyTrackingVictim) {
+          rotation.y += lptcRes.torqueYaw * 0.08;
+          if (Math.abs(gapRes.attractionForce) > 0.1) {
+            rotation.y += (gapRes.bestGapAngle - rotation.y) * (gapRes.attractionForce * 0.03);
+          }
         }
       }
 
@@ -6600,7 +6627,10 @@
           const dx = rescueTargetPos.x - position.x;
           const dz = rescueTargetPos.z - position.z;
           const victimHeading = Math.atan2(-dx, -dz);
-          rotation.y += (victimHeading - rotation.y) * 0.1;
+          let vDiff = victimHeading - rotation.y;
+          while (vDiff > Math.PI) vDiff -= Math.PI * 2;
+          while (vDiff < -Math.PI) vDiff += Math.PI * 2;
+          rotation.y += vDiff * 0.15;
 
           rescueArriveTimer++;
           if (rescueArriveTimer > 150) { // 約2.5秒間しっかり現場で救護保持後、次の要救助者（目的地）へ自律発進！
@@ -6671,14 +6701,18 @@
             desiredHeading = targetHeadingToGoal;
           }
 
-          if (typeof activeBypassUntilZ !== 'undefined' && position.z > activeBypassUntilZ && typeof activeDetourHeading !== 'undefined') {
+          const isBypassing = (typeof activeBypassUntilZ !== 'undefined' && activeBypassUntilZ > -90000 && position.z > activeBypassUntilZ);
+          if (isBypassing && typeof activeDetourHeading !== 'undefined') {
             desiredHeading = activeDetourHeading;
           } else {
             activeBypassUntilZ = -99999;
-            if (isVictimTracked || (typeof rescueZone !== 'undefined' && rescueZone.active && targetGoalPos)) {
-              desiredHeading = targetHeadingToGoal;
-            } else if (glassWallMesh && glassWallMesh.visible && position.z > -98.0 && Math.abs(position.x) < 8.8) {
-              desiredHeading = targetEscapeHeading;
+            // 障害物回避ルートがない場合、またはDIRECT_SLALOM時のみ目的地方位を直接追従
+            if (!bestRoute || bestRoute.score <= 20.0 || bestRoute.id === 'DIRECT_SLALOM') {
+              if (isVictimTracked || (typeof rescueZone !== 'undefined' && rescueZone.active && targetGoalPos)) {
+                desiredHeading = targetHeadingToGoal;
+              } else if (glassWallMesh && glassWallMesh.visible && position.z > -98.0 && Math.abs(position.x) < 8.8) {
+                desiredHeading = targetEscapeHeading;
+              }
             }
           }
 
@@ -6713,7 +6747,33 @@
           let headingDiff = desiredHeading - rotation.y;
           while (headingDiff > Math.PI) headingDiff -= Math.PI * 2;
           while (headingDiff < -Math.PI) headingDiff += Math.PI * 2;
-          rotation.y += headingDiff * 0.08;
+
+          // 🛸 ドローン自律旋回力学 (Yaw Priority & Dynamic Speed Modulation):
+          // 方位差が大きい時は前進速度を抑えてクイック回頭し、機首が目標を捉えたら一気に28km/hで急行！
+          const absHeadingDiff = Math.abs(headingDiff);
+          let turnGain = 0.12;
+          if (vehicleMode === 'AIR') {
+            if (absHeadingDiff > 0.8) { // 約46°以上の大きな方位差
+              turnGain = 0.22; // クイック回頭
+              targetSpeed = Math.min(targetSpeed, 2.2); // 旋回中は時速8km/hへ自動減速
+            } else if (absHeadingDiff > 0.35) { // 20°〜46°の中間方位差
+              turnGain = 0.16;
+              targetSpeed = Math.min(targetSpeed, 4.8);
+            } else {
+              turnGain = 0.12;
+              targetSpeed = baseCruiseSpeed; // 目標方向へ一気に28km/hフル加速急行！
+            }
+          } else {
+            // ムカデ/地上走行モード
+            if (absHeadingDiff > 0.6) {
+              turnGain = 0.15;
+              targetSpeed = Math.min(targetSpeed, 3.2);
+            } else {
+              targetSpeed = baseCruiseSpeed;
+            }
+          }
+
+          rotation.y += headingDiff * turnGain;
           currentRoll = -Math.max(-0.4, Math.min(0.4, headingDiff * 0.40)); // 旋回時の自然なバンク傾斜
 
           // 巡航中の高度スムーズ追従
@@ -7159,7 +7219,10 @@
               targetHeading = targetEscapeHeading;
             }
           }
-          rotation.y += (targetHeading - rotation.y) * 0.08;
+          let diffTgt = targetHeading - rotation.y;
+          while (diffTgt > Math.PI) diffTgt -= Math.PI * 2;
+          while (diffTgt < -Math.PI) diffTgt += Math.PI * 2;
+          rotation.y += diffTgt * 0.14;
 
           if (speed > (baseCruiseSpeed * 0.80)) {
             flightState = 'CRUISE';
