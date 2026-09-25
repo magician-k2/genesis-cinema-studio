@@ -321,28 +321,79 @@
 
     .log-row {
       display: flex;
-      align-items: baseline;
-      gap: 6px;
-      padding: 2px 4px;
-      border-radius: 4px;
-      transition: background 0.15s;
+      flex-direction: column;
+      gap: 4px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.2s ease;
+      margin-bottom: 4px;
     }
 
     .log-row:hover {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(15, 23, 42, 0.85);
+      border-color: rgba(0, 240, 255, 0.25);
+    }
+
+    .log-row-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
     }
 
     .log-row .time {
-      color: #64748b;
-      min-width: 52px;
+      color: #38bdf8;
+      font-weight: 700;
+      min-width: 56px;
       flex-shrink: 0;
     }
 
-    .log-row.web .txt { color: #6ee7b7; }
-    .log-row.gemini .txt { color: #e9d5ff; }
-    .log-row.local .txt { color: #7dd3fc; }
-    .log-row.prune .txt { color: #f472b6; }
-    .log-row.core .txt { color: #fde047; font-weight: 700; }
+    .log-row.web { border-left: 3px solid #10b981; }
+    .log-row.gemini { border-left: 3px solid #c084fc; }
+    .log-row.local { border-left: 3px solid #38bdf8; }
+    .log-row.prune { border-left: 3px solid #f472b6; }
+    .log-row.core { border-left: 3px solid #fde047; background: rgba(234, 179, 8, 0.08); }
+
+    .log-row.web .title { color: #6ee7b7; font-weight: 600; }
+    .log-row.gemini .title { color: #e9d5ff; font-weight: 600; }
+    .log-row.local .title { color: #7dd3fc; font-weight: 600; }
+    .log-row.prune .title { color: #f472b6; font-weight: 600; }
+    .log-row.core .title { color: #fde047; font-weight: 800; font-size: 11.5px; }
+
+    .log-body {
+      padding-left: 64px;
+      font-size: 10px;
+      color: #94a3b8;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-evidence-quote {
+      background: rgba(0, 0, 0, 0.35);
+      border-left: 2px solid rgba(0, 240, 255, 0.4);
+      padding: 4px 8px;
+      border-radius: 2px;
+      color: #cbd5e1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+    }
+
+    .log-mapping-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      font-weight: 700;
+      font-size: 9px;
+      width: fit-content;
+    }
 
     /* 🔍 Slide-up Node Inspector */
     .inspector-drawer {
