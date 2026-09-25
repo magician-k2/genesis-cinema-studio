@@ -38,9 +38,47 @@ class MultimodalKnowledgeGraph:
             "source": { "module": "streetview_live_scout.js", "distanceM": 40.0 }
         })
 
+        # 4. ⚛️ Quantum Optimization Core Node
+        self.add_node("concept_quantum_annealing_sqa", {
+            "type": "QuantumAlgorithm",
+            "name": "経路積分モンテカルロ・量子インスパイアード最適化 (SQA / QUBO)",
+            "domain": "Quantum Computing & Optimization",
+            "latex": r"\hat{H}(t) = -\sum J_{ij}\sigma_i^z\sigma_j^z - \Gamma(t)\sum \sigma_i^x",
+            "source": { "book": "量子コンピューティングと統計力学的最適化.pdf", "page": 88 }
+        })
+
+        # 5. 🎬 Hollywood Cinema Lighting & Optics Node
+        self.add_node("concept_hollywood_anamorphic_optics", {
+            "type": "CinematographyOptics",
+            "name": "ARRI Alexa LF 35mm アナモフィック光学界隈と3点シネマ照明",
+            "domain": "Hollywood Film Production",
+            "rules": ["Key Light 45°", "Rim Light for Rim Separation", "Shutter Angle 180°", "Aspect 2.39:1"],
+            "source": { "book": "ハリウッド実写映画撮影技法マスターブック.pdf", "page": 112 }
+        })
+
+        # 6. 🧊 3D Geometry & Bone Rigging Node
+        self.add_node("concept_3d_gaussian_splatting", {
+            "type": "SpatialComputing",
+            "name": "3Dガウシアンスプラット点群密度推定と逆運動学 (IK) ボーン整合",
+            "domain": "3D Spatial Graphics",
+            "source": { "book": "3D空間再構成とリアルタイムレンダリング工学.pdf", "page": 204 }
+        })
+
+        # 7. ⚡ WebGPU WGSL Parallel Compute Node
+        self.add_node("concept_webgpu_compute_wgsl", {
+            "type": "SystemArchitecture",
+            "name": "WebGPU WGSL 超低遅延シェーダーとテンソルネットワーク圧縮",
+            "domain": "High-Performance Computing",
+            "source": { "module": "webgpu_qgemma4_runtime.js", "version": "v1.0" }
+        })
+
         # Edges linking concepts
         self.add_edge("formula_stdp", "REGULATES", "concept_hippocampal_consolidation")
         self.add_edge("concept_hippocampal_consolidation", "INSPIRES_ARCHITECTURE", "engine_dolly_tracking")
+        self.add_edge("concept_quantum_annealing_sqa", "OPTIMIZES", "engine_dolly_tracking")
+        self.add_edge("concept_quantum_annealing_sqa", "SOLVES_COLLISION", "concept_3d_gaussian_splatting")
+        self.add_edge("concept_hollywood_anamorphic_optics", "GUIDES_SYNTHESIS", "engine_dolly_tracking")
+        self.add_edge("concept_webgpu_compute_wgsl", "ACCELERATES", "concept_quantum_annealing_sqa")
 
     def add_node(self, node_id, attributes):
         self.nodes[node_id] = {

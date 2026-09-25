@@ -1,23 +1,27 @@
-# 🚀 GENESIS STUDIO: 開発スケジュール ＆ 次期ロードマップ (2026年9月最新版)
+# 🚀 GENESIS STUDIO: 開発スケジュール ＆ 次期ロードマップ (2026年9月9日 最終提出版)
 
 ---
 
-## 📅 1. 直近スケジュール：【明日実施】映画動画機能 実機フル実証テスト
+## 🏆 【本日 9/9 締切】ハッカソン最終提出スプリント (Final Submission Sprint)
+**対象**: Google Cloud & Replit 主催 Agentic Cinema Hackathon (2026年9月9日締切)
 
-### 🎯 目的
-GENESIS GLOBAL CINEMA STUDIO の4画面クアッド・スタジオ体制（①メイン監督 5層NLE ②4K試写室 ③アセット工房 ④台本＆絵コンテ）および本日統合した全機能（Gemini Omni 1.1 Flash, Agentic Video, 実写AI背景切り抜き, 車両大道具配備）の実機動作検証、バグ出し、およびブラッシュアップ。
+- [x] **【完了】Google Gemini Native Audio 超高速0ms音声化** (Fenrir / Aoede / Kore / Puck / Charon)
+- [x] **【完了】絵コンテ＆演出台本スタジオ（監督モード）** (360°ロケ地、キャスト演技、セリフ間、カメラワーク、逆光影、天候VFX、2.39:1)
+- [x] **【完了】59項目自動テスト 100% オールグリーン**
+- [ ] **【本日実施 1】GENESIS CINEMA LITE 短編映画完パケ動画書き出し** (MediaRecorder Canvas+Audio 録画、MP4/WebM保存、Veo 3.1連携)
+- [ ] **【本日実施 4】ハッカソン提出用マスター技術ドキュメントの製本化** (MD_PRINT_STUDIO.html 連携、審査員用提出書類完成)
 
-### 📋 実機テスト・チェックリスト（制作フロー順）
-- [ ] **STEP 1: 4画面クアッド・スタジオ一括起動**
-  - `http://localhost:8080/index.html` より「4画面一括起動」で Monitor 1〜4 が立ち上がり、BroadcastChannel (`genesis_cinema_studio_bus`) が 0秒で同期することを確認。
-- [ ] **STEP 2: [第4画面] 台本・絵コンテ・セリフ ＆ Gemini Omni 1.1 Flash**
-  - シーン/カット選択、2.39:1 Anamorphic 絵コンテ描画、First/Last Frame 空間補間設定、Google Chirp 3 HD 日本語音声試聴、メイン監督画面への0秒配備。
-- [ ] **STEP 3: [第3画面] 実写取り込み・AI背景切り抜き (Auto-Matting) ＆ アセット工房**
-  - カメラ撮影/写真D&D、AI背景自動透過、都営バス/大型トラック/JPN TAXI の大道具配備、4面ターンアラウンドCanvasリアルタイム描画、1200x700 スプライトシートPNGダウンロード。
-- [ ] **STEP 4: [第1画面] メイン監督コックピット ＆ 5層マルチトラックNLE**
-  - Googleストリートビュー青い道路突入、360°空間ドリー移動、タイムライン上での「⏳ +10s 延長 (Omni Scene Extension)」「✂️ Cut (Agentic Video 自動分割)」「⚡ 360p ドラフト生成」動作確認。
-- [ ] **STEP 5: [第2画面] 4K試写室シアター ＆ Agentic Video QC**
-  - 4K 60fps シネマスコープ再生、多言語TTS、Agentic Video 映像品質検定（スコア 98.4/100）表示、4Kマスター書き出し。
+---
+
+## 🔒 【ハッカソン応募後・最優先タスク保存（ポスト・ハッカソン）】
+※ユーザー様指示により、ハッカソン応募完了後に直ちに着手するフェーズとして以下2項目を確定保存・凍結。
+
+### ① 📱 モバイル映画監督リモコン『Pocket Director』UI
+- **概要**: 型落ちスマホ・タブレットのブラウザから、PC上の CINEMA STUDIO（3D空間カメラ・アクター演技・天候演出）をリアルタイム遠隔操作する軽量コントローラー。
+- **技術要素**: WebRTC / WebSocket / WebGPU WASM 軽量ランタイム。
+
+### ② 🖥️ プロ版4画面クアッド・スタジオとの完全統合 (Quad Display NLE)
+- **概要**: `index.html` の4画面体制（①メイン監督 5層NLE ②4K試写室 ③アセット工房 ④台本＆絵コンテ）と `cinema_lite.html` の演出データを BroadcastChannel で相互同期・完全インポート。
 
 ---
 

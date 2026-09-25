@@ -739,8 +739,81 @@
       color: #facc15;
       transform: scale(1.2);
     }
-
+    /* Master Waveform Zoom & Chopper Styles */
+    .chop-editor-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(24, 20, 50, 0.92));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 16px;
+      padding: 18px 22px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.55);
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .chop-tab-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #94a3b8;
+      font-size: 0.73rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .chop-tab-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .chop-tab-btn.active {
+      background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+      border-color: #38bdf8;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    .chop-btn-action {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #e2e8f0;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .chop-btn-action:hover {
+      background: rgba(255,255,255,0.16);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .chop-canvas-wrapper {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      background: #090d16;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: crosshair;
+      user-select: none;
+    }
+    .chop-minimap-wrapper {
+      position: relative;
+      width: 100%;
+      height: 32px;
+      background: #060911;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      margin-top: 6px;
+      overflow: hidden;
+      cursor: pointer;
+    }
   </style>
+    <!-- ⚡ GENESIS Universal Neuromorphic Synapse -->
+    <script src="genesis_universal_synapse.js"></script>
 </head>
 <body>
 
@@ -762,6 +835,9 @@
     </div>
 
     <div class="nav-actions">
+      <button class="stem-btn" id="btn-header-crate" style="background: linear-gradient(135deg, rgba(6,182,212,0.35), rgba(99,102,241,0.35)); border: 1px solid rgba(6,182,212,0.6); color: #cffafe; font-weight: 700; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 15px rgba(6,182,212,0.25);" onclick="openCacheCrateModal()">
+        <i class="fa-solid fa-box-archive" style="color: #22d3ee;"></i> <span>📦 キャッシュ・クレート (<span class="crate-count-text">0曲</span>)</span>
+      </button>
       <button class="stem-btn" style="background: linear-gradient(135deg, rgba(139,92,246,0.35), rgba(236,72,153,0.35)); border: 1px solid rgba(236,72,153,0.6); color: #fbcfe8; font-weight: 700; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 15px rgba(236,72,153,0.25);" onclick="openDocsToMusicModal()">
         <i class="fa-solid fa-file-audio" style="color: #f472b6;"></i> <span>Docs-to-Music (脚本・企画書➔劇伴＆MPC)</span>
       </button>
@@ -796,6 +872,9 @@
 
       <div class="presets-row" id="presets-row-container">
         <span class="preset-label"><i class="fa-solid fa-bolt"></i> プリセット & 読込:</span>
+        <button class="preset-chip" id="chip-open-crate" style="border: 1.5px solid #06b6d4; background: linear-gradient(135deg, rgba(6,182,212,0.35), rgba(99,102,241,0.35)); color: #cffafe; font-weight: 800; box-shadow: 0 0 14px rgba(6,182,212,0.35);" onclick="openCacheCrateModal()">
+          <i class="fa-solid fa-box-archive" style="color: #22d3ee;"></i> 📦 キャッシュ・クレート (<span class="crate-count-text">0曲</span>)
+        </button>
         <input type="file" id="minimax-file-input" accept="audio/*" style="display: none;" onchange="handleMiniMaxFileUpload(event)">
         <button class="preset-chip" style="border: 1.5px solid #ec4899; background: linear-gradient(135deg, rgba(236,72,153,0.35), rgba(168,85,247,0.35)); color: #fdf2f8; font-weight: 800; box-shadow: 0 0 14px rgba(236,72,153,0.3);" onclick="document.getElementById('minimax-file-input').click()">
           <i class="fa-solid fa-robot" style="color: #f472b6;"></i> 🤖 MiniMax音楽読込 (MP3/WAV/Hailuo音源)
@@ -850,6 +929,39 @@
           <span class="metric-title">✨ 音色特性 (Timbre)</span>
           <span class="metric-val" id="val-timbre" style="color: #a855f7; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Deep & Gritty (Sub-bass, Cello)</span>
         </div>
+      </div>
+    </div>
+
+    <!-- 🎼 Part-by-Part (Aメロ・Bメロ・サビ) Multimodal Timbre DNA Card -->
+    <div class="section-timbre-card" id="section-timbre-card" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 27, 75, 0.85)); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 16px; padding: 18px 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="background: linear-gradient(135deg, #a855f7, #ec4899); width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.15rem; box-shadow: 0 0 15px rgba(168, 85, 247, 0.45);">
+            <i class="fa-solid fa-headphones"></i>
+          </div>
+          <div>
+            <div style="font-weight: 800; font-size: 1.0rem; color: #f8fafc; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px;">
+              <span>パート別（Aメロ・Bメロ・サビ）音色＆機材サウンドデザイン解析</span>
+              <span style="font-size: 0.65rem; background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.5); color: #e9d5ff; padding: 2px 8px; border-radius: 12px; font-weight: 700;">Gemini 2.5 Flash マルチモーダル直接聴解</span>
+            </div>
+            <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 3px;">
+              区間ごとの実機シンセ・ドラムマシン・フィルター開閉・空間サチュレーションを個別に同定
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span id="section-timbre-count" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 0.72rem; padding: 4px 10px; border-radius: 6px; font-weight: 700;">
+            5 パート同定
+          </span>
+          <button onclick="copyAllSectionDirectives()" style="background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-copy"></i> 全パート音色指示コピー
+          </button>
+        </div>
+      </div>
+
+      <!-- Section Timbre Cards Grid -->
+      <div id="section-timbres-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px;">
+        <!-- Rendered dynamically by renderSectionTimbres() -->
       </div>
     </div>
 
@@ -948,7 +1060,101 @@
       </div>
     </div>
 
-    <!-- 2. Main Studio Grid -->
+    <!-- 🌊 2. FULL TRACK TIMELINE WAVEFORM ZOOM EDITOR & MULTI-SAMPLING CHOPPER (Serato / MPC Pro Edition) -->
+    <div class="chop-editor-card" id="chop-editor-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="background: linear-gradient(135deg, #0ea5e9, #8b5cf6); width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.15rem; box-shadow: 0 0 16px rgba(14, 165, 233, 0.5);">
+            <i class="fa-solid fa-wave-square"></i>
+          </div>
+          <div>
+            <div style="font-weight: 800; font-size: 1.0rem; color: #f8fafc; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px;">
+              <span>全体タイムライン波形ズームエディタ ＆ マルチサンプリング・チョッパー</span>
+              <span style="font-size: 0.65rem; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; padding: 2px 8px; border-radius: 12px; font-weight: 700;">1x〜32x 精密ズーム ✕ Serato / MPC Style</span>
+            </div>
+            <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 3px;">
+              楽曲全体（フル尺）をミリ秒単位で拡大・スクロールし、直感ドラッグで任意区間を複数Padへ高精度サンプリング＆一斉チョップ
+            </div>
+          </div>
+        </div>
+
+        <!-- Track Selector Tabs -->
+        <div style="display: flex; gap: 6px; align-items: center; background: rgba(0,0,0,0.35); padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <button class="chop-tab-btn active" id="chop-tab-master" onclick="setChopActiveTrack('master')"><i class="fa-solid fa-fire"></i> MASTER MIX</button>
+          <button class="chop-tab-btn" id="chop-tab-drums" onclick="setChopActiveTrack('drums')"><i class="fa-solid fa-drum"></i> DRUMS</button>
+          <button class="chop-tab-btn" id="chop-tab-bass" onclick="setChopActiveTrack('bass')"><i class="fa-solid fa-guitar"></i> BASS</button>
+          <button class="chop-tab-btn" id="chop-tab-vocals" onclick="setChopActiveTrack('vocals')"><i class="fa-solid fa-microphone"></i> VOCALS</button>
+          <button class="chop-tab-btn" id="chop-tab-melody" onclick="setChopActiveTrack('melody')"><i class="fa-solid fa-compact-disc"></i> MELODY</button>
+        </div>
+
+        <!-- Zoom Control Bar -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="chop-btn-action" onclick="zoomChopWaveform(-0.5)" title="ズームアウト (縮小)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+          <span id="chop-zoom-badge" style="font-size: 0.72rem; font-weight: 700; color: #38bdf8; min-width: 48px; text-align: center;">1.0x</span>
+          <button class="chop-btn-action" onclick="zoomChopWaveform(0.5)" title="ズームイン (拡大)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+          <button class="chop-btn-action" onclick="resetChopZoom()" style="color: #cbd5e1;"><i class="fa-solid fa-arrows-left-right-to-line"></i> 全体Fit</button>
+          <button class="chop-btn-action" onclick="zoomToChorusSection()" style="background: rgba(236,72,153,0.25); border-color: rgba(236,72,153,0.5); color: #fbcfe8;"><i class="fa-solid fa-bolt"></i> サビへズーム</button>
+        </div>
+      </div>
+
+      <!-- Part Navigation Bar on top of Waveform -->
+      <div id="chop-part-nav-bar" style="display: flex; gap: 4px; margin-bottom: 6px; height: 24px; width: 100%; border-radius: 6px; overflow: hidden; background: rgba(0,0,0,0.5);">
+        <!-- Populated dynamically with color-coded part tabs (Intro, Verse, Chorus...) -->
+      </div>
+
+      <!-- Main High-Precision Zoomable Waveform Canvas Wrapper -->
+      <div class="chop-canvas-wrapper" id="chop-canvas-container">
+        <canvas id="chop-zoom-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+      </div>
+
+      <!-- Mini-map / Full Song Overview Bar -->
+      <div class="chop-minimap-wrapper" id="chop-minimap-container" title="全体ミニマップ（クリックまたはドラッグで表示位置を移動）">
+        <canvas id="chop-minimap-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+      </div>
+
+      <!-- Selection Time Info & Action Toolbar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 12px;">
+        <!-- Selection Timecode Badges -->
+        <div style="display: flex; align-items: center; gap: 10px; font-size: 0.74rem; background: rgba(0,0,0,0.4); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <span style="color: #94a3b8;"><i class="fa-solid fa-ruler-horizontal"></i> 選択区間:</span>
+          <span style="color: #38bdf8; font-family: monospace; font-weight: 700;" id="chop-sel-start">00:00.000</span>
+          <span style="color: #64748b;">➔</span>
+          <span style="color: #38bdf8; font-family: monospace; font-weight: 700;" id="chop-sel-end">00:02.000</span>
+          <span style="color: #cbd5e1; font-weight: 700; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px;" id="chop-sel-dur">長さ: 2.000s</span>
+        </div>
+
+        <!-- Audition & Pad Assign Controls -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <button class="chop-btn-action" id="btn-chop-audition" onclick="toggleChopAudition(false)" style="background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.5); color: #34d399;">
+            <i class="fa-solid fa-play" id="icon-chop-audition"></i> 選択範囲を試聴
+          </button>
+          <button class="chop-btn-action" id="btn-chop-loop" onclick="toggleChopAudition(true)" style="background: rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+            <i class="fa-solid fa-repeat"></i> ループ試聴
+          </button>
+
+          <!-- Target Pad Dropdown & Assign Button -->
+          <div style="display: flex; align-items: center; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.5); border-radius: 8px; padding: 2px 4px;">
+            <span style="font-size: 0.72rem; color: #c084fc; font-weight: 700; margin-left: 6px;">Pad:</span>
+            <select id="chop-target-pad-select" style="background: transparent; border: none; color: #f5d0fe; font-size: 0.76rem; font-weight: 800; padding: 4px 6px; outline: none; cursor: pointer;">
+              <!-- 1 to 16 populated by initChopTargetPadSelect -->
+            </select>
+            <button onclick="assignCurrentSelectionToPad()" class="btn-action-primary" style="background: linear-gradient(135deg, #a855f7, #ec4899); border: none; color: white; font-size: 0.74rem; font-weight: 800; padding: 5px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);">
+              <i class="fa-solid fa-fingerprint"></i> この区間をPadにアサイン
+            </button>
+          </div>
+
+          <!-- Quick Chop Dropdown / Suite -->
+          <button onclick="execute16EqualChop()" class="chop-btn-action" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(249, 115, 22, 0.25)); border-color: rgba(234, 179, 8, 0.6); color: #fde047;" title="選択区間を16等分してPad 1〜16へ一気に割り当て">
+            <i class="fa-solid fa-bolt"></i> 16分割一括チョップ (Equal Chop)
+          </button>
+          <button onclick="executeTransientChop()" class="chop-btn-action" style="background: rgba(236,72,153,0.2); border-color: rgba(236,72,153,0.5); color: #f472b6;" title="アタック（打撃音・キック・スネア・ボーカル頭）を自動検出してPad 1〜16へ割り当て">
+            <i class="fa-solid fa-drum"></i> アタック自動検出チョップ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Main Studio Grid -->
     <div class="workspace-grid">
 
       <!-- LEFT: 4-Track Stems Console -->
@@ -971,7 +1177,7 @@
           <div class="stem-meta-row">
             <span class="stem-badge badge-drums"><i class="fa-solid fa-drum"></i> DRUMS (ビート / キック / スネア)</span>
             <div class="stem-controls">
-              <input type="range" class="stem-volume" id="vol-drums" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('drums', this.value)">
+              <input type="range" class="stem-volume" id="vol-drums" min="0" max="1" step="0.05" value="0.8" oninput="updateStemVolume('drums', this.value)">
               <button class="stem-btn" id="mute-drums" onclick="toggleMute('drums')">MUTE</button>
               <button class="stem-btn" id="solo-drums" onclick="toggleSolo('drums')">SOLO</button>
               <button class="stem-btn" onclick="downloadStem('drums')"><i class="fa-solid fa-download"></i></button>
@@ -985,7 +1191,7 @@
           <div class="stem-meta-row">
             <span class="stem-badge badge-bass"><i class="fa-solid fa-guitar"></i> BASS (808 / サブベース)</span>
             <div class="stem-controls">
-              <input type="range" class="stem-volume" id="vol-bass" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('bass', this.value)">
+              <input type="range" class="stem-volume" id="vol-bass" min="0" max="1" step="0.05" value="0.8" oninput="updateStemVolume('bass', this.value)">
               <button class="stem-btn" id="mute-bass" onclick="toggleMute('bass')">MUTE</button>
               <button class="stem-btn" id="solo-bass" onclick="toggleSolo('bass')">SOLO</button>
               <button class="stem-btn" onclick="downloadStem('bass')"><i class="fa-solid fa-download"></i></button>
@@ -999,7 +1205,7 @@
           <div class="stem-meta-row">
             <span class="stem-badge badge-vocals"><i class="fa-solid fa-microphone"></i> VOCALS (ボーカル / アカペラ)</span>
             <div class="stem-controls">
-              <input type="range" class="stem-volume" id="vol-vocals" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('vocals', this.value)">
+              <input type="range" class="stem-volume" id="vol-vocals" min="0" max="1" step="0.05" value="0.8" oninput="updateStemVolume('vocals', this.value)">
               <button class="stem-btn" id="mute-vocals" onclick="toggleMute('vocals')">MUTE</button>
               <button class="stem-btn" id="solo-vocals" onclick="toggleSolo('vocals')">SOLO</button>
               <button class="stem-btn" onclick="downloadStem('vocals')"><i class="fa-solid fa-download"></i></button>
@@ -1013,7 +1219,7 @@
           <div class="stem-meta-row">
             <span class="stem-badge badge-melody"><i class="fa-solid fa-wave-square"></i> MELODY (シンセ / ピアノ / ギター)</span>
             <div class="stem-controls">
-              <input type="range" class="stem-volume" id="vol-melody" min="0" max="1" step="0.05" value="0.9" oninput="updateStemVolume('melody', this.value)">
+              <input type="range" class="stem-volume" id="vol-melody" min="0" max="1" step="0.05" value="0.8" oninput="updateStemVolume('melody', this.value)">
               <button class="stem-btn" id="mute-melody" onclick="toggleMute('melody')">MUTE</button>
               <button class="stem-btn" id="solo-melody" onclick="toggleSolo('melody')">SOLO</button>
               <button class="stem-btn" onclick="downloadStem('melody')"><i class="fa-solid fa-download"></i></button>
@@ -1043,7 +1249,7 @@
             </button>
             <div style="display: flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-volume-high" style="color: var(--text-sub); font-size: 0.8rem;"></i>
-              <input type="range" style="width: 80px;" min="0" max="1" step="0.05" value="0.9" oninput="updateMasterVolume(this.value)">
+              <input type="range" style="width: 80px;" min="0" max="1" step="0.05" value="0.8" oninput="updateMasterVolume(this.value)">
             </div>
           </div>
         </div>
@@ -1290,14 +1496,53 @@
 
     let audioCtx = null;
     let padMasterGain = null;
+    let masterLimiterNode = null;
+    let masterGainNode = null;
+    let analyserNode = null;
 
     function getAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContextClass({ latencyHint: 'interactive', sampleRate: 44100 });
+
+        // 1. Transparent Studio Master Limiter (Prevents OS/browser clipping & limiter ducking)
+        masterLimiterNode = audioCtx.createDynamicsCompressor();
+        masterLimiterNode.threshold.value = -1.0;
+        masterLimiterNode.threshold.setValueAtTime(-1.0, audioCtx.currentTime); // -1.0 dBFS ceiling
+        masterLimiterNode.knee.value = 2.0;
+        masterLimiterNode.knee.setValueAtTime(2.0, audioCtx.currentTime);        // smooth transparent knee
+        masterLimiterNode.ratio.value = 20.0;
+        masterLimiterNode.ratio.setValueAtTime(20.0, audioCtx.currentTime);      // brickwall peak ceiling
+        masterLimiterNode.attack.value = 0.001;
+        masterLimiterNode.attack.setValueAtTime(0.001, audioCtx.currentTime);    // 1ms ultra-fast transient catcher
+        masterLimiterNode.release.value = 0.04;
+        masterLimiterNode.release.setValueAtTime(0.04, audioCtx.currentTime);    // 40ms instant transparent recovery (zero filter/muffle artifact!)
+
+        // 2. Master Visualizer Analyser
+        analyserNode = audioCtx.createAnalyser();
+        analyserNode.fftSize = 256;
+
+        // Master Limiter -> Analyser -> Physical Audio Output
+        masterLimiterNode.connect(analyserNode);
+        analyserNode.connect(audioCtx.destination);
+
+        // 3. Stems Mix Bus (proper headroom staged at 0.65)
+        masterGainNode = audioCtx.createGain();
+        masterGainNode.gain.value = 0.65;
+        masterGainNode.gain.setValueAtTime(0.65, audioCtx.currentTime);
+        masterGainNode.connect(masterLimiterNode);
+
+        // 4. Pad Performance Bus (staged at 0.65)
         padMasterGain = audioCtx.createGain();
-        padMasterGain.gain.setValueAtTime(0.95, audioCtx.currentTime);
-        padMasterGain.connect(audioCtx.destination);
+        padMasterGain.gain.value = 0.65;
+        padMasterGain.gain.setValueAtTime(0.65, audioCtx.currentTime);
+        padMasterGain.connect(masterLimiterNode);
+
+        // Expose globally for window access
+        window.masterGainNode = masterGainNode;
+        window.analyserNode = analyserNode;
+        window.masterLimiterNode = masterLimiterNode;
+        window.padMasterGain = padMasterGain;
       }
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -1404,6 +1649,7 @@
       setupKeyboardListeners();
       setDefaultPrompts();
       drawMockWaveforms();
+      initChopEditor();
     });
 
     function setPreset(query, btnEl) {
@@ -1514,15 +1760,16 @@
     // Realistic Web Audio Acoustic Synthesizer (Zero-latency fallback)
     function synthesizeAcousticTone(ctx, type) {
       const t = ctx.currentTime;
+      const targetDest = padMasterGain || ctx.destination;
       if (type.startsWith('drum_kick') || type.startsWith('bass_808')) {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.frequency.setValueAtTime(type.includes('808') ? 70 : 130, t);
         osc.frequency.exponentialRampToValueAtTime(32, t + (type.includes('808') ? 0.6 : 0.25));
-        gain.gain.setValueAtTime(0.9, t);
+        gain.gain.setValueAtTime(0.75, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + (type.includes('808') ? 0.7 : 0.3));
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(targetDest);
         osc.start(t);
         osc.stop(t + 0.7);
       } else if (type.includes('snare')) {
@@ -1534,7 +1781,7 @@
         gain.gain.setValueAtTime(0.4, t);
         gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(targetDest);
         osc.start(t);
         osc.stop(t + 0.2);
       } else if (type.includes('hat')) {
@@ -1546,7 +1793,7 @@
         gain.gain.setValueAtTime(0.25, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(targetDest);
         osc.start(t);
         osc.stop(t + 0.08);
       } else if (type.startsWith('melody') || type.startsWith('vocal')) {
@@ -1570,7 +1817,7 @@
         osc1.connect(filter);
         osc2.connect(filter);
         filter.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(targetDest);
 
         osc1.start(t);
         osc2.start(t);
@@ -1676,6 +1923,9 @@
             }
           }));
         }
+
+        // 🌊 Refresh Master Timeline Waveform Zoom & Chopper
+        if (typeof onStemsUpdated === 'function') onStemsUpdated();
 
         // Render Deep Musical DNA & Populate Prompts
         if (data.music_dna) {
@@ -1783,7 +2033,17 @@
             }));
           }
 
-          // 4. Update Prompts
+          // 🌊 Refresh Master Timeline Waveform Zoom & Chopper
+          if (typeof onStemsUpdated === 'function') onStemsUpdated();
+
+          // 4. Update Section Timbres & Prompts
+          if (data.sections || (data.prompts && data.prompts.sections)) {
+            renderSectionTimbres(data.sections || data.prompts.sections);
+          }
+          if (data.music_dna) {
+            window.musicDna = data.music_dna;
+            renderMusicDnaPanel(data.music_dna);
+          }
           if (data.prompts) {
             window.promptsData = data.prompts;
             updatePromptDisplay();
@@ -1842,15 +2102,7 @@
       window.isMasterPlaying = true;
       document.getElementById('icon-master-play').className = 'fa-solid fa-pause';
 
-      if (!window.masterGainNode) {
-        window.masterGainNode = ctx.createGain();
-        window.analyserNode = ctx.createAnalyser();
-        window.analyserNode.fftSize = 256;
-        window.masterGainNode.connect(window.analyserNode);
-        window.analyserNode.connect(ctx.destination);
-      }
-
-      const stems = ['drums', 'bass', 'vocals', 'melody'];
+      const stems = ['drums', 'bass', 'vocals', 'melody', ...Object.keys(window.stemAudioBuffers || {}).filter(k => !['drums', 'bass', 'vocals', 'melody'].includes(k))];
       stems.forEach(stem => {
         if (!window.stemAudioBuffers[stem]) return;
 
@@ -1906,6 +2158,13 @@
       }
     }
 
+    function updateMasterVolume(val) {
+      const v = parseFloat(val);
+      if (window.masterGainNode && audioCtx) {
+        window.masterGainNode.gain.setValueAtTime(v * 0.65, audioCtx.currentTime);
+      }
+    }
+
     function updateStemVolume(stem, val) {
       if (window.stemGainNodes[stem]) {
         applyStemGain(stem, window.stemGainNodes[stem]);
@@ -1939,13 +2198,13 @@
 
     function applyStemGain(stem, gainNode) {
       const volInput = document.getElementById(`vol-${stem}`);
-      const baseVol = volInput ? parseFloat(volInput.value) : 0.9;
+      const baseVol = volInput ? parseFloat(volInput.value) : 0.8;
       const anySolo = Object.values(window.stemSolo).some(v => v);
 
       if (window.stemMute[stem] || (anySolo && !window.stemSolo[stem])) {
         gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
       } else {
-        gainNode.gain.setValueAtTime(baseVol, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(baseVol * 0.75, audioCtx.currentTime);
       }
     }
 
@@ -2077,6 +2336,902 @@
     }
 
     // ================================================================
+    // 🌊 Master Timeline Waveform Zoom Editor & Multi-Sampling Chopper
+    // ================================================================
+    window.chopActiveTrack = 'master'; // 'master' | 'drums' | 'bass' | 'vocals' | 'melody'
+    window.chopZoom = 1.0;            // 1.0x to 32.0x
+    window.chopScrollOffset = 0.0;    // start time in seconds currently visible at left edge
+    window.chopSelStart = 0.0;        // selection start in seconds
+    window.chopSelEnd = 2.0;          // selection end in seconds
+    window.chopIsDragging = false;
+    window.chopDragMode = null;       // 'create' | 'move' | 'handle-left' | 'handle-right'
+    window.chopDragStartX = 0;
+    window.chopDragInitialSel = { start: 0, end: 0 };
+    window.chopAuditionSrc = null;
+    window.chopIsLooping = false;
+    window.chopMasterCombinedBuffer = null;
+    window.chopAuditionStartTime = 0;
+
+    function formatDetailedTime(sec) {
+      if (isNaN(sec) || sec < 0) sec = 0;
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      const ms = Math.floor((sec % 1) * 1000);
+      return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}.${ms < 100 ? (ms < 10 ? '00' + ms : '0' + ms) : ms}`;
+    }
+
+    function initChopTargetPadSelect() {
+      const sel = document.getElementById('chop-target-pad-select');
+      if (!sel) return;
+      sel.innerHTML = '';
+      for (let i = 1; i <= 16; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        const padObj = window.currentSlices ? window.currentSlices.find(s => s.id === i) : null;
+        const name = padObj ? padObj.name : `Pad ${i}`;
+        opt.textContent = `Pad ${i < 10 ? '0' + i : i} (${name})`;
+        sel.appendChild(opt);
+      }
+    }
+
+    function generateDefaultDemoBuffer() {
+      const ctx = getAudioContext();
+      const sr = ctx.sampleRate || 44100;
+      const dur = window.songDuration || 30.0;
+      const len = Math.floor(dur * sr);
+      const buf = ctx.createBuffer(2, len, sr);
+      const outL = buf.getChannelData(0);
+      const outR = buf.getChannelData(1);
+
+      const bpm = 123.0;
+      const beatSec = 60.0 / bpm;
+      for (let i = 0; i < len; i++) {
+        const t = i / sr;
+        const beatPos = (t % beatSec) / beatSec;
+
+        // Kick on beat 1 & 3
+        let kick = 0;
+        if (beatPos < 0.25) {
+          const kt = beatPos * beatSec;
+          const kFreq = Math.max(35, 140 * Math.exp(-kt * 25));
+          kick = Math.sin(2 * Math.PI * kFreq * kt) * Math.exp(-kt * 12) * 0.7;
+        }
+
+        // Bass 808
+        const bassNote = (Math.floor(t / (beatSec * 2)) % 4 === 0) ? 55 : 48.99;
+        const bass = Math.sin(2 * Math.PI * bassNote * t) * 0.35;
+
+        // Synth pad / chord
+        const chordFreq1 = 220; // A3
+        const chordFreq2 = 277.18; // C#4
+        const chordFreq3 = 329.63; // E4
+        const pad = (Math.sin(2 * Math.PI * chordFreq1 * t) +
+                     Math.sin(2 * Math.PI * chordFreq2 * t) +
+                     Math.sin(2 * Math.PI * chordFreq3 * t)) * 0.08;
+
+        outL[i] = (kick + bass + pad) * 0.8;
+        outR[i] = (kick + bass + pad * 1.1) * 0.8;
+      }
+      return buf;
+    }
+
+    function getActiveChopAudioBuffer() {
+      if (window.chopActiveTrack !== 'master') {
+        const stemBuf = window.stemAudioBuffers[window.chopActiveTrack];
+        if (stemBuf) return stemBuf;
+      }
+      if (window.chopMasterCombinedBuffer) return window.chopMasterCombinedBuffer;
+
+      const stems = ['drums', 'bass', 'vocals', 'melody'];
+      const loaded = stems.filter(s => !!window.stemAudioBuffers[s]);
+      if (loaded.length === 0) {
+        if (!window.chopDefaultDemoBuffer) {
+          window.chopDefaultDemoBuffer = generateDefaultDemoBuffer();
+        }
+        return window.chopDefaultDemoBuffer;
+      }
+
+      let maxLen = 0;
+      let sr = 44100;
+      loaded.forEach(s => {
+        const b = window.stemAudioBuffers[s];
+        if (b.length > maxLen) maxLen = b.length;
+        sr = b.sampleRate;
+      });
+
+      const ctx = getAudioContext();
+      const combined = ctx.createBuffer(2, maxLen, sr);
+      const outL = combined.getChannelData(0);
+      const outR = combined.getChannelData(1);
+
+      loaded.forEach(s => {
+        const b = window.stemAudioBuffers[s];
+        const inL = b.getChannelData(0);
+        const inR = b.numberOfChannels > 1 ? b.getChannelData(1) : inL;
+        for (let i = 0; i < b.length; i++) {
+          outL[i] += inL[i] * 0.4;
+          outR[i] += inR[i] * 0.4;
+        }
+      });
+      window.chopMasterCombinedBuffer = combined;
+      return combined;
+    }
+
+    function setChopActiveTrack(track) {
+      window.chopActiveTrack = track;
+      ['master', 'drums', 'bass', 'vocals', 'melody'].forEach(t => {
+        const btn = document.getElementById(`chop-tab-${t}`);
+        if (btn) btn.classList.toggle('active', t === track);
+      });
+      renderChopWaveform();
+      renderChopMinimap();
+    }
+
+    function updateChopTimeDisplays() {
+      const startEl = document.getElementById('chop-sel-start');
+      const endEl = document.getElementById('chop-sel-end');
+      const durEl = document.getElementById('chop-sel-dur');
+      if (startEl) startEl.textContent = formatDetailedTime(window.chopSelStart);
+      if (endEl) endEl.textContent = formatDetailedTime(window.chopSelEnd);
+      const dur = Math.max(0, window.chopSelEnd - window.chopSelStart);
+      if (durEl) durEl.textContent = `長さ: ${dur.toFixed(3)}s`;
+    }
+
+    function updateChopPartNavBar() {
+      const bar = document.getElementById('chop-part-nav-bar');
+      if (!bar) return;
+      bar.innerHTML = '';
+
+      let sections = (window.promptsData && window.promptsData.sections) ? window.promptsData.sections : null;
+      const totalDur = window.songDuration || 30.0;
+
+      if (!sections || sections.length === 0) {
+        // Default 5 sections
+        sections = [
+          { name: 'Intro', start_sec: 0, end_sec: Math.min(15, totalDur * 0.15), color: '#0284c7' },
+          { name: 'Verse 1 (Aメロ)', start_sec: totalDur * 0.15, end_sec: totalDur * 0.35, color: '#10b981' },
+          { name: 'Pre-Chorus (Bメロ)', start_sec: totalDur * 0.35, end_sec: totalDur * 0.50, color: '#f59e0b' },
+          { name: 'Chorus / Drop (サビ)', start_sec: totalDur * 0.50, end_sec: totalDur * 0.80, color: '#ec4899' },
+          { name: 'Outro', start_sec: totalDur * 0.80, end_sec: totalDur, color: '#8b5cf6' }
+        ];
+      }
+
+      sections.forEach(sec => {
+        const dur = Math.max(0.1, (sec.end_sec || totalDur) - (sec.start_sec || 0));
+        const pct = Math.max(8, (dur / totalDur) * 100);
+        const pill = document.createElement('div');
+        pill.style.flex = `${pct}`;
+        pill.style.background = sec.color || '#3b82f6';
+        pill.style.opacity = '0.85';
+        pill.style.display = 'flex';
+        pill.style.alignItems = 'center';
+        pill.style.justifyContent = 'center';
+        pill.style.color = '#ffffff';
+        pill.style.fontSize = '0.68rem';
+        pill.style.fontWeight = '700';
+        pill.style.cursor = 'pointer';
+        pill.style.padding = '0 6px';
+        pill.style.whiteSpace = 'nowrap';
+        pill.style.overflow = 'hidden';
+        pill.style.textOverflow = 'ellipsis';
+        pill.style.transition = 'all 0.15s ease';
+        pill.title = `${sec.name}: ${formatDetailedTime(sec.start_sec)} - ${formatDetailedTime(sec.end_sec)} (クリックでズーム＆選択)`;
+        pill.textContent = `${sec.name}`;
+
+        pill.onmouseover = () => { pill.style.opacity = '1.0'; pill.style.filter = 'brightness(1.2)'; };
+        pill.onmouseout = () => { pill.style.opacity = '0.85'; pill.style.filter = 'none'; };
+        pill.onclick = () => {
+          zoomToTimeRange(sec.start_sec || 0, sec.end_sec || totalDur, sec.name);
+        };
+        bar.appendChild(pill);
+      });
+    }
+
+    function zoomToTimeRange(start, end, label) {
+      window.chopSelStart = start;
+      window.chopSelEnd = end;
+      updateChopTimeDisplays();
+
+      const rangeDur = Math.max(0.5, end - start);
+      const totalDur = window.songDuration || 30.0;
+
+      // Fit with small padding
+      const paddedDur = rangeDur * 1.25;
+      window.chopZoom = Math.max(1.0, Math.min(32.0, totalDur / paddedDur));
+      window.chopScrollOffset = Math.max(0, start - (paddedDur - rangeDur) / 2);
+
+      renderChopWaveform();
+      renderChopMinimap();
+      showToast(`🔍 [${label}] 区間 (${formatDetailedTime(start)}〜${formatDetailedTime(end)}) へズームしました`);
+    }
+
+    function zoomToChorusSection() {
+      const sections = (window.promptsData && window.promptsData.sections) || [];
+      const chorus = sections.find(s => s.name && (s.name.includes('Chorus') || s.name.includes('サビ') || s.name.includes('Drop')));
+      if (chorus) {
+        zoomToTimeRange(chorus.start_sec, chorus.end_sec, chorus.name);
+      } else {
+        const total = window.songDuration || 30.0;
+        zoomToTimeRange(total * 0.5, total * 0.8, 'Chorus / Drop (サビ)');
+      }
+    }
+
+    function zoomChopWaveform(delta, mouseRatio = 0.5) {
+      const totalDur = window.songDuration || 30.0;
+      const oldVisibleDur = totalDur / window.chopZoom;
+      const centerTime = window.chopScrollOffset + (oldVisibleDur * mouseRatio);
+
+      window.chopZoom = Math.max(1.0, Math.min(32.0, window.chopZoom + delta));
+      const newVisibleDur = totalDur / window.chopZoom;
+      window.chopScrollOffset = Math.max(0, Math.min(totalDur - newVisibleDur, centerTime - (newVisibleDur * mouseRatio)));
+
+      const badge = document.getElementById('chop-zoom-badge');
+      if (badge) badge.textContent = `${window.chopZoom.toFixed(1)}x`;
+
+      renderChopWaveform();
+      renderChopMinimap();
+    }
+
+    function resetChopZoom() {
+      window.chopZoom = 1.0;
+      window.chopScrollOffset = 0.0;
+      const badge = document.getElementById('chop-zoom-badge');
+      if (badge) badge.textContent = '1.0x';
+      renderChopWaveform();
+      renderChopMinimap();
+    }
+
+    function renderChopWaveform() {
+      const canvas = document.getElementById('chop-zoom-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+      }
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+
+      // Deep Dark Backdrop
+      ctx.fillStyle = '#080c14';
+      ctx.fillRect(0, 0, w, h);
+
+      const buf = getActiveChopAudioBuffer();
+      const totalDur = buf ? buf.duration : (window.songDuration || 30.0);
+      const visibleDur = Math.max(0.1, totalDur / window.chopZoom);
+      const timeStart = Math.max(0, Math.min(window.chopScrollOffset, totalDur - visibleDur));
+      window.chopScrollOffset = timeStart;
+      const timeEnd = timeStart + visibleDur;
+
+      // Draw Time Grid & Ticks
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.fillStyle = '#64748b';
+      ctx.font = '9px monospace';
+      ctx.lineWidth = 1;
+
+      let tickInterval = 5.0;
+      if (visibleDur <= 2.0) tickInterval = 0.1;
+      else if (visibleDur <= 5.0) tickInterval = 0.5;
+      else if (visibleDur <= 15.0) tickInterval = 1.0;
+      else if (visibleDur <= 60.0) tickInterval = 5.0;
+      else tickInterval = 15.0;
+
+      const firstTick = Math.ceil(timeStart / tickInterval) * tickInterval;
+      for (let t = firstTick; t <= timeEnd; t += tickInterval) {
+        const x = ((t - timeStart) / visibleDur) * w;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+        ctx.fillText(formatDetailedTime(t), x + 4, 12);
+      }
+
+      // Draw Section Overlays
+      const sections = (window.promptsData && window.promptsData.sections) || [];
+      sections.forEach(sec => {
+        if (sec.end_sec >= timeStart && sec.start_sec <= timeEnd) {
+          const sx = Math.max(0, ((sec.start_sec - timeStart) / visibleDur) * w);
+          const ex = Math.min(w, ((sec.end_sec - timeStart) / visibleDur) * w);
+          ctx.fillStyle = (sec.color || '#3b82f6') + '15'; // 8% alpha
+          ctx.fillRect(sx, 16, ex - sx, h - 16);
+          ctx.fillStyle = sec.color || '#3b82f6';
+          ctx.fillText(sec.name, sx + 4, 26);
+        }
+      });
+
+      // Draw Waveform
+      const centerY = h / 2;
+      const amp = (h - 30) / 2;
+
+      // Zero-crossing center line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.beginPath();
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(w, centerY);
+      ctx.stroke();
+
+      if (buf) {
+        const dataL = buf.getChannelData(0);
+        const dataR = buf.numberOfChannels > 1 ? buf.getChannelData(1) : dataL;
+        const sr = buf.sampleRate;
+        const startSample = Math.floor(timeStart * sr);
+        const endSample = Math.min(dataL.length, Math.floor(timeEnd * sr));
+        const sampleCount = endSample - startSample;
+        const samplesPerPixel = Math.max(1, Math.floor(sampleCount / w));
+
+        // Waveform gradient
+        const grad = ctx.createLinearGradient(0, centerY - amp, 0, centerY + amp);
+        if (window.chopActiveTrack === 'drums') {
+          grad.addColorStop(0, '#ef4444'); grad.addColorStop(0.5, '#f43f5e'); grad.addColorStop(1, '#ef4444');
+        } else if (window.chopActiveTrack === 'bass') {
+          grad.addColorStop(0, '#f59e0b'); grad.addColorStop(0.5, '#eab308'); grad.addColorStop(1, '#f59e0b');
+        } else if (window.chopActiveTrack === 'vocals') {
+          grad.addColorStop(0, '#06b6d4'); grad.addColorStop(0.5, '#10b981'); grad.addColorStop(1, '#06b6d4');
+        } else if (window.chopActiveTrack === 'melody') {
+          grad.addColorStop(0, '#a855f7'); grad.addColorStop(0.5, '#c084fc'); grad.addColorStop(1, '#a855f7');
+        } else {
+          grad.addColorStop(0, '#38bdf8'); grad.addColorStop(0.5, '#818cf8'); grad.addColorStop(1, '#a855f7');
+        }
+        ctx.fillStyle = grad;
+
+        for (let x = 0; x < w; x++) {
+          const sIdx = startSample + (x * samplesPerPixel);
+          if (sIdx >= dataL.length) break;
+          let min = 1.0;
+          let max = -1.0;
+          const limit = Math.min(dataL.length, sIdx + samplesPerPixel);
+          for (let j = sIdx; j < limit; j += Math.max(1, Math.floor(samplesPerPixel / 30))) {
+            const v = (dataL[j] + dataR[j]) * 0.5;
+            if (v < min) min = v;
+            if (v > max) max = v;
+          }
+          const y1 = centerY - (Math.max(0.02, max) * amp);
+          const y2 = centerY - (Math.min(-0.02, min) * amp);
+          ctx.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+        }
+      } else {
+        // Simulated procedural waveform
+        const grad = ctx.createLinearGradient(0, centerY - amp, 0, centerY + amp);
+        grad.addColorStop(0, '#38bdf8'); grad.addColorStop(0.5, '#818cf8'); grad.addColorStop(1, '#a855f7');
+        ctx.fillStyle = grad;
+        for (let x = 0; x < w; x += 2) {
+          const t = timeStart + ((x / w) * visibleDur);
+          const env = Math.sin(t * 1.5) * 0.4 + Math.sin(t * 4.2) * 0.3 + 0.35;
+          const noise = Math.sin(x * 0.7) * 0.2;
+          const hBar = Math.max(3, (env + noise) * amp * 0.85);
+          ctx.fillRect(x, centerY - hBar / 2, 1.5, hBar);
+        }
+      }
+
+      // Draw Pad Cue Pins on timeline
+      if (window.currentSlices) {
+        window.currentSlices.forEach(slice => {
+          if (slice.startTime != null && slice.startTime >= timeStart && slice.startTime <= timeEnd) {
+            const px = ((slice.startTime - timeStart) / visibleDur) * w;
+            ctx.strokeStyle = slice.color || '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(px, 14);
+            ctx.lineTo(px, h - 14);
+            ctx.stroke();
+
+            // Pin badge
+            ctx.fillStyle = slice.color || '#38bdf8';
+            ctx.beginPath();
+            ctx.roundRect(px - 14, h - 22, 28, 16, 4);
+            ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 9px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`P${slice.id}`, px, h - 10);
+            ctx.textAlign = 'left';
+          }
+        });
+      }
+
+      // Draw Selection Region
+      if (window.chopSelEnd > timeStart && window.chopSelStart < timeEnd) {
+        const x1 = Math.max(0, ((window.chopSelStart - timeStart) / visibleDur) * w);
+        const x2 = Math.min(w, ((window.chopSelEnd - timeStart) / visibleDur) * w);
+        const selW = Math.max(1, x2 - x1);
+
+        // Highlight box
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
+        ctx.fillRect(x1, 0, selW, h);
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x1, 0, selW, h);
+
+        // Handles (Left & Right Trim Bars)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x1 - 2, centerY - 24, 4, 48);
+        ctx.fillRect(x2 - 2, centerY - 24, 4, 48);
+
+        // Selection duration pill
+        const dur = Math.max(0, window.chopSelEnd - window.chopSelStart);
+        const durStr = `${dur.toFixed(3)}s`;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.beginPath();
+        const midX = Math.max(30, Math.min(w - 30, (x1 + x2) / 2));
+        ctx.roundRect(midX - 26, centerY - 10, 52, 20, 5);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(durStr, midX, centerY + 3);
+        ctx.textAlign = 'left';
+      }
+
+      // Draw Playhead
+      if (window.isMasterPlaying) {
+        const ctxAudio = getAudioContext();
+        const elapsed = (ctxAudio.currentTime - window.masterStartTime) % totalDur;
+        if (elapsed >= timeStart && elapsed <= timeEnd) {
+          const hx = ((elapsed - timeStart) / visibleDur) * w;
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(hx, 0);
+          ctx.lineTo(hx, h);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // Top triangle
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.moveTo(hx - 5, 0);
+          ctx.lineTo(hx + 5, 0);
+          ctx.lineTo(hx, 8);
+          ctx.fill();
+        }
+        requestAnimationFrame(renderChopWaveform);
+      } else if (window.chopAuditionSrc) {
+        const ctxAudio = getAudioContext();
+        const auditionElapsed = (ctxAudio.currentTime - window.chopAuditionStartTime) % Math.max(0.1, window.chopSelEnd - window.chopSelStart);
+        const currentAuditionTime = window.chopSelStart + auditionElapsed;
+        if (currentAuditionTime >= timeStart && currentAuditionTime <= timeEnd) {
+          const hx = ((currentAuditionTime - timeStart) / visibleDur) * w;
+          ctx.strokeStyle = '#10b981';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(hx, 0);
+          ctx.lineTo(hx, h);
+          ctx.stroke();
+        }
+        requestAnimationFrame(renderChopWaveform);
+      }
+    }
+
+    function renderChopMinimap() {
+      const canvas = document.getElementById('chop-minimap-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+      }
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+
+      ctx.fillStyle = '#060911';
+      ctx.fillRect(0, 0, w, h);
+
+      const buf = getActiveChopAudioBuffer();
+      const totalDur = buf ? buf.duration : (window.songDuration || 30.0);
+      const visibleDur = Math.max(0.1, totalDur / window.chopZoom);
+      const timeStart = Math.max(0, Math.min(window.chopScrollOffset, totalDur - visibleDur));
+
+      // Mini overview waveform
+      ctx.fillStyle = '#334155';
+      const amp = h / 2;
+      for (let x = 0; x < w; x += 2) {
+        const t = (x / w) * totalDur;
+        const env = Math.sin(t * 0.8) * 0.3 + Math.sin(t * 3.5) * 0.2 + 0.3;
+        ctx.fillRect(x, amp - (env * amp * 0.8), 1.5, env * amp * 1.6);
+      }
+
+      // Viewport Highlight Box
+      const vx1 = (timeStart / totalDur) * w;
+      const vx2 = ((timeStart + visibleDur) / totalDur) * w;
+      const vw = Math.max(4, vx2 - vx1);
+
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.fillRect(vx1, 0, vw, h);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(vx1, 0, vw, h);
+    }
+
+    function initChopEditor() {
+      initChopTargetPadSelect();
+      updateChopPartNavBar();
+      updateChopTimeDisplays();
+
+      const canvas = document.getElementById('chop-zoom-canvas');
+      const minimap = document.getElementById('chop-minimap-canvas');
+      if (!canvas || !minimap) return;
+
+      // Mouse drag on zoom canvas
+      canvas.addEventListener('pointerdown', (e) => {
+        canvas.setPointerCapture(e.pointerId);
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const totalDur = window.songDuration || 30.0;
+        const visibleDur = totalDur / window.chopZoom;
+        const timeStart = window.chopScrollOffset;
+
+        const x1 = ((window.chopSelStart - timeStart) / visibleDur) * rect.width;
+        const x2 = ((window.chopSelEnd - timeStart) / visibleDur) * rect.width;
+
+        window.chopIsDragging = true;
+        window.chopDragStartX = mx;
+        window.chopDragInitialSel = { start: window.chopSelStart, end: window.chopSelEnd };
+
+        if (Math.abs(mx - x1) <= 12) {
+          window.chopDragMode = 'handle-left';
+        } else if (Math.abs(mx - x2) <= 12) {
+          window.chopDragMode = 'handle-right';
+        } else if (mx >= x1 + 12 && mx <= x2 - 12 && !e.shiftKey) {
+          window.chopDragMode = 'move';
+        } else {
+          window.chopDragMode = 'create';
+          const clickTime = timeStart + ((mx / rect.width) * visibleDur);
+          window.chopSelStart = clickTime;
+          window.chopSelEnd = clickTime;
+          updateChopTimeDisplays();
+          renderChopWaveform();
+        }
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const totalDur = window.songDuration || 30.0;
+        const visibleDur = totalDur / window.chopZoom;
+        const timeStart = window.chopScrollOffset;
+
+        const x1 = ((window.chopSelStart - timeStart) / visibleDur) * rect.width;
+        const x2 = ((window.chopSelEnd - timeStart) / visibleDur) * rect.width;
+
+        if (!window.chopIsDragging) {
+          if (Math.abs(mx - x1) <= 12 || Math.abs(mx - x2) <= 12) {
+            canvas.style.cursor = 'ew-resize';
+          } else if (mx > x1 && mx < x2) {
+            canvas.style.cursor = 'grab';
+          } else {
+            canvas.style.cursor = 'crosshair';
+          }
+          return;
+        }
+
+        const currTime = Math.max(0, Math.min(totalDur, timeStart + ((mx / rect.width) * visibleDur)));
+
+        if (window.chopDragMode === 'create') {
+          const startTime = timeStart + ((window.chopDragStartX / rect.width) * visibleDur);
+          window.chopSelStart = Math.min(startTime, currTime);
+          window.chopSelEnd = Math.max(startTime, currTime);
+        } else if (window.chopDragMode === 'handle-left') {
+          window.chopSelStart = Math.min(window.chopSelEnd - 0.05, currTime);
+        } else if (window.chopDragMode === 'handle-right') {
+          window.chopSelEnd = Math.max(window.chopSelStart + 0.05, currTime);
+        } else if (window.chopDragMode === 'move') {
+          const deltaSec = ((mx - window.chopDragStartX) / rect.width) * visibleDur;
+          const dur = window.chopDragInitialSel.end - window.chopDragInitialSel.start;
+          let newStart = window.chopDragInitialSel.start + deltaSec;
+          if (newStart < 0) newStart = 0;
+          if (newStart + dur > totalDur) newStart = totalDur - dur;
+          window.chopSelStart = newStart;
+          window.chopSelEnd = newStart + dur;
+        }
+
+        updateChopTimeDisplays();
+        renderChopWaveform();
+      });
+
+      const finishDrag = () => {
+        if (!window.chopIsDragging) return;
+        window.chopIsDragging = false;
+        window.chopDragMode = null;
+        if (window.chopSelEnd - window.chopSelStart < 0.05) {
+          // If just clicked, create default 0.8s slice
+          const center = window.chopSelStart;
+          const totalDur = window.songDuration || 30.0;
+          window.chopSelStart = Math.max(0, center - 0.4);
+          window.chopSelEnd = Math.min(totalDur, window.chopSelStart + 0.8);
+        }
+        updateChopTimeDisplays();
+        renderChopWaveform();
+      };
+
+      canvas.addEventListener('pointerup', finishDrag);
+      canvas.addEventListener('pointercancel', finishDrag);
+
+      // Wheel Zoom on canvas
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mouseRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const delta = e.deltaY < 0 ? 0.5 : -0.5;
+        zoomChopWaveform(delta, mouseRatio);
+      }, { passive: false });
+
+      // Minimap click and drag
+      let minimapDragging = false;
+      const updateMinimapScroll = (e) => {
+        const rect = minimap.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const totalDur = window.songDuration || 30.0;
+        const visibleDur = totalDur / window.chopZoom;
+        window.chopScrollOffset = Math.max(0, Math.min(totalDur - visibleDur, (ratio * totalDur) - (visibleDur / 2)));
+        renderChopWaveform();
+        renderChopMinimap();
+      };
+
+      minimap.addEventListener('pointerdown', (e) => {
+        minimapDragging = true;
+        minimap.setPointerCapture(e.pointerId);
+        updateMinimapScroll(e);
+      });
+      minimap.addEventListener('pointermove', (e) => {
+        if (minimapDragging) updateMinimapScroll(e);
+      });
+      const endMinimapDrag = () => { minimapDragging = false; };
+      minimap.addEventListener('pointerup', endMinimapDrag);
+      minimap.addEventListener('pointercancel', endMinimapDrag);
+
+      window.addEventListener('resize', () => {
+        renderChopWaveform();
+        renderChopMinimap();
+      });
+
+      renderChopWaveform();
+      renderChopMinimap();
+    }
+
+    function onStemsUpdated() {
+      window.chopMasterCombinedBuffer = null;
+      let maxDur = 0;
+      for (const b of Object.values(window.stemAudioBuffers || {})) {
+        if (b && b.duration > maxDur) maxDur = b.duration;
+      }
+      if (maxDur > 0) window.songDuration = maxDur;
+      updateChopPartNavBar();
+      renderChopWaveform();
+      renderChopMinimap();
+    }
+
+    function assignCurrentSelectionToPad() {
+      const select = document.getElementById('chop-target-pad-select');
+      const padId = select ? parseInt(select.value) : 1;
+      const buf = getActiveChopAudioBuffer();
+      if (!buf) {
+        alert('音源バッファがロードされていません。「ステム分離」またはMP3を開いてください。');
+        return;
+      }
+
+      const start = window.chopSelStart;
+      const end = window.chopSelEnd;
+      const dur = Math.max(0.05, end - start);
+      const sr = buf.sampleRate;
+      const startSample = Math.floor(start * sr);
+      const endSample = Math.min(buf.length, Math.floor(end * sr));
+      const sliceLen = Math.max(128, endSample - startSample);
+
+      const ctx = getAudioContext();
+      const sliceBuf = ctx.createBuffer(buf.numberOfChannels, sliceLen, sr);
+      for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+        const inData = buf.getChannelData(ch);
+        const outData = sliceBuf.getChannelData(ch);
+        for (let i = 0; i < sliceLen; i++) {
+          outData[i] = inData[startSample + i] || 0;
+        }
+      }
+
+      window.loadedAudioBuffers[padId] = sliceBuf;
+
+      // Update Slice Metadata
+      if (window.currentSlices) {
+        const sliceObj = window.currentSlices.find(s => s.id === padId);
+        if (sliceObj) {
+          sliceObj.name = `CHOP ${formatDetailedTime(start)}`;
+          sliceObj.startTime = start;
+          sliceObj.duration = dur;
+        }
+      }
+      renderPads();
+      renderChopWaveform();
+
+      // Trigger visual hit
+      triggerPad(padId);
+      showToast(`🎯 Pad ${padId < 10 ? '0' + padId : padId} に ${formatDetailedTime(start)}〜${formatDetailedTime(end)} (${dur.toFixed(2)}s) を割り当てました！`);
+    }
+
+    function execute16EqualChop() {
+      const buf = getActiveChopAudioBuffer();
+      if (!buf) {
+        alert('音源バッファがロードされていません。先に「ステム分離」を実行してください。');
+        return;
+      }
+
+      const start = window.chopSelStart;
+      const end = window.chopSelEnd;
+      const totalSliceDur = Math.max(0.5, end - start);
+      const stepDur = totalSliceDur / 16.0;
+      const sr = buf.sampleRate;
+      const ctx = getAudioContext();
+
+      for (let p = 1; p <= 16; p++) {
+        const sStart = start + ((p - 1) * stepDur);
+        const sEnd = Math.min(end, sStart + stepDur);
+        const startSample = Math.floor(sStart * sr);
+        const endSample = Math.min(buf.length, Math.floor(sEnd * sr));
+        const len = Math.max(128, endSample - startSample);
+
+        const sliceBuf = ctx.createBuffer(buf.numberOfChannels, len, sr);
+        for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+          const inData = buf.getChannelData(ch);
+          const outData = sliceBuf.getChannelData(ch);
+          for (let i = 0; i < len; i++) {
+            outData[i] = inData[startSample + i] || 0;
+          }
+        }
+        window.loadedAudioBuffers[p] = sliceBuf;
+        if (window.currentSlices) {
+          const sObj = window.currentSlices.find(s => s.id === p);
+          if (sObj) {
+            sObj.name = `CHOP ${p} (${formatDetailedTime(sStart)})`;
+            sObj.startTime = sStart;
+            sObj.duration = stepDur;
+          }
+        }
+      }
+
+      renderPads();
+      renderChopWaveform();
+      showToast(`⚡ 16等分チョップ完了！ Pad 1〜16 に ${formatDetailedTime(start)}〜${formatDetailedTime(end)} を均等アサインしました！`);
+    }
+
+    function executeTransientChop() {
+      const buf = getActiveChopAudioBuffer();
+      if (!buf) {
+        alert('音源バッファがロードされていません。先に「ステム分離」を実行してください。');
+        return;
+      }
+
+      const sr = buf.sampleRate;
+      const data = buf.getChannelData(0);
+      const start = window.chopSelStart;
+      const end = window.chopSelEnd;
+      const startSample = Math.floor(start * sr);
+      const endSample = Math.min(data.length, Math.floor(end * sr));
+
+      // Simple robust energy onset peak finder
+      const hopSize = Math.floor(sr * 0.05); // 50ms windows
+      const peaks = [];
+      let prevEnergy = 0;
+
+      for (let s = startSample; s < endSample; s += hopSize) {
+        let sum = 0;
+        const limit = Math.min(endSample, s + hopSize);
+        for (let j = s; j < limit; j += 4) {
+          sum += data[j] * data[j];
+        }
+        const energy = Math.sqrt(sum / (limit - s));
+        const diff = energy - prevEnergy;
+        if (diff > 0.04) {
+          peaks.push(s / sr);
+        }
+        prevEnergy = energy * 0.9;
+      }
+
+      // If fewer than 16 peaks found, fill remaining with even intervals
+      while (peaks.length < 16) {
+        const t = start + (peaks.length * ((end - start) / 16));
+        peaks.push(t);
+      }
+      peaks.sort((a, b) => a - b);
+      const selectedPeaks = peaks.slice(0, 16);
+
+      const ctx = getAudioContext();
+      for (let p = 1; p <= 16; p++) {
+        const sStart = selectedPeaks[p - 1];
+        const sEnd = p < 16 ? selectedPeaks[p] : end;
+        const sSample = Math.floor(sStart * sr);
+        const eSample = Math.min(buf.length, Math.max(sSample + Math.floor(sr * 0.2), Math.floor(sEnd * sr)));
+        const len = Math.max(128, eSample - sSample);
+
+        const sliceBuf = ctx.createBuffer(buf.numberOfChannels, len, sr);
+        for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+          const inData = buf.getChannelData(ch);
+          const outData = sliceBuf.getChannelData(ch);
+          for (let i = 0; i < len; i++) {
+            outData[i] = inData[sSample + i] || 0;
+          }
+        }
+        window.loadedAudioBuffers[p] = sliceBuf;
+        if (window.currentSlices) {
+          const sObj = window.currentSlices.find(s => s.id === p);
+          if (sObj) {
+            sObj.name = `HIT ${p} (${formatDetailedTime(sStart)})`;
+            sObj.startTime = sStart;
+            sObj.duration = (eSample - sSample) / sr;
+          }
+        }
+      }
+
+      renderPads();
+      renderChopWaveform();
+      showToast(`🥁 トランジェント自動検出チョップ完了！ 16個のアタック音をPad 1〜16へアサインしました！`);
+    }
+
+    function toggleChopAudition(loop = false) {
+      const ctx = getAudioContext();
+      if (window.chopAuditionSrc) {
+        try { window.chopAuditionSrc.stop(); } catch(e){}
+        window.chopAuditionSrc = null;
+        document.getElementById('btn-chop-audition').innerHTML = '<i class="fa-solid fa-play"></i> 選択範囲を試聴';
+        document.getElementById('btn-chop-loop').style.background = 'rgba(56, 189, 248, 0.2)';
+        renderChopWaveform();
+        if (!loop && !window.chopIsLooping) return;
+      }
+
+      const buf = getActiveChopAudioBuffer();
+      if (!buf) {
+        alert('再生可能な音声がありません。');
+        return;
+      }
+
+      const start = window.chopSelStart;
+      const end = window.chopSelEnd;
+      const dur = Math.max(0.05, end - start);
+
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = loop;
+      if (loop) {
+        src.loopStart = start;
+        src.loopEnd = end;
+      }
+
+      src.connect(window.padMasterGain || ctx.destination);
+      src.start(0, start, loop ? undefined : dur);
+
+      window.chopAuditionSrc = src;
+      window.chopIsLooping = loop;
+      window.chopAuditionStartTime = ctx.currentTime;
+
+      if (loop) {
+        document.getElementById('btn-chop-loop').style.background = '#0ea5e9';
+      } else {
+        document.getElementById('btn-chop-audition').innerHTML = '<i class="fa-solid fa-stop"></i> 停止';
+      }
+
+      src.onended = () => {
+        if (window.chopAuditionSrc === src) {
+          window.chopAuditionSrc = null;
+          const btn = document.getElementById('btn-chop-audition');
+          if (btn) btn.innerHTML = '<i class="fa-solid fa-play"></i> 選択範囲を試聴';
+          const loopBtn = document.getElementById('btn-chop-loop');
+          if (loopBtn) loopBtn.style.background = 'rgba(56, 189, 248, 0.2)';
+          renderChopWaveform();
+        }
+      };
+
+      renderChopWaveform();
+    }
+
+    // ================================================================
     // 📝 Multi-AI Prompt Producer Tabs
     // ================================================================
     window.activePromptMode = 'faithful'; // 'faithful' or 'crossover'
@@ -2143,31 +3298,86 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
 [Outro]
 (sub-bass decay, solitary cello fade-out)`;
 
+      const sunoFaithful = `### 1. Style of Music (Styles欄に貼り付け)
+90s Rave Techno, Belgian New Beat, Oldschool Hardcore, 129.2 BPM in E Major, relentless Roland Alpha Juno Hoover riff (Mentasm), Roland TR-909 four-on-the-floor drums with heavy kick, sharp snare, driving 16th-note offbeat hi-hats, pitched rave vocal shouts, 12-bit early digital crunch, analog distortion, stadium acoustics, dynamic sidechain pumping, 1991 authentic master
+
+### 2. Lyrics & Song Structure (Lyrics欄に貼り付け)
+[Intro: 0:00 - 0:15]
+(TR-909 open hi-hats and filtered snare roll building up in E Major at 129.2 BPM)
+
+[Verse 1: 0:15 - 0:35]
+(relentless four-on-the-floor 909 kick enters, rolling sub-bass and hypnotic rave vocal chant)
+Hear the rhythm in the dark
+Electric pulse ignite the spark
+
+[Pre-Chorus / Build: 0:35 - 0:50]
+(rising pitch riser, rapid 16th-note snare fills, resonant filter opening wide)
+Feel the pressure overload
+Take control and break the code
+
+[Drop / Chorus: 0:50 - 1:25]
+(full explosive arrangement, massive Hoover synth lead, anthemic vocal shout, maximum energy)
+Anasthasia! Screaming through the night!
+Rave dimension, blinding neon light!
+
+[Breakdown: 1:25 - 1:45]
+(kick drops out, lush M1 organ chords and ethereal female vocal loop, deep space reverb)
+Time stands still...
+
+[Outro: 1:45 - 2:00]
+(fading Hoover synth modulation and TR-909 kick decay into stereo delay silence)`;
+
+      const sunoCrossover = `### 1. Style of Music (Styles欄に貼り付け)
+Cinematic Hybrid Orchestral Trailer, Epic Film Score, 129.2 BPM in E Major, massive brass braams, cinematic taiko drums, driving staccato strings, sub-bass drop, ticking clockwork percussion, ethereal choir swells, vast acoustic space, high dynamic range
+
+### 2. Lyrics & Song Structure (Lyrics欄に貼り付け)
+[Intro: 0:00 - 0:15]
+(dark low drone, ticking metallic percussion in E Major)
+
+[Rising Tension: 0:15 - 0:38]
+(staccato strings accelerating, ominous brass swells)
+闇の向こうに目覚める光
+
+[Trailer Hit / Drop: 0:38 - 1:08]
+(massive orchestral braam, explosive taiko impact, seismic sub-bass rumble)
+
+[Climax: 1:08 - 1:35]
+(full symphonic brass unison, soaring choir, thunderous percussion)
+運命を切り拓く 英雄の詩
+
+[Outro: 1:35 - 1:55]
+(sub-bass decay, solitary cello fade-out)`;
+
       window.promptsData = {
         minimax: minimaxFaithful,
-        suno: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore] [Tempo: 129.2 BPM] [Key: E Major] [Instruments: Roland Alpha Juno Hoover synth, Roland TR-909 drums, Korg M1 organ pad, deep sub-bass] [Vocals: Chopped rave vocal shouts ('Anasthasia!')] [Intro] Driving TR-909 beat [Drop] Massive Hoover synth lead [Breakdown] Ambient organ pad [Outro] Sub-bass tail",
+        suno: sunoFaithful,
         udio: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore, 129.2 BPM, E Major] Hoover synth, TR-909 beat, rave vocal shouts",
         lyria: "[Genre: 90s Rave Techno] [Key: E Major] [Tempo: 129.2 BPM] Roland Alpha Juno Hoover synth and Roland TR-909 drum machine.",
         veo: "Scene Audio Sync: 129.2 BPM | E Major | Rave Energy | Cut 1 (0-3.5s): Ambient swell | Cut 2 (3.5-7.5s): 909 Beat entrance | Cut 3 (7.5-11.0s): Hoover Synth Climax | Cut 4 (11.0-15.0s): Impact resolve",
         prompts_faithful: {
-          suno_v6: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore] [Tempo: 129.2 BPM] [Key: E Major] [Instruments: Roland Alpha Juno Hoover synth, Roland TR-909 drums, Korg M1 organ pad, deep sub-bass] [Vocals: Chopped rave vocal shouts ('Anasthasia!')] [Intro] Driving TR-909 beat [Drop] Massive Hoover synth lead [Breakdown] Ambient organ pad [Outro] Sub-bass tail",
+          suno_v6: sunoFaithful,
           lyria_3_5: "[Genre: 90s Rave Techno] [Key: E Major] [Tempo: 129.2 BPM] Roland Alpha Juno Hoover synth and Roland TR-909 drum machine.",
           minimax: minimaxFaithful,
           udio: "[Style: 90s Rave Techno, Belgian New Beat, Oldschool Hardcore, 129.2 BPM, E Major] Hoover synth, TR-909 beat, rave vocal shouts"
         },
         prompts_cinematic_crossover: {
-          suno_v6: "[Style: Cinematic Hybrid Orchestral Trailer, E Major, 129.2BPM] [Instruments: Massive brass braams, cinematic taiko, soaring strings, modular sub-bass] [Intro] Dark atmospheric drone [Rising Tension] Ticking percussion building [Trailer Hit / Drop] Massive orchestral impact and choir [Climax] Full cinematic climax [Outro] Sub-bass decay",
+          suno_v6: sunoCrossover,
           lyria_3_5: "[Genre: Cinematic Blockbuster Orchestral] [Key: E Major] [Tempo: 129.2 BPM] Massive orchestral brass and hybrid percussion.",
           minimax: minimaxCrossover,
           udio: "cinematic trailer, orchestral, E Major, 129.2 bpm"
         }
       };
       updatePromptDisplay();
+      renderSectionTimbres(getDefaultSections());
     }
 
     function renderMusicDnaPanel(dna) {
       const card = document.getElementById('music-dna-card');
       if (!card || !dna) return;
+
+      if (dna.sections && Array.isArray(dna.sections) && dna.sections.length > 0) {
+        renderSectionTimbres(dna.sections);
+      }
 
       const genreBadge = document.getElementById('dna-genre-badge');
       const eraLabel = document.getElementById('dna-era-label');
@@ -2190,6 +3400,124 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         grooveText.innerHTML = `<span style="color: #38bdf8; font-weight: 700;">${dna.rhythmic_groove || ''}</span><br><span style="color: #94a3b8; font-size: 0.72rem;">${dna.vocal_character || ''}</span>`;
       }
       card.style.display = 'block';
+    }
+
+    window.currentSectionTimbres = [];
+
+    function renderSectionTimbres(sections) {
+      const grid = document.getElementById('section-timbres-grid');
+      const countEl = document.getElementById('section-timbre-count');
+      if (!grid) return;
+
+      const secList = (sections && sections.length > 0) ? sections : getDefaultSections();
+      window.currentSectionTimbres = secList;
+      if (countEl) countEl.textContent = `${secList.length} パート同定`;
+
+      grid.innerHTML = '';
+      secList.forEach((sec, idx) => {
+        const card = document.createElement('div');
+        card.className = 'section-timbre-pill';
+        card.style.cssText = 'background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease; cursor: pointer;';
+        card.onmouseenter = () => card.style.borderColor = '#c084fc';
+        card.onmouseleave = () => card.style.borderColor = 'rgba(255,255,255,0.1)';
+        card.onclick = () => copySingleSectionDirective(idx);
+
+        const badgeColor = idx === 0 ? '#38bdf8' : (idx === 1 ? '#4ade80' : (idx === 2 ? '#fbbf24' : (idx === 3 ? '#f43f5e' : '#a855f7')));
+
+        const instChips = (sec.instruments || []).slice(0, 3).map(inst => 
+          `<span style="background: rgba(255,255,255,0.08); border-radius: 4px; padding: 1px 6px; font-size: 0.65rem; color: #cbd5e1; margin-right: 4px;">${inst}</span>`
+        ).join('');
+
+        card.innerHTML = `
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="background: ${badgeColor}; color: #0f172a; font-weight: 800; font-size: 0.68rem; padding: 2px 7px; border-radius: 5px;">
+                ${sec.name} ${sec.name_ja ? '• ' + sec.name_ja : ''}
+              </span>
+              <span style="font-size: 0.68rem; color: #94a3b8; font-family: monospace;">${sec.timecode || ''}</span>
+            </div>
+            <div style="font-size: 0.74rem; color: #e2e8f0; font-weight: 600; line-height: 1.35; margin-bottom: 6px;">
+              ${sec.timbre_definition || ''}
+            </div>
+            <div style="margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
+              ${instChips}
+            </div>
+          </div>
+          <div style="font-size: 0.68rem; color: #94a3b8; font-style: italic; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 6px; line-height: 1.3; border-left: 2px solid ${badgeColor};">
+            ${sec.sound_design_directive || ''}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function getDefaultSections() {
+      return [
+        {
+          name: "Intro",
+          name_ja: "イントロ",
+          timecode: "0:00 - 0:15",
+          energy_level: "Low / Building",
+          instruments: ["TR-909 Hat", "Filtered Snare", "Roland Pad"],
+          timbre_definition: "TR-909 open hi-hats and filtered snare roll building up in E Major",
+          sound_design_directive: "(TR-909 open hi-hats and filtered snare roll building up in E Major at 129.2 BPM)"
+        },
+        {
+          name: "Verse 1",
+          name_ja: "Aメロ",
+          timecode: "0:15 - 0:35",
+          energy_level: "Steady Groove",
+          instruments: ["909 Kick", "Rolling Sub-Bass", "Rave Chant"],
+          timbre_definition: "Relentless four-on-the-floor 909 kick, rolling sub-bass and hypnotic rave vocal",
+          sound_design_directive: "(relentless four-on-the-floor 909 kick enters, rolling sub-bass and hypnotic rave vocal chant)"
+        },
+        {
+          name: "Pre-Chorus",
+          name_ja: "Bメロ",
+          timecode: "0:35 - 0:50",
+          energy_level: "Tension Build",
+          instruments: ["Pitch Riser", "16th Snare Fill", "Resonant Filter"],
+          timbre_definition: "Rising pitch riser, rapid 16th-note snare fills, resonant filter opening wide",
+          sound_design_directive: "(rising pitch riser, rapid 16th-note snare fills, resonant filter opening wide)"
+        },
+        {
+          name: "Chorus / Drop",
+          name_ja: "サビ",
+          timecode: "0:50 - 1:20",
+          energy_level: "Maximum Impact",
+          instruments: ["Hoover Lead", "Heavy 909 Kick", "Sidechain Comp"],
+          timbre_definition: "Full explosive Hoover synth lead, heavy 909 kick driving with maximum sidechain compression",
+          sound_design_directive: "(full explosive Hoover synth lead, heavy 909 kick driving with maximum sidechain compression)"
+        },
+        {
+          name: "Outro",
+          name_ja: "アウトロ",
+          timecode: "1:20 - 1:40",
+          energy_level: "Decay / Fade",
+          instruments: ["Hoover Mod", "909 Kick Decay", "Tape Echo"],
+          timbre_definition: "Fading Hoover synth modulation and TR-909 kick decaying into stereo silence",
+          sound_design_directive: "(fading Hoover synth modulation and TR-909 kick decaying into stereo silence)"
+        }
+      ];
+    }
+
+    function copySingleSectionDirective(idx) {
+      const sec = window.currentSectionTimbres && window.currentSectionTimbres[idx];
+      if (!sec) return;
+      const text = `[${sec.name} (${sec.name_ja || ''}): ${sec.timecode || ''}]\n${sec.sound_design_directive || sec.timbre_definition || ''}`;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`✨ ${sec.name} (${sec.name_ja || ''}) の音色ディレクティブをコピーしました！`);
+      });
+    }
+
+    function copyAllSectionDirectives() {
+      if (!window.currentSectionTimbres || window.currentSectionTimbres.length === 0) return;
+      const text = window.currentSectionTimbres.map(sec => 
+        `[${sec.name} (${sec.name_ja || ''}): ${sec.timecode || ''}]\n${sec.sound_design_directive || sec.timbre_definition || ''}`
+      ).join('\n\n');
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(`✨ 全${window.currentSectionTimbres.length}パートの音色ディレクティブを一括コピーしました！`);
+      });
     }
 
     function switchPromptMode(mode) {
@@ -2295,16 +3623,19 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
           sunoGuide.innerHTML = `
             <div style="color: #93c5fd; line-height: 1.4;">
               <i class="fa-solid fa-circle-question" style="color: #60a5fa; margin-right: 4px;"></i>
-              <strong>SUNO (Custom Mode) への貼り付け場所：</strong>
-              <span style="color: #e2e8f0;">①「Style of Music」欄にスタイル・機材・BPM</span> ＆ 
-              <span style="color: #e2e8f0;">②「Lyrics」欄に構成タグ [Intro] やボーカル指示</span>
+              <strong>SUNO (Custom/Advanced Mode) への貼り付け方法：</strong>
+              <span style="color: #e2e8f0;">①「Styles」欄に音色・機材・BPM・質感タグ</span> ＆ 
+              <span style="color: #e2e8f0;">②「Lyrics」欄に構成タグ [Intro] や (演奏指示)</span>
             </div>
             <div style="display: flex; gap: 6px;">
               <button onclick="copySunoStyleOnly()" style="background: rgba(59, 130, 246, 0.25); border: 1px solid rgba(59, 130, 246, 0.6); color: #bfdbfe; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
-                ① Style欄用コピー
+                ① Style欄用コピー (Stylesへ貼付)
               </button>
               <button onclick="copySunoLyricsOnly()" style="background: rgba(168, 85, 247, 0.25); border: 1px solid rgba(168, 85, 247, 0.6); color: #e9d5ff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
-                ② Lyrics欄用コピー
+                ② Lyrics欄用コピー (Lyricsへ貼付)
+              </button>
+              <button onclick="copyActivePrompt()" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-copy"></i> 全文コピー
               </button>
             </div>
           `;
@@ -2381,17 +3712,33 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       if (!box || !box.value) return;
       const text = box.value;
 
-      // Extract style, tempo, key, instruments tags
-      const styleMatches = text.match(/\[(Style|Tempo|Key|Instruments|Genre):[^\]]+\]/gi);
       let styleText = '';
-      if (styleMatches && styleMatches.length > 0) {
-        styleText = styleMatches.map(m => m.replace(/^\[|\]$/g, '').replace(/^(Style|Tempo|Key|Instruments|Genre):\s*/i, '')).join(', ');
+      const styleHeaderIdx = text.indexOf('### 1. Style of Music');
+      const lyricsHeaderIdx = text.indexOf('### 2. Lyrics & Song Structure');
+
+      if (styleHeaderIdx !== -1) {
+        if (lyricsHeaderIdx !== -1 && lyricsHeaderIdx > styleHeaderIdx) {
+          styleText = text.substring(styleHeaderIdx, lyricsHeaderIdx);
+        } else {
+          styleText = text.substring(styleHeaderIdx);
+        }
+        styleText = styleText.replace(/^### 1\.[^\n]*\n+/i, '').trim();
       } else {
-        styleText = text.split('\n')[0].replace(/\[.*?\]/g, '').trim();
+        const styleMatches = text.match(/\[(Style|Tempo|Key|Instruments|Genre):[^\]]+\]/gi);
+        if (styleMatches && styleMatches.length > 0) {
+          styleText = styleMatches.map(m => m.replace(/^\[|\]$/g, '').replace(/^(Style|Tempo|Key|Instruments|Genre):\s*/i, '')).join(', ');
+        } else {
+          const introIdx = text.search(/\[(Intro|Verse|Drop|Build|Chorus|Outro)/i);
+          styleText = (introIdx !== -1 ? text.substring(0, introIdx) : text).trim();
+        }
       }
 
       navigator.clipboard.writeText(styleText).then(() => {
-        showToast('✨ SUNOの「Style of Music」欄用タグをコピーしました！');
+        showToast('✨ SUNOの「Styles」欄用タグ（音色・機材・BPM）をコピーしました！');
+      }).catch(() => {
+        box.select();
+        document.execCommand('copy');
+        showToast('✨ SUNOの「Styles」欄用タグをコピーしました！');
       });
     }
 
@@ -2401,17 +3748,24 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       const text = box.value;
 
       let lyricsText = '';
-      const introIdx = text.search(/\[(Intro|Verse|Rave Stab|Rising Tension|Drop|Build|Chorus|Hook|Breakdown|Climax|Outro)/i);
-      if (introIdx !== -1) {
-        const vocalsMatch = text.match(/\[Vocals:[^\]]+\]/i);
-        const vocalsPart = vocalsMatch ? vocalsMatch[0] + '\n\n' : '';
-        lyricsText = vocalsPart + text.substring(introIdx).trim();
+      const lyricsHeaderIdx = text.indexOf('### 2. Lyrics & Song Structure');
+      if (lyricsHeaderIdx !== -1) {
+        lyricsText = text.substring(lyricsHeaderIdx).replace(/^### 2\.[^\n]*\n+/i, '').trim();
       } else {
-        lyricsText = text;
+        const introIdx = text.search(/\[(Intro|Verse|Rave Stab|Rising Tension|Drop|Build|Chorus|Hook|Breakdown|Climax|Outro)/i);
+        if (introIdx !== -1) {
+          lyricsText = text.substring(introIdx).trim();
+        } else {
+          lyricsText = text;
+        }
       }
 
       navigator.clipboard.writeText(lyricsText).then(() => {
-        showToast('✨ SUNOの「Lyrics」欄用メタタグ・構成をコピーしました！');
+        showToast('✨ SUNOの「Lyrics」欄用メタタグ・構成・演奏指示をコピーしました！');
+      }).catch(() => {
+        box.select();
+        document.execCommand('copy');
+        showToast('✨ SUNOの「Lyrics」欄用構成タグをコピーしました！');
       });
     }
     // ================================================================
@@ -2647,6 +4001,9 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
           }
         }
 
+        // 🌊 Refresh Master Timeline Waveform Zoom & Chopper
+        if (typeof onStemsUpdated === 'function') onStemsUpdated();
+
         alert('✨ Lyria 3.5生成曲の4ステム分離 ＆ 16-Padサンプラー再配置が完了しました！\nキーボードですぐにサンプリング演奏できます。');
       } catch (err) {
         alert('再展開エラー: ' + err.message);
@@ -2810,9 +4167,9 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       const src = ctx.createBufferSource();
       src.buffer = buf;
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.85, ctx.currentTime);
+      gain.gain.setValueAtTime(0.75, ctx.currentTime);
       src.connect(gain);
-      gain.connect(ctx.destination);
+      gain.connect(window.masterGainNode || padMasterGain || ctx.destination);
       src.start(0, startTime, Math.min(2.0, buf.duration - startTime));
     }
 
@@ -2863,9 +4220,13 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         if (label) label.textContent = '録音中 (停止で保存)';
         if (icon) icon.className = 'fa-solid fa-stop';
 
-        // Connect master destination to recorder
+        // Connect master limiter (stems + pads) to recorder
         const dest = ctx.createMediaStreamDestination();
-        if (window.masterGainNode) window.masterGainNode.connect(dest);
+        if (window.masterLimiterNode) {
+          window.masterLimiterNode.connect(dest);
+        } else if (window.masterGainNode) {
+          window.masterGainNode.connect(dest);
+        }
         
         window.mediaRecorder = new MediaRecorder(dest.stream);
         window.recordedJamChunks = [];
@@ -3249,7 +4610,7 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       ctx.decodeAudioData(arrBuf, (decoded) => {
         const src = ctx.createBufferSource();
         src.buffer = decoded;
-        src.connect(ctx.destination);
+        src.connect(padMasterGain || ctx.destination);
         src.start(0);
       });
     }
@@ -3641,7 +5002,25 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
 (decay)`
       );
 
-      const sunoPrompt = music.suno_v6_prompt || `[Style: ${genre}, ${key}, ${bpm}BPM] [Intro] Cinematic drone [Drop] Massive impact [Outro] Decay`;
+      const sunoPrompt = music.suno_v6_prompt || (
+        `### 1. Style of Music (Styles欄に貼り付け)\n` +
+        `${genre}, ${bpm.toFixed(1)} BPM, ${key}, Moog Sub Phatty bassline, Oberheim OB-Xa brass pads, driving rhythmic sequence, punchy studio drums, wide stereo panorama, tape saturation warmth, analog console mix, dynamic mastering\n\n` +
+        `### 2. Lyrics & Song Structure (Lyrics欄に貼り付け)\n` +
+        `[Intro - 0:00]\n` +
+        `(Filtered analog synth arpeggio, subtle sub drone building tension, rising noise sweep)\n\n` +
+        `[Verse 1 - 0:15]\n` +
+        `(Groove enters with tight kick and percussive rimshots, deep bassline pulsing steadily, atmospheric pad chords swell)\n\n` +
+        `[Pre-Drop / Build - 0:35]\n` +
+        `(Snare roll accelerating into 16th notes, pitch-rising riser synth, low frequencies filtered out creating suspense)\n\n` +
+        `[Drop / Main Theme - 0:45]\n` +
+        `(Massive bass drop with full low-end impact, driving kick-snare groove at ${bpm.toFixed(1)} BPM, lead synth riff carrying emotional theme)\n\n` +
+        `[Breakdown - 1:15]\n` +
+        `(Drums drop out completely, lush ambient pads and emotive chord progressions sustain, subtle textural ear candy)\n\n` +
+        `[Climax - 1:35]\n` +
+        `(All instrumental layers combine with peak energy, layered lead arps, hard-hitting rhythmic propulsion)\n\n` +
+        `[Outro - 2:05]\n` +
+        `(Rhythm dissolves into reverb-drenched synth echoes, warm sub drone fades into analog tape hiss)`
+      );
       const flowMusicPrompt = music.flow_music_prompt || `[Genre: ${genre}] [Key: ${key}] [Tempo: ${bpm} BPM] Cinematic orchestra and hybrid percussion.`;
 
       window.promptsData = {
@@ -4049,6 +5428,371 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
       }
     });
 
+    // ================================================================
+    // 💿 Local Audio Cache Crate & Vinyl Browser Handlers
+    // ================================================================
+    window.cacheCrateTracks = [];
+    window.activeCratePreviewKey = null;
+
+    function escapeCrateHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[m]);
+    }
+
+    function openCacheCrateModal() {
+      const modal = document.getElementById('cache-crate-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        fetchCacheCrateList();
+      }
+    }
+
+    function closeCacheCrateModal() {
+      const modal = document.getElementById('cache-crate-modal');
+      if (modal) modal.style.display = 'none';
+      stopCratePreview();
+    }
+
+    async function fetchCacheCrateList() {
+      const listEl = document.getElementById('crate-tracks-list');
+      if (listEl) {
+        listEl.innerHTML = `
+          <div style="padding: 40px; text-align: center; color: #94a3b8;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size: 1.8rem; color: #06b6d4; margin-bottom: 12px; display: block;"></i>
+            <span>cache_audio/ 内の楽曲ライブラリをスキャン中...</span>
+          </div>`;
+      }
+
+      try {
+        const res = await fetch('/api/music/cache/list');
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        const data = await res.json();
+        if (!data || !data.success) throw new Error(data.error || 'Failed to list cache');
+        
+        window.cacheCrateTracks = data.tracks || [];
+        updateCrateBadgesCount(window.cacheCrateTracks.length);
+        renderCacheCrateList(window.cacheCrateTracks);
+      } catch (err) {
+        console.error('Failed to fetch cache crate list:', err);
+        if (listEl) {
+          listEl.innerHTML = `
+            <div style="padding: 30px; text-align: center; color: #f87171; background: rgba(239,68,68,0.1); border-radius: 12px; border: 1px solid rgba(239,68,68,0.3);">
+              <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem; margin-bottom: 8px; display: block;"></i>
+              <span>キャッシュ一覧の取得に失敗しました: ${escapeCrateHtml(err.message)}</span>
+            </div>`;
+        }
+      }
+    }
+
+    function updateCrateBadgesCount(count) {
+      document.querySelectorAll('.crate-count-text').forEach(el => {
+        el.textContent = `${count}曲`;
+      });
+      const badgeModal = document.getElementById('crate-modal-count-badge');
+      if (badgeModal) badgeModal.textContent = `${count}曲ストック`;
+    }
+
+    function filterCacheCrate() {
+      const query = (document.getElementById('crate-search-input')?.value || '').toLowerCase().trim();
+      if (!query) {
+        renderCacheCrateList(window.cacheCrateTracks);
+        return;
+      }
+      const filtered = window.cacheCrateTracks.filter(t => {
+        const titleMatch = (t.title || '').toLowerCase().includes(query);
+        const bpmMatch = String(t.bpm || '').includes(query);
+        const keyMatch = (t.key_sig || '').toLowerCase().includes(query);
+        const timbreMatch = (t.timbre || '').toLowerCase().includes(query);
+        const energyMatch = (t.energy || '').toLowerCase().includes(query);
+        return titleMatch || bpmMatch || keyMatch || timbreMatch || energyMatch;
+      });
+      renderCacheCrateList(filtered);
+    }
+
+    function sortCacheCrate() {
+      const mode = document.getElementById('crate-sort-select')?.value || 'newest';
+      let sorted = [...(window.cacheCrateTracks || [])];
+      if (mode === 'newest') {
+        sorted.sort((a, b) => (b.mtime || 0) - (a.mtime || 0));
+      } else if (mode === 'title') {
+        sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      } else if (mode === 'bpm') {
+        sorted.sort((a, b) => (b.bpm || 0) - (a.bpm || 0));
+      } else if (mode === 'duration') {
+        sorted.sort((a, b) => (b.duration_sec || 0) - (a.duration_sec || 0));
+      }
+      window.cacheCrateTracks = sorted;
+      filterCacheCrate();
+    }
+
+    function renderCacheCrateList(tracks) {
+      const container = document.getElementById('crate-tracks-list');
+      if (!container) return;
+
+      if (!tracks || tracks.length === 0) {
+        container.innerHTML = `
+          <div style="padding: 50px 20px; text-align: center; color: #64748b; background: rgba(15,23,42,0.4); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.1);">
+            <i class="fa-solid fa-compact-disc fa-bounce" style="font-size: 2.5rem; color: #475569; margin-bottom: 14px; display: block;"></i>
+            <div style="font-weight: 700; color: #94a3b8; font-size: 0.95rem;">一致するキャッシュ楽曲がありません</div>
+            <div style="font-size: 0.75rem; margin-top: 4px; color: #64748b;">YouTube Music検索や音声ファイルの読込を行うと、自動的にクレートへストックされます。</div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = tracks.map((t, idx) => {
+        const isPlaying = (window.activeCratePreviewKey === t.key);
+        const durText = t.duration_sec ? `${Math.floor(t.duration_sec / 60)}:${Math.floor(t.duration_sec % 60).toString().padStart(2, '0')}` : '0:30';
+        const sizeMb = (t.mp3_size ? (t.mp3_size / (1024 * 1024)).toFixed(1) : '0') + 'MB';
+        const dateStr = t.mtime ? new Date(t.mtime * 1000).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+        const titleSafe = escapeCrateHtml(t.title || t.key);
+
+        return `
+          <div class="crate-track-card" data-key="${t.key}" style="background: rgba(15,23,42,0.65); border: 1px solid ${isPlaying ? '#06b6d4' : 'rgba(255,255,255,0.08)'}; border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: ${isPlaying ? '0 0 20px rgba(6,182,212,0.25)' : 'none'};">
+            
+            <!-- Left: Icon & Track Info -->
+            <div style="display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1;">
+              <div style="width: 44px; height: 44px; border-radius: 10px; background: ${isPlaying ? 'linear-gradient(135deg, #06b6d4, #3b82f6)' : 'linear-gradient(135deg, #1e293b, #0f172a)'}; border: 1px solid ${isPlaying ? '#38bdf8' : 'rgba(255,255,255,0.12)'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; transition: all 0.2s;" onclick="toggleCratePreview('${t.key}')" title="試聴 再生/停止">
+                <i class="fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}" style="color: ${isPlaying ? '#fff' : '#38bdf8'}; font-size: ${isPlaying ? '1.1rem' : '1rem'};"></i>
+              </div>
+
+              <div style="min-width: 0; flex: 1;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <div style="font-weight: 800; font-size: 0.94rem; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${titleSafe}">
+                    ${titleSafe}
+                  </div>
+                  ${t.sections_count ? `<span style="font-size: 0.65rem; background: rgba(168,85,247,0.25); border: 1px solid rgba(168,85,247,0.5); color: #d8b4fe; padding: 1px 6px; border-radius: 4px; font-weight: 700;">${t.sections_count}パート構造</span>` : ''}
+                </div>
+
+                <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.72rem;">
+                  <span style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.35); color: #7dd3fc; padding: 2px 7px; border-radius: 5px; font-weight: 700;">
+                    <i class="fa-solid fa-gauge-high" style="margin-right: 3px;"></i>${t.bpm ? t.bpm.toFixed(1) : '120.0'} BPM
+                  </span>
+                  <span style="background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.35); color: #c084fc; padding: 2px 7px; border-radius: 5px; font-weight: 700;">
+                    <i class="fa-solid fa-music" style="margin-right: 3px;"></i>${t.key_sig || 'C Maj'}
+                  </span>
+                  <span style="background: rgba(255,255,255,0.06); color: #94a3b8; padding: 2px 7px; border-radius: 5px;">
+                    <i class="fa-regular fa-clock" style="margin-right: 3px;"></i>${durText}
+                  </span>
+                  <span style="background: rgba(255,255,255,0.06); color: #94a3b8; padding: 2px 7px; border-radius: 5px;">
+                    <i class="fa-solid fa-hard-drive" style="margin-right: 3px;"></i>${sizeMb}
+                  </span>
+                  ${dateStr ? `<span style="color: #64748b; font-size: 0.68rem; margin-left: 2px;">${dateStr}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Action Buttons -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <button class="stem-btn" style="background: ${isPlaying ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.06)'}; border-color: ${isPlaying ? '#06b6d4' : 'rgba(255,255,255,0.15)'}; color: ${isPlaying ? '#67e8f9' : '#cbd5e1'}; padding: 6px 12px; font-size: 0.78rem; font-weight: 700;" onclick="toggleCratePreview('${t.key}')">
+                <i class="fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}"></i> ${isPlaying ? '停止' : '試聴'}
+              </button>
+              <button class="stem-btn" style="background: linear-gradient(135deg, #06b6d4, #6366f1); border: 1px solid #38bdf8; color: white; font-weight: 800; font-size: 0.82rem; padding: 7px 16px; border-radius: 8px; box-shadow: 0 0 15px rgba(6,182,212,0.4); cursor: pointer;" onclick="loadSongFromCrate('${t.key}')">
+                <i class="fa-solid fa-bolt"></i> ⚡ スタジオへロード
+              </button>
+              <button onclick="deleteSongFromCrate('${t.key}', event)" title="キャッシュ削除" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.2s;">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleCratePreview(key) {
+      let audio = document.getElementById('crate-preview-audio');
+      if (!audio) {
+        audio = document.createElement('audio');
+        audio.id = 'crate-preview-audio';
+        document.body.appendChild(audio);
+        audio.onended = () => {
+          window.activeCratePreviewKey = null;
+          filterCacheCrate();
+        };
+      }
+
+      if (window.activeCratePreviewKey === key) {
+        audio.pause();
+        window.activeCratePreviewKey = null;
+      } else {
+        window.activeCratePreviewKey = key;
+        audio.src = `/api/music/cache/audio?key=${encodeURIComponent(key)}`;
+        audio.play().catch(e => console.warn('Preview play error:', e));
+      }
+      filterCacheCrate();
+    }
+
+    function stopCratePreview() {
+      const audio = document.getElementById('crate-preview-audio');
+      if (audio) {
+        audio.pause();
+        window.activeCratePreviewKey = null;
+      }
+    }
+
+    async function loadSongFromCrate(key) {
+      const keepPads = document.getElementById('crate-keep-pads-chk')?.checked || false;
+      const trackObj = window.cacheCrateTracks.find(t => t.key === key);
+      const trackTitle = trackObj ? trackObj.title : key;
+
+      stopCratePreview();
+      showToast(`⚡ キャッシュ「${trackTitle}」をスタジオに召喚中...`);
+
+      const loading = document.getElementById('ingest-loading');
+      if (loading) {
+        loading.style.display = 'block';
+        const msg = document.getElementById('loading-msg');
+        if (msg) msg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> キャッシュ楽曲「${escapeCrateHtml(trackTitle)}」を展開中...`;
+      }
+
+      try {
+        const res = await fetch('/api/music/cache/load', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: key })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const result = await res.json();
+        if (!result || !result.success || !result.data) throw new Error(result.error || 'Failed to load cache');
+
+        const data = result.data;
+        const ctx = getAudioContext();
+
+        // 1. Update Track & Audio Metrics
+        document.getElementById('track-name-display').textContent = data.track_title || trackTitle;
+        window.currentTrackTitle = data.track_title || trackTitle;
+
+        if (data.features) {
+          window.currentAudioFeatures = data.features;
+          document.getElementById('val-bpm').textContent = (data.features.bpm || 120).toFixed(1);
+          document.getElementById('val-key').textContent = data.features.key || 'C Major';
+          document.getElementById('val-energy').textContent = data.features.energy || 'Dynamic';
+          document.getElementById('val-timbre').textContent = data.features.timbre || 'Rich';
+          document.getElementById('mpc-status-screen').textContent = `ACTIVE • ${(data.features.bpm || 120).toFixed(1)} BPM • ${data.features.key || 'C Major'}`;
+        }
+
+        if (data.formatted_duration || data.duration_sec) {
+          const durEl = document.getElementById('val-duration');
+          if (durEl) {
+            const dur = data.duration_sec || 30.0;
+            const fmt = data.formatted_duration || `${Math.floor(dur / 60)}:${Math.floor(dur % 60).toString().padStart(2, '0')}`;
+            durEl.textContent = `${fmt} (${dur.toFixed(1)}s)`;
+          }
+          if (data.duration_sec) {
+            window.songDuration = data.duration_sec;
+            const timeEl = document.getElementById('time-display');
+            if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
+          }
+        }
+
+        // 2. Decode Stems in Parallel
+        if (data.stems) {
+          await Promise.all(Object.entries(data.stems).map(async ([stemName, b64Data]) => {
+            try {
+              const arrBuf = base64ToArrayBuffer(b64Data);
+              window.stemAudioBuffers[stemName] = await ctx.decodeAudioData(arrBuf);
+              drawWaveformFromBuffer(`canvas-${stemName}`, window.stemAudioBuffers[stemName], getStemColor(stemName));
+            } catch (e) {
+              console.warn('Stem decode error:', stemName, e);
+            }
+          }));
+
+          if (!window.songDuration && window.stemAudioBuffers.drums) {
+            window.songDuration = window.stemAudioBuffers.drums.duration;
+            const timeEl = document.getElementById('time-display');
+            if (timeEl) timeEl.textContent = `00:00 / ${formatTime(window.songDuration)}`;
+          }
+        }
+
+        // 3. Pads / Slices: Keep existing pads if requested, or replace them
+        if (keepPads) {
+          // Keep current pads intact for multi-song cross-sampling!
+          showToast(`🎧 パッド音源を保持したまま「${trackTitle}」の波形＆ステムを展開しました！`, 'fa-circle-check');
+        } else if (data.slices && data.slices.length === 16) {
+          window.currentSlices = data.slices;
+          renderPads();
+          await Promise.all(data.slices.map(async (slice) => {
+            try {
+              const arrBuf = base64ToArrayBuffer(slice.data);
+              window.loadedAudioBuffers[slice.id] = await ctx.decodeAudioData(arrBuf);
+            } catch (e) {
+              console.warn('Slice decode error:', slice.id, e);
+            }
+          }));
+        }
+
+        // 4. Refresh Master Timeline Waveform Zoom Chopper
+        window.chopMasterCombinedBuffer = null;
+        if (typeof onStemsUpdated === 'function') onStemsUpdated();
+
+        // 5. Music DNA & Prompts
+        if (data.music_dna) {
+          window.musicDna = data.music_dna;
+          if (typeof renderMusicDnaPanel === 'function') renderMusicDnaPanel(data.music_dna);
+        }
+        if (data.prompts) {
+          window.promptsData = data.prompts;
+          if (typeof updatePromptDisplay === 'function') updatePromptDisplay();
+        }
+
+        closeCacheCrateModal();
+        if (!keepPads) {
+          showToast(`✨ キャッシュ楽曲「${trackTitle}」をスタジオへ召喚完了！`, 'fa-circle-check');
+        }
+      } catch (err) {
+        console.error('Error loading song from crate:', err);
+        showToast(`ロード失敗: ${err.message}`, 'fa-circle-exclamation');
+      } finally {
+        if (loading) loading.style.display = 'none';
+      }
+    }
+
+    async function deleteSongFromCrate(key, event) {
+      if (event) event.stopPropagation();
+      const trackObj = window.cacheCrateTracks.find(t => t.key === key);
+      const title = trackObj ? trackObj.title : key;
+      if (!confirm(`キャッシュ楽曲「${title}」を削除しますか？\n（関連する音声ファイルと解析データが削除されます）`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/music/cache/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: key })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          showToast(`🗑️ キャッシュを削除しました: ${title}`);
+          fetchCacheCrateList();
+        } else {
+          throw new Error(data.error || 'Delete failed');
+        }
+      } catch (err) {
+        console.error('Failed to delete cache:', err);
+        showToast(`削除エラー: ${err.message}`, 'fa-circle-exclamation');
+      }
+    }
+
+    // Auto-fetch crate count on load
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/api/music/cache/list')
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.success && d.tracks) {
+            window.cacheCrateTracks = d.tracks;
+            updateCrateBadgesCount(d.tracks.length);
+          }
+        })
+        .catch(e => console.log('Init cache crate count:', e));
+    });
+
   </script>
 
   <!-- ============================================================== -->
@@ -4371,6 +6115,78 @@ Mix & Dynamics: Massive wall-of-sound, vast acoustic space, high dynamic range
         </div>
 
       </div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 💿 Modal: Local Audio Cache Crate & Vinyl Browser (クレート検索＆即時召喚) -->
+  <!-- ================================================================ -->
+  <div id="cache-crate-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: linear-gradient(145deg, #090e17, #131b2b); border: 1px solid rgba(6,182,212,0.4); border-radius: 18px; width: 100%; max-width: 980px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 35px rgba(6,182,212,0.2); overflow: hidden;">
+      
+      <!-- Modal Header -->
+      <div style="padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(8,17,32,0.6);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #06b6d4, #6366f1); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.15rem; box-shadow: 0 0 15px rgba(6,182,212,0.4);">
+            <i class="fa-solid fa-box-archive"></i>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: 800; font-size: 1.05rem; color: #f8fafc; letter-spacing: -0.3px;">
+                💿 ローカル・キャッシュ・クレート (Audio Crate & Vinyl Browser)
+              </span>
+              <span id="crate-modal-count-badge" style="font-size: 0.68rem; background: rgba(6,182,212,0.2); border: 1px solid rgba(6,182,212,0.5); color: #67e8f9; padding: 2px 8px; border-radius: 20px; font-weight: 700;">0曲ストック</span>
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">
+              cache_audio/ 内の過去解析楽曲を瞬時にインクリメンタル検索・試聴し、0.1秒でスタジオへ召喚＆マルチサンプリング
+            </div>
+          </div>
+        </div>
+        <button onclick="closeCacheCrateModal()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #94a3b8; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; transition: all 0.2s;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Search, Filter & Multi-Sampling Settings Toolbar -->
+      <div style="padding: 14px 24px; background: rgba(15,23,42,0.85); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 10px;">
+        
+        <!-- Search row -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="flex: 1; position: relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #06b6d4; font-size: 0.85rem;"></i>
+            <input type="text" id="crate-search-input" oninput="filterCacheCrate()" placeholder="曲名、アーティスト、ジャンル、BPM、キーでリアルタイム絞り込み... (例: Hans, Anasthasia, 120, C Major)" style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(6,182,212,0.3); border-radius: 10px; color: #fff; padding: 9px 12px 9px 38px; font-size: 0.82rem; outline: none; transition: border-color 0.2s;">
+          </div>
+          
+          <select id="crate-sort-select" onchange="sortCacheCrate()" style="background: rgba(15,23,42,0.9); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; outline: none; cursor: pointer;">
+            <option value="newest">🕒 更新日時順 (最新)</option>
+            <option value="title">🔤 曲名順 (A-Z)</option>
+            <option value="bpm">⚡ テンポ順 (BPM)</option>
+            <option value="duration">⏱️ 再生時間順 (長尺)</option>
+          </select>
+
+          <button onclick="fetchCacheCrateList()" title="再読み込み" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; padding: 8px 12px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-rotate-right"></i> 更新
+          </button>
+        </div>
+
+        <!-- Cross-Sampling Setting: Keep Pads -->
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.2); border-radius: 8px; padding: 8px 12px; font-size: 0.76rem;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #e0f2fe; font-weight: 700;">
+            <input type="checkbox" id="crate-keep-pads-chk" style="accent-color: #06b6d4; width: 16px; height: 16px; cursor: pointer;">
+            <span>🎯 現在のPadを保持 (Keep Pads: 複数曲からのクロスサンプリング)</span>
+          </label>
+          <span style="color: #94a3b8; font-size: 0.7rem;">
+            💡 チェックを入れると、既存の16パッドを上書きせず、タイムライン波形とステムのみを切り替えて新しい素材を追加サンプリングできます。
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Modal Body (Crate Track List) -->
+      <div id="crate-tracks-list" style="padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; flex: 1; max-height: 60vh;">
+        <!-- Track cards rendered via JS -->
+      </div>
+
     </div>
   </div>
 

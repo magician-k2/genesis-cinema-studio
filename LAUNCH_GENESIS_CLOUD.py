@@ -2024,6 +2024,18 @@ def api_malecns_telemetry():
     from core.neural_backbone import malecns_bus
     return jsonify(malecns_bus.get_telemetry())
 
+@app.route('/api/music/to_cinema_storyboard', methods=['POST'])
+def api_music_to_cinema_storyboard():
+    req = request.get_json(force=True) if request.data else {}
+    from core.genesis_audio_to_cinema_director import generate_synchronized_cinema_storyboard
+    res = generate_synchronized_cinema_storyboard(
+        features=req.get('features', {}),
+        track_title=req.get('track_title', 'GENESIS Track'),
+        scene_context=req.get('scene_context', 'サイバー東京ノワール'),
+        total_duration_sec=req.get('duration_sec', 60.0)
+    )
+    return jsonify(res)
+
 def start_telepathy_background():
     """Starts telepathy engine on port 5000 in separate process or thread"""
     print("[*] Launching Telepathy Engine on Port 5000 in background...")

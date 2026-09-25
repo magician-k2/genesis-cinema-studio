@@ -1,7 +1,140 @@
 [
   {
+    "id": "test_ai_turnaround_char",
+    "created_at": "2026-09-20 20:52:06",
+    "name": "AI 探偵テスト",
+    "name_en": "AI Detective Test",
+    "age": 28,
+    "gender": "male",
+    "height_m": 1.82,
+    "build": "athletic",
+    "voice_profile": "Aoede",
+    "costume_tags": [],
+    "ec_product_links": [],
+    "views": {
+      "front": "/characters/test_ai_turnaround_char/front.png",
+      "right": "/characters/test_ai_turnaround_char/right.png",
+      "back": "/characters/test_ai_turnaround_char/back.png",
+      "left": "/characters/test_ai_turnaround_char/left.png"
+    },
+    "views_meta": {
+      "front": {
+        "view": "front",
+        "scale": 1.3644,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 95,
+          "bottom": 914,
+          "left": 164,
+          "right": 437,
+          "height_px": 820,
+          "width_px": 274,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "right": {
+        "view": "right",
+        "scale": 1.3644,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 95,
+          "bottom": 914,
+          "left": 164,
+          "right": 437,
+          "height_px": 820,
+          "width_px": 274,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "back": {
+        "view": "back",
+        "scale": 1.3644,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 95,
+          "bottom": 914,
+          "left": 164,
+          "right": 437,
+          "height_px": 820,
+          "width_px": 274,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "left": {
+        "view": "left",
+        "scale": 1.3644,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 95,
+          "bottom": 914,
+          "left": 164,
+          "right": 437,
+          "height_px": 820,
+          "width_px": 274,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      }
+    }
+  },
+  {
     "id": "test_idol_e2e",
-    "created_at": "2026-09-05 22:18:10",
+    "created_at": "2026-09-20 20:51:56",
     "name": "星野 まゆ (E2E)",
     "name_en": "Mayu Hoshino E2E",
     "age": 18,
@@ -23,7 +156,7 @@
     "views_meta": {
       "front": {
         "view": "front",
-        "scale": 2.0449,
+        "scale": 2.1026,
         "pivot": [
           300,
           920
@@ -35,10 +168,10 @@
         "bounds": {
           "top": 92,
           "bottom": 911,
-          "left": 156,
-          "right": 444,
+          "left": 153,
+          "right": 448,
           "height_px": 820,
-          "width_px": 289,
+          "width_px": 296,
           "pivot": [
             300,
             911
@@ -51,7 +184,7 @@
       },
       "right": {
         "view": "right",
-        "scale": 2.0449,
+        "scale": 2.1026,
         "pivot": [
           300,
           920
@@ -63,10 +196,10 @@
         "bounds": {
           "top": 92,
           "bottom": 911,
-          "left": 156,
-          "right": 444,
+          "left": 153,
+          "right": 448,
           "height_px": 820,
-          "width_px": 289,
+          "width_px": 296,
           "pivot": [
             300,
             911
@@ -79,7 +212,7 @@
       },
       "back": {
         "view": "back",
-        "scale": 2.0449,
+        "scale": 2.1026,
         "pivot": [
           300,
           920
@@ -91,10 +224,10 @@
         "bounds": {
           "top": 92,
           "bottom": 911,
-          "left": 156,
-          "right": 444,
+          "left": 153,
+          "right": 448,
           "height_px": 820,
-          "width_px": 289,
+          "width_px": 296,
           "pivot": [
             300,
             911
@@ -107,7 +240,7 @@
       },
       "left": {
         "view": "left",
-        "scale": 2.0449,
+        "scale": 2.1026,
         "pivot": [
           300,
           920
@@ -119,10 +252,10 @@
         "bounds": {
           "top": 92,
           "bottom": 911,
-          "left": 156,
-          "right": 444,
+          "left": 153,
+          "right": 448,
           "height_px": 820,
-          "width_px": 289,
+          "width_px": 296,
           "pivot": [
             300,
             911
@@ -137,7 +270,7 @@
   },
   {
     "id": "test_ren_e2e",
-    "created_at": "2026-09-05 22:18:08",
+    "created_at": "2026-09-20 20:51:54",
     "name": "如月 蓮 (E2E)",
     "name_en": "Ren Kisaragi E2E",
     "age": 26,
@@ -171,9 +304,9 @@
           "top": 93,
           "bottom": 912,
           "left": 230,
-          "right": 371,
+          "right": 370,
           "height_px": 820,
-          "width_px": 142,
+          "width_px": 141,
           "pivot": [
             300,
             912
@@ -199,9 +332,9 @@
           "top": 93,
           "bottom": 912,
           "left": 230,
-          "right": 371,
+          "right": 370,
           "height_px": 820,
-          "width_px": 142,
+          "width_px": 141,
           "pivot": [
             300,
             912
@@ -227,9 +360,9 @@
           "top": 93,
           "bottom": 912,
           "left": 230,
-          "right": 371,
+          "right": 370,
           "height_px": 820,
-          "width_px": 142,
+          "width_px": 141,
           "pivot": [
             300,
             912
@@ -255,9 +388,9 @@
           "top": 93,
           "bottom": 912,
           "left": 230,
-          "right": 371,
+          "right": 370,
           "height_px": 820,
-          "width_px": 142,
+          "width_px": 141,
           "pivot": [
             300,
             912
@@ -265,6 +398,411 @@
           "pivot_norm": [
             0.5,
             0.912
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "ren",
+    "created_at": "2026-09-07 23:25:46",
+    "name": "如月 蓮",
+    "name_en": "Ren Kisaragi",
+    "age": 26,
+    "gender": "male",
+    "height_m": 1.8,
+    "build": "マッチョ",
+    "voice_profile": "Fenrir",
+    "costume_tags": [
+      "ノワール・ロングトレンチコート"
+    ],
+    "ec_product_links": [],
+    "views": {
+      "front": "/characters/ren/front.png",
+      "right": "/characters/ren/right.png",
+      "back": "/characters/ren/back.png",
+      "left": "/characters/ren/left.png"
+    },
+    "views_meta": {
+      "front": {
+        "view": "front",
+        "scale": 1.1698,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 96,
+          "bottom": 914,
+          "left": 143,
+          "right": 457,
+          "height_px": 819,
+          "width_px": 315,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "right": {
+        "view": "right",
+        "scale": 1.1698,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 91,
+          "bottom": 914,
+          "left": 217,
+          "right": 384,
+          "height_px": 824,
+          "width_px": 168,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "back": {
+        "view": "back",
+        "scale": 1.1698,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 93,
+          "bottom": 914,
+          "left": 143,
+          "right": 457,
+          "height_px": 822,
+          "width_px": 315,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "left": {
+        "view": "left",
+        "scale": 1.1698,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 91,
+          "bottom": 914,
+          "left": 217,
+          "right": 384,
+          "height_px": 824,
+          "width_px": 168,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "ren_kisaragi",
+    "created_at": "2026-09-06 22:24:33",
+    "name": "如月 蓮",
+    "name_en": "Ren Kisaragi",
+    "age": 26,
+    "gender": "male",
+    "height_m": 1.8,
+    "build": "athletic",
+    "voice_profile": "Aoede",
+    "costume_tags": [
+      "ノワール・ロングトレンチコート (撥水)"
+    ],
+    "ec_product_links": [],
+    "views": {
+      "front": "/characters/ren_kisaragi/front.png",
+      "right": "/characters/ren_kisaragi/right.png",
+      "back": "/characters/ren_kisaragi/back.png",
+      "left": "/characters/ren_kisaragi/left.png"
+    },
+    "views_meta": {
+      "front": {
+        "view": "front",
+        "scale": 1.1405,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 96,
+          "bottom": 914,
+          "left": 159,
+          "right": 441,
+          "height_px": 819,
+          "width_px": 283,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "right": {
+        "view": "right",
+        "scale": 1.1405,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 97,
+          "bottom": 914,
+          "left": 212,
+          "right": 388,
+          "height_px": 818,
+          "width_px": 177,
+          "pivot": [
+            300,
+            914
+          ],
+          "pivot_norm": [
+            0.5,
+            0.914
+          ]
+        }
+      },
+      "back": {
+        "view": "back",
+        "scale": 1.1405,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 98,
+          "bottom": 914,
+          "left": 160,
+          "right": 439,
+          "height_px": 817,
+          "width_px": 280,
+          "pivot": [
+            299,
+            914
+          ],
+          "pivot_norm": [
+            0.4983,
+            0.914
+          ]
+        }
+      },
+      "left": {
+        "view": "left",
+        "scale": 1.1405,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 97,
+          "bottom": 914,
+          "left": 217,
+          "right": 382,
+          "height_px": 818,
+          "width_px": 166,
+          "pivot": [
+            299,
+            914
+          ],
+          "pivot_norm": [
+            0.4983,
+            0.914
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "test_gen_live",
+    "created_at": "2026-09-06 19:02:47",
+    "name": "如月 蓮 (Live)",
+    "name_en": "Ren Kisaragi Live",
+    "age": 26,
+    "gender": "male",
+    "height_m": 1.8,
+    "build": "natural",
+    "voice_profile": "Aoede",
+    "costume_tags": [
+      "ノワール・ロングトレンチコート (撥水)"
+    ],
+    "ec_product_links": [],
+    "views": {
+      "front": "/characters/test_gen_live/front.png",
+      "right": "/characters/test_gen_live/right.png",
+      "back": "/characters/test_gen_live/back.png",
+      "left": "/characters/test_gen_live/left.png"
+    },
+    "views_meta": {
+      "front": {
+        "view": "front",
+        "scale": 1.6367,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 94,
+          "bottom": 913,
+          "left": 136,
+          "right": 465,
+          "height_px": 820,
+          "width_px": 330,
+          "pivot": [
+            300,
+            913
+          ],
+          "pivot_norm": [
+            0.5,
+            0.913
+          ]
+        }
+      },
+      "right": {
+        "view": "right",
+        "scale": 1.6367,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 94,
+          "bottom": 913,
+          "left": 136,
+          "right": 465,
+          "height_px": 820,
+          "width_px": 330,
+          "pivot": [
+            300,
+            913
+          ],
+          "pivot_norm": [
+            0.5,
+            0.913
+          ]
+        }
+      },
+      "back": {
+        "view": "back",
+        "scale": 1.6367,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 94,
+          "bottom": 913,
+          "left": 136,
+          "right": 465,
+          "height_px": 820,
+          "width_px": 330,
+          "pivot": [
+            300,
+            913
+          ],
+          "pivot_norm": [
+            0.5,
+            0.913
+          ]
+        }
+      },
+      "left": {
+        "view": "left",
+        "scale": 1.6367,
+        "pivot": [
+          300,
+          920
+        ],
+        "pivot_norm": [
+          0.5,
+          0.92
+        ],
+        "bounds": {
+          "top": 94,
+          "bottom": 913,
+          "left": 136,
+          "right": 465,
+          "height_px": 820,
+          "width_px": 330,
+          "pivot": [
+            300,
+            913
+          ],
+          "pivot_norm": [
+            0.5,
+            0.913
           ]
         }
       }

@@ -228,32 +228,15 @@ class CharacterStudioUI {
                 if (!data.success) throw new Error(data.error);
                 result = data.character;
             } else {
-                // Mode A: Render high-res procedural 4-view turnaround sheet
-                const sheetCanvas = document.createElement('canvas');
-                sheetCanvas.width = 1600;
-                sheetCanvas.height = 800;
-                const ctx = sheetCanvas.getContext('2d');
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, sheetCanvas.width, sheetCanvas.height);
-
-                // Draw procedural 4 views
-                const colW = 400;
-                ['front', 'right', 'back', 'left'].forEach((v, idx) => {
-                    ctx.save();
-                    ctx.translate(idx * colW, 0);
-                    if (window.CharacterTurnaroundEngine) {
-                        window.CharacterTurnaroundEngine.renderCleanProceduralActor(ctx, colW, 800, v);
-                    }
-                    ctx.restore();
-                });
-
-                const sheetDataUri = sheetCanvas.toDataURL('image/png');
-                const res = await fetch('/api/character/process_sheet', {
+                // Mode A: Real Google AI Photorealistic 4-View Generation
+                if (statusMsg) statusMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 🚀 Google Gemini 3.1 Flash Image で実写4面ターンアラウンド生成中 (約10秒)...`;
+                const promptDesc = `${nameEn} (${nameJa}), ${age}yo ${gender}, ${heightM}m, ${build} build, costume: ${costumeTag}`;
+                const res = await fetch('/api/character/generate_ai_turnaround', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         char_id: charId,
-                        sheet_image: sheetDataUri,
+                        prompt: promptDesc,
                         metadata: metadata
                     })
                 });

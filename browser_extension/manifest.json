@@ -1,21 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "μTRON Neural Hub",
+  "name": "GENESIS μTRON XAI",
   "version": "1.0.0",
-  "description": "GENESIS μTRON - Brain Bridge for Cross-Tab Context Sync",
+  "description": "GENESIS μTRON XAI - World-First Transparent Deep Learning Visualizer for Google Gemini",
   "permissions": [
     "sidePanel",
     "storage",
     "tabs",
-    "scripting",
-    "identity"
+    "scripting"
   ],
   "host_permissions": [
-    "https://aistudio.google.com/*",
     "https://gemini.google.com/*",
+    "https://aistudio.google.com/*",
     "https://notebooklm.google.com/*",
-    "https://antigravity.google/*",
-    "http://127.0.0.1:8000/*"
+    "http://127.0.0.1:8080/*",
+    "http://localhost:8080/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -24,15 +23,14 @@
     "default_path": "sidepanel.html"
   },
   "action": {
-    "default_title": "Open μTRON Console"
+    "default_title": "GENESIS μTRON XAI - サイドパネルを開く"
   },
   "content_scripts": [
     {
       "matches": [
-        "https://aistudio.google.com/*",
         "https://gemini.google.com/*",
-        "https://notebooklm.google.com/*",
-        "https://antigravity.google/*"
+        "https://aistudio.google.com/*",
+        "https://notebooklm.google.com/*"
       ],
       "js": ["content_script.js"]
     }
