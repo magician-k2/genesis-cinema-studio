@@ -1228,8 +1228,66 @@ function fallbackCopyText(text) {
     window.open('https://docs.google.com/document/create', '_blank');
 }
 
+function initDomEvents() {
+    // 1. アニメ非表示/表示トグルボタン
+    const btnToggleAnime = document.getElementById('btn-toggle-anime');
+    if (btnToggleAnime) {
+        btnToggleAnime.addEventListener('click', () => toggleAnimeVisibility());
+    }
+
+    // 2. 監査票モーダル開閉
+    const btnOpenReceipt = document.getElementById('btn-open-receipt');
+    if (btnOpenReceipt) {
+        btnOpenReceipt.addEventListener('click', () => openReceiptModal());
+    }
+
+    const btnCloseReceipt = document.getElementById('btn-close-receipt');
+    if (btnCloseReceipt) {
+        btnCloseReceipt.addEventListener('click', () => closeReceiptModal());
+    }
+
+    // 3. ズームコントロール
+    const btnZoomIn = document.getElementById('btn-zoom-in');
+    if (btnZoomIn) {
+        btnZoomIn.addEventListener('click', () => window.sideEngine && window.sideEngine.zoomIn());
+    }
+    const btnZoomOut = document.getElementById('btn-zoom-out');
+    if (btnZoomOut) {
+        btnZoomOut.addEventListener('click', () => window.sideEngine && window.sideEngine.zoomOut());
+    }
+    const btnResetView = document.getElementById('btn-reset-view');
+    if (btnResetView) {
+        btnResetView.addEventListener('click', () => window.sideEngine && window.sideEngine.resetView());
+    }
+
+    // 4. インスペクター閉じる
+    const btnCloseInspector = document.getElementById('btn-close-inspector');
+    if (btnCloseInspector) {
+        btnCloseInspector.addEventListener('click', () => window.sideEngine && window.sideEngine.selectNode(null));
+    }
+
+    // 5. プリセットボタン
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const preset = e.target.dataset.preset;
+            if (preset) setPanelPreset(preset);
+        });
+    });
+
+    // 6. Google Docs 保存ボタン
+    const btnExportGdocs = document.getElementById('btn-export-gdocs');
+    if (btnExportGdocs) {
+        btnExportGdocs.addEventListener('click', () => exportToGoogleDocs());
+    }
+    const btnModalGdocs = document.getElementById('btn-modal-gdocs');
+    if (btnModalGdocs) {
+        btnModalGdocs.addEventListener('click', () => exportToGoogleDocs());
+    }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     window.sideEngine = new SidePanelXAIEngine();
+    initDomEvents();
     try {
         if (localStorage.getItem('genesis_anime_hidden') === 'true') {
             toggleAnimeVisibility(false); // アニメ非表示で起動

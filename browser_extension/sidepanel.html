@@ -502,8 +502,8 @@
       <span id="gemini-sync-status">Gemini 同期中</span>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="btn-toggle-anime" onclick="toggleAnimeVisibility()" title="アニメーションの表示/非表示を切り替え">👁️ アニメ非表示</button>
-      <button class="icon-btn" onclick="openReceiptModal()" title="思考レシート表示">📜 監査票</button>
+      <button class="icon-btn" id="btn-toggle-anime" title="アニメーションの表示/非表示を切り替え">👁️ アニメ非表示</button>
+      <button class="icon-btn" id="btn-open-receipt" title="思考レシート表示">📜 監査票</button>
       <a class="icon-btn" id="btn-fullscreen-out" href="http://localhost:8080/mindmap_interactive_studio.html" target="_blank" title="全画面シアターで開く">↗️</a>
     </div>
   </div>
@@ -524,16 +524,16 @@
     <canvas id="sidepanel-canvas"></canvas>
 
     <div class="zoom-controls">
-      <button class="zoom-btn" onclick="window.sideEngine.zoomIn()" title="拡大">➕</button>
-      <button class="zoom-btn" onclick="window.sideEngine.zoomOut()" title="縮小">➖</button>
-      <button class="zoom-btn" onclick="window.sideEngine.resetView()" title="中心復帰">🎯</button>
+      <button class="zoom-btn" id="btn-zoom-in" title="拡大">➕</button>
+      <button class="zoom-btn" id="btn-zoom-out" title="縮小">➖</button>
+      <button class="zoom-btn" id="btn-reset-view" title="中心復帰">🎯</button>
     </div>
 
     <!-- Inspector Drawer -->
     <div class="inspector-drawer" id="inspector-drawer">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <span id="insp-category-badge" style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; background:#10b981; color:#07090e;">🌐 GOOGLE SEARCH GROUNDING</span>
-        <button style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer;" onclick="window.sideEngine.selectNode(null)">✕</button>
+        <button style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer;" id="btn-close-inspector">✕</button>
       </div>
       <div id="insp-header-title" style="font-size:12px; font-weight:700; color:#fff;">Threejs_Euler_Yaw_Specification</div>
       <div id="insp-details-content" style="font-size:11px; color:#cbd5e1; line-height:1.5;"></div>
@@ -552,11 +552,11 @@
         <span>📜 思考実況タイムライン</span>
       </div>
       <div class="chronicle-actions">
-        <button class="preset-btn" onclick="setPanelPreset('anime')" title="アニメ大">📊 30%</button>
-        <button class="preset-btn" onclick="setPanelPreset('half')" title="均等">⚖️ 50%</button>
-        <button class="preset-btn" onclick="setPanelPreset('log')" title="ログ大">📜 75%</button>
-        <button class="preset-btn" onclick="setPanelPreset('full')" title="ログ全開（アニメ非表示）">📜 100%</button>
-        <button class="gdocs-btn" onclick="exportToGoogleDocs()" title="思考ログとエビデンスをGoogleドキュメントに保存">
+        <button class="preset-btn" data-preset="anime" title="アニメ大">📊 30%</button>
+        <button class="preset-btn" data-preset="half" title="均等">⚖️ 50%</button>
+        <button class="preset-btn" data-preset="log" title="ログ大">📜 75%</button>
+        <button class="preset-btn" data-preset="full" title="ログ全開（アニメ非表示）">📜 100%</button>
+        <button class="gdocs-btn" id="btn-export-gdocs" title="思考ログとエビデンスをGoogleドキュメントに保存">
           <span>📄 Google Docs 保存</span>
         </button>
       </div>
@@ -574,11 +574,11 @@
     <div class="receipt-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <span style="font-weight:700; color:#00f0ff;">=== GENESIS μTRON AUDIT TRAIL ===</span>
-        <button style="background:none; border:none; color:#fff; font-size:16px; cursor:pointer;" onclick="closeReceiptModal()">✕</button>
+        <button style="background:none; border:none; color:#fff; font-size:16px; cursor:pointer;" id="btn-close-receipt">✕</button>
       </div>
       <div id="receipt-content-area"></div>
       <div style="margin-top:14px; text-align:right;">
-        <button class="gdocs-btn" style="display:inline-flex;" onclick="exportToGoogleDocs()">
+        <button class="gdocs-btn" id="btn-modal-gdocs" style="display:inline-flex;">
           <span>📄 この監査票をGoogleドキュメントに保存</span>
         </button>
       </div>
