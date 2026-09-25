@@ -25,6 +25,19 @@ class ConvergentMeshStudio {
         this.currentScenario = 'swe_bench_bug';
         this.dagData = null;
 
+        // 🎥 Smooth Infinite Pan & Zoom Camera Matrix
+        this.camera = {
+            x: 0,
+            y: 0,
+            zoom: 1.0,
+            targetX: 0,
+            targetY: 0,
+            targetZoom: 1.0
+        };
+        this.isDragging = false;
+        this.dragStart = { x: 0, y: 0 };
+        this.hasDragged = false;
+
         this.centerNode = {
             id: 'core_root_cause',
             x: 0,
@@ -43,43 +56,119 @@ class ConvergentMeshStudio {
         this.loadScenario('swe_bench_bug');
         this.animate();
 
-        console.log("[GENESIS] The Convergent Mesh Studio v2.0 Online.");
+        console.log("[GENESIS] The Convergent Mesh Studio v2.0 (Pan/Zoom Enabled) Online.");
+    }
+
+    screenToWorld(sx, sy) {
+        return {
+            x: (sx - this.canvas.width / 2 - this.camera.x) / this.camera.zoom + this.canvas.width / 2,
+            y: (sy - this.canvas.height / 2 - this.camera.y) / this.camera.zoom + this.canvas.height / 2
+        };
+    }
+
+    worldToScreen(wx, wy) {
+        return {
+            x: (wx - this.canvas.width / 2) * this.camera.zoom + this.canvas.width / 2 + this.camera.x,
+            y: (wy - this.canvas.height / 2) * this.camera.zoom + this.canvas.height / 2 + this.camera.y
+        };
+    }
+
+    zoomIn() {
+        this.camera.targetZoom = Math.min(3.0, this.camera.targetZoom * 1.25);
+    }
+
+    zoomOut() {
+        this.camera.targetZoom = Math.max(0.4, this.camera.targetZoom / 1.25);
+    }
+
+    resetView() {
+        this.camera.targetX = this.selectedNode ? -180 : 0;
+        this.camera.targetY = 0;
+        this.camera.targetZoom = 1.0;
     }
 
     initEventListeners() {
         window.addEventListener('resize', () => this.resize());
 
-        this.canvas.addEventListener('mousemove', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
+        // Mouse Down (Drag Start)
+        this.canvas.addEventListener('mousedown', (e) => {
+            this.isDragging = true;
+            this.hasDragged = false;
+            this.dragStart = { x: e.clientX - this.camera.x, y: e.clientY - this.camera.y };
+        });
 
+        // Mouse Move (Pan & Hover)
+        window.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const sx = e.clientX - rect.left;
+            const sy = e.clientY - rect.top;
+
+            if (this.isDragging) {
+                const nx = e.clientX - this.dragStart.x;
+                const ny = e.clientY - this.dragStart.y;
+                if (Math.hypot(nx - this.camera.x, ny - this.camera.y) > 3) {
+                    this.hasDragged = true;
+                }
+                this.camera.x = nx;
+                this.camera.y = ny;
+                this.camera.targetX = nx;
+                this.camera.targetY = ny;
+                return;
+            }
+
+            // ホバーノード判定 (ワールド座標系で判定)
+            const wPos = this.screenToWorld(sx, sy);
             let hit = null;
             for (const n of this.nodes) {
-                const dist = Math.hypot(n.x - mx, n.y - my);
+                const dist = Math.hypot(n.x - wPos.x, n.y - wPos.y);
                 if (dist <= (n.radius || 18)) {
                     hit = n;
                     break;
                 }
             }
             this.hoveredNode = hit;
-            this.canvas.style.cursor = hit ? 'pointer' : 'crosshair';
+            this.canvas.style.cursor = hit ? 'pointer' : (this.isDragging ? 'grabbing' : 'grab');
         });
 
-        this.canvas.addEventListener('click', (e) => {
-            if (this.hoveredNode) {
-                this.selectNode(this.hoveredNode);
-            } else {
-                this.selectNode(null);
+        // Mouse Up (Click Selection)
+        window.addEventListener('mouseup', (e) => {
+            if (this.isDragging) {
+                this.isDragging = false;
+                if (!this.hasDragged && e.target === this.canvas) {
+                    if (this.hoveredNode) {
+                        this.selectNode(this.hoveredNode);
+                    } else {
+                        this.selectNode(null);
+                    }
+                }
             }
         });
+
+        // Wheel (Smooth Zoom to Mouse Position)
+        this.canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = this.canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+            const newZoom = Math.max(0.4, Math.min(3.0, this.camera.targetZoom * zoomFactor));
+
+            // マウス位置を中心にしたズーム補正
+            const mouseWorldX = (mouseX - this.canvas.width / 2 - this.camera.x) / this.camera.zoom;
+            const mouseWorldY = (mouseY - this.canvas.height / 2 - this.camera.y) / this.camera.zoom;
+
+            this.camera.targetZoom = newZoom;
+            this.camera.targetX = mouseX - this.canvas.width / 2 - mouseWorldX * newZoom;
+            this.camera.targetY = mouseY - this.canvas.height / 2 - mouseWorldY * newZoom;
+        }, { passive: false });
     }
 
     resize() {
         this.canvas.width = this.canvas.parentElement.clientWidth;
         this.canvas.height = this.canvas.parentElement.clientHeight;
         this.centerNode.x = this.canvas.width / 2;
-        this.centerNode.y = this.canvas.height / 2;
+        this.centerNode.y = this.canvas.height / 2 + 50; // プロンプトバーを避けるため中央下へ50px配置
         if (this.dagData) {
             this.layoutDAG(this.dagData);
         }
@@ -498,16 +587,26 @@ class ConvergentMeshStudio {
         this.centerNode.pulse = 0.5;
         this.nodes.push(this.centerNode);
 
-        // Stage 2: 外周データノードが順次ポップ出現
+        // Stage 2: 外周データノードが順次ポップ出現 (プロンプトバー裏を避ける馬蹄形・千鳥マルチリング配置)
         const peripheryNodes = data.nodes.filter(n => n.layer === 'periphery');
-        const pRadius = Math.min(this.canvas.width, this.canvas.height) * 0.40;
+        const pBaseRadius = Math.min(this.canvas.width, this.canvas.height) * 0.38;
         const pCount = peripheryNodes.length;
+
+        // 馬蹄形配置: 真上(-90°)を避け、右上(-45°)から時計回りに左上(225°)へ扇状展開
+        const startAngle = -Math.PI * 0.25;
+        const endAngle = Math.PI * 1.25;
+        const angleSpan = endAngle - startAngle;
 
         for (let i = 0; i < pCount; i++) {
             const n = peripheryNodes[i];
-            const angle = (i / pCount) * Math.PI * 2 - Math.PI / 2;
-            n.x = cx + Math.cos(angle) * pRadius;
-            n.y = cy + Math.sin(angle) * pRadius;
+            const t = pCount === 1 ? 0.5 : (i / (pCount - 1));
+            const angle = startAngle + t * angleSpan;
+            // ノード多数時の千鳥マルチリング (偶数は内環、奇数は外環)
+            const ringScale = (pCount > 4) ? (i % 2 === 0 ? 0.88 : 1.15) : 1.0;
+            const r = pBaseRadius * ringScale;
+
+            n.x = cx + Math.cos(angle) * r;
+            n.y = cy + Math.sin(angle) * r;
             n.radius = 16;
             this.nodes.push(n);
             await new Promise(r => setTimeout(r, 120)); // ポップ演出
@@ -515,12 +614,13 @@ class ConvergentMeshStudio {
 
         // Stage 3: 中間層ノード（判断・ハエの脳枝刈り）が出現
         const interNodes = data.nodes.filter(n => n.layer === 'intermediate');
-        const iRadius = Math.min(this.canvas.width, this.canvas.height) * 0.22;
+        const iRadius = Math.min(this.canvas.width, this.canvas.height) * 0.20;
         const iCount = interNodes.length;
 
         for (let i = 0; i < iCount; i++) {
             const n = interNodes[i];
-            const angle = (i / iCount) * Math.PI * 2 - Math.PI / 2 + (Math.PI / iCount * 0.5);
+            const t = iCount === 1 ? 0.5 : ((i + 0.5) / iCount);
+            const angle = startAngle + t * angleSpan;
             n.x = cx + Math.cos(angle) * iRadius;
             n.y = cy + Math.sin(angle) * iRadius;
             n.radius = 20;
@@ -563,26 +663,35 @@ class ConvergentMeshStudio {
         this.centerNode.pulse = 1.0;
         this.nodes.push(this.centerNode);
 
-        // 2. 外周ノード (Periphery: 半径 R = min(W, H) * 0.40)
+        // 2. 外周ノード (馬蹄形 & 千鳥マルチリング)
         const peripheryNodes = data.nodes.filter(n => n.layer === 'periphery');
-        const pRadius = Math.min(this.canvas.width, this.canvas.height) * 0.40;
+        const pBaseRadius = Math.min(this.canvas.width, this.canvas.height) * 0.38;
         const pCount = peripheryNodes.length;
 
+        const startAngle = -Math.PI * 0.25;
+        const endAngle = Math.PI * 1.25;
+        const angleSpan = endAngle - startAngle;
+
         peripheryNodes.forEach((n, i) => {
-            const angle = (i / pCount) * Math.PI * 2 - Math.PI / 2;
-            n.x = cx + Math.cos(angle) * pRadius;
-            n.y = cy + Math.sin(angle) * pRadius;
+            const t = pCount === 1 ? 0.5 : (i / (pCount - 1));
+            const angle = startAngle + t * angleSpan;
+            const ringScale = (pCount > 4) ? (i % 2 === 0 ? 0.88 : 1.15) : 1.0;
+            const r = pBaseRadius * ringScale;
+
+            n.x = cx + Math.cos(angle) * r;
+            n.y = cy + Math.sin(angle) * r;
             n.radius = 16;
             this.nodes.push(n);
         });
 
-        // 3. 中間層ノード (Intermediate: 半径 R = min(W, H) * 0.22)
+        // 3. 中間層ノード
         const interNodes = data.nodes.filter(n => n.layer === 'intermediate');
-        const iRadius = Math.min(this.canvas.width, this.canvas.height) * 0.22;
+        const iRadius = Math.min(this.canvas.width, this.canvas.height) * 0.20;
         const iCount = interNodes.length;
 
         interNodes.forEach((n, i) => {
-            const angle = (i / iCount) * Math.PI * 2 - Math.PI / 2 + (Math.PI / iCount * 0.5);
+            const t = iCount === 1 ? 0.5 : ((i + 0.5) / iCount);
+            const angle = startAngle + t * angleSpan;
             n.x = cx + Math.cos(angle) * iRadius;
             n.y = cy + Math.sin(angle) * iRadius;
             n.radius = 20;
@@ -623,10 +732,13 @@ class ConvergentMeshStudio {
 
         if (!node) {
             panel.classList.remove('active');
+            this.camera.targetX = 0; // 中央に戻す
             return;
         }
 
         panel.classList.add('active');
+        // インスペクター展開時にカメラをスムーズに左へスライド (-180px)
+        this.camera.targetX = -180;
         document.getElementById('insp-title').innerText = node.label || "Node Inspector";
         document.getElementById('insp-type').innerText = (node.type || node.layer || "NODE").toUpperCase();
         document.getElementById('insp-layer').innerText = (node.layer || "CORE").toUpperCase();
@@ -689,17 +801,28 @@ class ConvergentMeshStudio {
     animate() {
         requestAnimationFrame(() => this.animate());
 
-        // 1. 半透明ブラッククリア（残像粒子トレイル）
+        // 1. 半透明ブラッククリア（残像粒子トレイル）- スクリーン全体
         this.ctx.fillStyle = 'rgba(7, 9, 14, 0.25)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // 2. 確率的パーティクル生成（因果エッジを伝って外周から中心へ光が流れる）
+        // 2. カメラの滑らかな補間 (Lerp)
+        this.camera.x += (this.camera.targetX - this.camera.x) * 0.12;
+        this.camera.y += (this.camera.targetY - this.camera.y) * 0.12;
+        this.camera.zoom += (this.camera.targetZoom - this.camera.zoom) * 0.12;
+
+        // 3. ワールド描画マトリクスの適用
+        this.ctx.save();
+        this.ctx.translate(this.canvas.width / 2 + this.camera.x, this.canvas.height / 2 + this.camera.y);
+        this.ctx.scale(this.camera.zoom, this.camera.zoom);
+        this.ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
+
+        // 確率的パーティクル生成（因果エッジを伝って外周から中心へ光が流れる）
         if (this.links.length > 0 && Math.random() < 0.65) {
             const randomLink = this.links[Math.floor(Math.random() * this.links.length)];
             this.spawnParticle(randomLink);
         }
 
-        // 3. リンク（因果有向エッジ）の描画
+        // 4. リンク（因果有向エッジ）の描画
         for (const link of this.links) {
             this.ctx.beginPath();
             this.ctx.moveTo(link.source.x, link.source.y);
@@ -709,7 +832,7 @@ class ConvergentMeshStudio {
             this.ctx.stroke();
         }
 
-        // 4. 粒子（収束光流）の更新・描画
+        // 5. 粒子（収束光流）の更新・描画
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
             p.progress += p.speed;
@@ -736,7 +859,7 @@ class ConvergentMeshStudio {
             this.ctx.shadowBlur = 0;
         }
 
-        // 5. ノード描画
+        // 6. ノード描画
         for (const n of this.nodes) {
             if (n.id === 'core_root_cause') continue; // 中心核は後で巨大描画
 
@@ -779,7 +902,7 @@ class ConvergentMeshStudio {
             this.ctx.fillText(n.label, n.x, ty + th / 2);
         }
 
-        // 6. 中心核（μTRON CORE: 重力レンズ & パルスリング）の描画
+        // 7. 中心核（μTRON CORE: 重力レンズ & パルスリング）の描画
         if (this.centerNode.pulse > 0) this.centerNode.pulse -= 0.015;
         const pulseR = this.centerNode.radius + (this.centerNode.pulse * 28);
 
@@ -813,6 +936,9 @@ class ConvergentMeshStudio {
         this.ctx.fillStyle = '#10b981';
         this.ctx.font = '600 10px system-ui, sans-serif';
         this.ctx.fillText("ROOT CAUSE LOCKED", this.centerNode.x, this.centerNode.y + 10);
+
+        // ワールドマトリクス復元
+        this.ctx.restore();
     }
 }
 

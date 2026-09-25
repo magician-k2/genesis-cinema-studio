@@ -167,6 +167,18 @@
       gap: 8px;
       z-index: 40;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .prompt-control-bar.minimized {
+      padding: 6px 12px;
+      gap: 0;
+      width: 480px;
+      background: rgba(15, 23, 42, 0.65);
+    }
+
+    .prompt-control-bar.minimized .prompt-suggestions {
+      display: none;
     }
 
     .prompt-input-row {
@@ -214,6 +226,27 @@
       transform: translateY(-1px);
     }
 
+    .btn-toggle-prompt {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-toggle-prompt:hover {
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
     .prompt-suggestions {
       display: flex;
       align-items: center;
@@ -238,6 +271,43 @@
       color: var(--accent-cyan);
       border-color: rgba(0, 240, 255, 0.4);
       background: rgba(0, 240, 255, 0.08);
+    }
+
+    /* 🔍 Canvas Zoom & Navigation Controls (Floating Bottom-Left) */
+    .canvas-nav-controls {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 45;
+    }
+
+    .nav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: translateY(-1px);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
     }
 
     /* 🌌 Canvas Container */
@@ -517,6 +587,9 @@
         <button class="btn-run-prompt" id="btn-run-prompt" onclick="submitPrompt()">
           <span>🚀</span> Gemini 思考解剖図を展開
         </button>
+        <button class="btn-toggle-prompt" id="btn-toggle-prompt" onclick="togglePromptBar()" title="入力バーを最小化 / 展開">
+          <span id="prompt-toggle-icon">⬆️</span>
+        </button>
       </div>
       <div class="prompt-suggestions">
         <span style="font-size:10px; color:var(--text-muted); font-weight:600;">クイック入力:</span>
@@ -525,6 +598,13 @@
         <div class="suggestion-chip" onclick="setPromptAndRun('Next.js SSRでwindow参照によるハイドレーションエラーを解消して')">💻 Next.js ハイドレーション</div>
         <div class="suggestion-chip" onclick="setPromptAndRun('Pythonコードの循環インポート例外の真因を特定して')">⚡ Python循環参照例外</div>
       </div>
+    </div>
+
+    <!-- 🔍 Canvas Zoom & Pan Controls -->
+    <div class="canvas-nav-controls">
+      <button class="nav-btn" onclick="if(window.meshStudio) window.meshStudio.zoomIn()" title="拡大 (Zoom In)">➕</button>
+      <button class="nav-btn" onclick="if(window.meshStudio) window.meshStudio.zoomOut()" title="縮小 (Zoom Out)">➖</button>
+      <button class="nav-btn" onclick="if(window.meshStudio) window.meshStudio.resetView()" title="視点リセット (Reset View)">🎯</button>
     </div>
 
     <canvas id="mindmap-canvas"></canvas>
@@ -657,6 +737,18 @@
 
     function closeReceiptModal() {
       document.getElementById('receipt-modal').classList.remove('open');
+    }
+
+    function togglePromptBar() {
+      const bar = document.querySelector('.prompt-control-bar');
+      const icon = document.getElementById('prompt-toggle-icon');
+      if (!bar) return;
+      bar.classList.toggle('minimized');
+      if (bar.classList.contains('minimized')) {
+        if (icon) icon.innerText = '⬇️';
+      } else {
+        if (icon) icon.innerText = '⬆️';
+      }
     }
 
     window.addEventListener('keydown', (e) => {

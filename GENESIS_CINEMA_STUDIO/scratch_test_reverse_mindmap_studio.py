@@ -198,6 +198,91 @@ def test_reverse_mindmap_studio():
         page.screenshot(path=shot_snippet)
         print(f"  📸 Saved Concrete Data & Code Snippet View to: {shot_snippet}")
 
+        # インスペクターを閉じる
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(400)
+
+        # 9. プロンプトバー折りたたみ・最小化トグルの検証
+        print("\n[STEP 9] Testing Floating Prompt Bar Minimize / Expand Toggle...")
+        bar_minimized_before = page.evaluate("() => document.querySelector('.prompt-control-bar').classList.contains('minimized')")
+        print(f"  Prompt Bar Minimized Before: {bar_minimized_before}")
+        assert bar_minimized_before == False, "Prompt bar should initially be expanded"
+
+        page.click("#btn-toggle-prompt")
+        page.wait_for_timeout(400)
+        bar_minimized_after = page.evaluate("() => document.querySelector('.prompt-control-bar').classList.contains('minimized')")
+        print(f"  Prompt Bar Minimized After: {bar_minimized_after}")
+        assert bar_minimized_after == True, "Prompt bar should be minimized after clicking toggle button"
+
+        shot_minimized = os.path.join(artifacts_dir, "screen_reverse_mindmap_prompt_minimized.png")
+        page.screenshot(path=shot_minimized)
+        print(f"  📸 Saved Minimized Prompt Bar View to: {shot_minimized}")
+
+        # 展開に戻す
+        page.click("#btn-toggle-prompt")
+        page.wait_for_timeout(300)
+
+        # 10. Zoom コントロール & Pan ドラッグの検証
+        print("\n[STEP 10] Testing Canvas Pan & Smooth Zoom Controls...")
+        # ズーム前のカメラズーム値
+        zoom_init = page.evaluate("() => window.meshStudio.camera.zoom")
+        print(f"  Initial Zoom: {zoom_init:.2f}")
+
+        # 拡大ボタンを2回クリック
+        page.click("button[title*='拡大']")
+        page.wait_for_timeout(200)
+        page.click("button[title*='拡大']")
+        page.wait_for_timeout(600)
+        zoom_zoomed = page.evaluate("() => window.meshStudio.camera.zoom")
+        print(f"  After 2x Zoom In: {zoom_zoomed:.2f}")
+        assert zoom_zoomed > zoom_init, f"Zoom should have increased: {zoom_zoomed} > {zoom_init}"
+
+        # キャンバスドラッグ (Pan)
+        canvas_box = page.locator("#mindmap-canvas").bounding_box()
+        page.mouse.move(canvas_box["x"] + 400, canvas_box["y"] + 300)
+        page.mouse.down()
+        page.mouse.move(canvas_box["x"] + 250, canvas_box["y"] + 200, steps=5)
+        page.mouse.up()
+        page.wait_for_timeout(400)
+
+        cam_pan_x = page.evaluate("() => window.meshStudio.camera.x")
+        cam_pan_y = page.evaluate("() => window.meshStudio.camera.y")
+        print(f"  After Canvas Pan: Camera X={cam_pan_x:.1f}, Camera Y={cam_pan_y:.1f}")
+
+        # 視点リセットボタンをクリック
+        page.click("button[title*='リセット']")
+        page.wait_for_timeout(600)
+        cam_reset_zoom = page.evaluate("() => window.meshStudio.camera.targetZoom")
+        print(f"  After Reset View: Target Zoom={cam_reset_zoom:.2f}")
+        assert abs(cam_reset_zoom - 1.0) < 0.05, f"Target zoom should reset to 1.0, got: {cam_reset_zoom}"
+
+        # 11. ノード選択時のカメラ自動左スライド（インスペクター被り完全解消）の検証
+        print("\n[STEP 11] Testing Camera Auto-Slide when Inspector Opens (No UI Occlusion)...")
+        # ノード未選択状態
+        page.evaluate("() => window.meshStudio.selectNode(null)")
+        page.wait_for_timeout(400)
+        cam_target_center = page.evaluate("() => window.meshStudio.camera.targetX")
+        print(f"  Camera Target X (No Inspector): {cam_target_center}")
+        assert cam_target_center == 0, f"Expected Target X = 0, got {cam_target_center}"
+
+        # 外周ノードを選択してインスペクターを開く
+        page.evaluate("""() => {
+            const studio = window.meshStudio;
+            const node = studio.nodes.find(n => n.id === 'symptom_2') || studio.nodes[1];
+            studio.selectNode(node);
+        }""")
+        page.wait_for_timeout(700)
+        cam_target_slide = page.evaluate("() => window.meshStudio.camera.targetX")
+        cam_current_x = page.evaluate("() => window.meshStudio.camera.x")
+        print(f"  Camera Target X (Inspector Active): {cam_target_slide}")
+        print(f"  Camera Current X: {cam_current_x:.1f}")
+        assert cam_target_slide == -180, f"Camera Target X should be -180 to prevent occlusion, got: {cam_target_slide}"
+        assert cam_current_x < -100, f"Camera should have smoothly lerped left, got: {cam_current_x}"
+
+        shot_collision_free = os.path.join(artifacts_dir, "screen_reverse_mindmap_collision_free_pan_zoom.png")
+        page.screenshot(path=shot_collision_free)
+        print(f"  📸 Saved Collision-Free Pan/Zoom/Slide View to: {shot_collision_free}")
+
         browser.close()
 
     print("\n========================================================")
