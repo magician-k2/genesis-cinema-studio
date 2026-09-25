@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GENESIS μTRON XAI SidePanel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-card: rgba(15, 23, 42, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 240, 255, 0.35);
+      --accent-cyan: #00f0ff;
+      --accent-emerald: #10b981;
+      --accent-purple: #c084fc;
+      --accent-crimson: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 🌟 Header Ribbon */
+    .side-header {
+      height: 44px;
+      background: #0d121f;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .brand span {
+      color: var(--accent-cyan);
+    }
+
+    .live-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      color: var(--accent-emerald);
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .icon-btn:hover {
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+    }
+
+    /* 🗣️ Live Query Bar */
+    .live-query-banner {
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 12px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .query-label {
+      color: var(--text-muted);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .query-text {
+      color: #38bdf8;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 🎨 Canvas Area */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #0a1120 0%, #07090e 100%);
+    }
+
+    #sidepanel-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 🔍 Zoom Controls */
+    .zoom-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 30;
+    }
+
+    .zoom-btn {
+      width: 26px;
+      height: 26px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    /* 📜 Bottom Thinking Chronicle */
+    .chronicle-container {
+      height: 110px;
+      background: rgba(6, 9, 15, 0.95);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .chronicle-title {
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      letter-spacing: 0.5px;
+    }
+
+    .chronicle-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .log-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .log-row .time {
+      color: #64748b;
+      min-width: 48px;
+    }
+
+    .log-row.web .txt { color: #6ee7b7; }
+    .log-row.gemini .txt { color: #e9d5ff; }
+    .log-row.local .txt { color: #7dd3fc; }
+    .log-row.prune .txt { color: #f472b6; }
+    .log-row.core .txt { color: #fde047; font-weight: 700; }
+
+    /* 🔍 Slide-up Node Inspector */
+    .inspector-drawer {
+      position: absolute;
+      bottom: 110px;
+      left: 0;
+      right: 0;
+      background: rgba(13, 18, 31, 0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--accent-cyan);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 40;
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 50%;
+      overflow-y: auto;
+    }
+
+    .inspector-drawer.active {
+      transform: translateY(0);
+    }
+
+    /* 📜 Evidence Receipt Modal */
+    .receipt-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .receipt-backdrop.open {
+      display: flex;
+    }
+
+    .receipt-card {
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      background: #0b1120;
+      border: 1px solid var(--accent-cyan);
+      border-radius: 12px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🌟 Header Ribbon -->
+  <div class="side-header">
+    <div class="brand">
+      <span>⚡</span> μTRON XAI
+    </div>
+    <div class="live-status">
+      <div class="pulse-dot"></div>
+      <span id="gemini-sync-status">Gemini 同期中</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openReceiptModal()" title="思考レシート表示">📜</button>
+      <a class="icon-btn" id="btn-fullscreen-out" href="http://localhost:8080/mindmap_interactive_studio.html" target="_blank" title="全画面シアターで開く">↗️</a>
+    </div>
+  </div>
+
+  <!-- 🗣️ Live Query Bar (Captures gemini.google.com input) -->
+  <div class="live-query-banner">
+    <div class="query-label">
+      <span>本家 Gemini での質問</span>
+      <span style="color:#10b981;" id="sync-clock">LIVE</span>
+    </div>
+    <div class="query-text" id="live-query-text">
+      ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して
+    </div>
+  </div>
+
+  <!-- 🎨 Canvas Area -->
+  <div class="canvas-container" id="canvas-container">
+    <canvas id="sidepanel-canvas"></canvas>
+
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick="window.sideEngine.zoomIn()">➕</button>
+      <button class="zoom-btn" onclick="window.sideEngine.zoomOut()">➖</button>
+      <button class="zoom-btn" onclick="window.sideEngine.resetView()">🎯</button>
+    </div>
+
+    <!-- Inspector Drawer -->
+    <div class="inspector-drawer" id="inspector-drawer">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span id="insp-category-badge" style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:4px; background:#10b981; color:#07090e;">🌐 GOOGLE SEARCH GROUNDING</span>
+        <button style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer;" onclick="window.sideEngine.selectNode(null)">✕</button>
+      </div>
+      <div id="insp-header-title" style="font-size:12px; font-weight:700; color:#fff;">Threejs_Euler_Yaw_Specification</div>
+      <div id="insp-details-content" style="font-size:11px; color:#cbd5e1; line-height:1.5;"></div>
+    </div>
+  </div>
+
+  <!-- 📜 Bottom Thinking Chronicle -->
+  <div class="chronicle-container">
+    <div class="chronicle-title">📜 思考実況タイムライン (THINKING CHRONICLE)</div>
+    <div class="chronicle-stream" id="side-chronicle">
+      <div class="log-row">
+        <span class="time">[T+000ms]</span>
+        <span class="txt" style="color:#64748b;">Gemini Live Synchronizer Standby. 本家Geminiの入力を監視中...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📜 Receipt Modal -->
+  <div class="receipt-backdrop" id="receipt-modal">
+    <div class="receipt-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-weight:700; color:#00f0ff;">=== GENESIS μTRON AUDIT TRAIL ===</span>
+        <button style="background:none; border:none; color:#fff; font-size:16px; cursor:pointer;" onclick="closeReceiptModal()">✕</button>
+      </div>
+      <div id="receipt-content-area"></div>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

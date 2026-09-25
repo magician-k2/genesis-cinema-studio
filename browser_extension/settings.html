@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>μTRON – Google API 設定</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0b10;--card:#161821;--accent:#00f2ff;--text:#e0e6ed;--dim:#94a3b8;--border:rgba(255,255,255,0.1);}
+body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;}
+.container{padding:24px;max-width:700px;margin:0 auto;}
+h1{font-size:1.6rem;margin:0 0 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px;}
+.logo{font-weight:600; color:var(--accent);}
+.mu-char{font-family:"Palatino Linotype",serif;font-style:italic;}
+section{margin-top:16px;background:var(--card);padding:20px;border-radius:8px; border: 1px solid var(--border);}
+label{display:block;margin:8px 0;cursor:pointer; font-size:0.95rem;}
+button{padding:10px 16px;background:linear-gradient(135deg, #00f2ff, #0066ff);border:none;color:#fff;border-radius:6px;cursor:pointer;font-weight:bold; transition: 0.2s;}
+button:hover{opacity:0.9; transform: translateY(-1px);}
+
+/* Tutorial UI */
+.tutorial-box { background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0, 242, 255, 0.2); border-radius: 8px; padding: 16px; margin-top: 12px; }
+.step-title { font-weight: 600; color: var(--accent); margin-top: 0; margin-bottom: 8px; font-size: 1rem; }
+.step-text { font-size: 0.85rem; color: var(--dim); margin-bottom: 12px; line-height: 1.5; }
+.copy-box { display: flex; align-items: center; background: #000; border: 1px solid #333; border-radius: 4px; padding: 6px 10px; margin-bottom: 12px; }
+.copy-text { flex: 1; font-family: monospace; font-size: 0.8rem; color: #a78bfa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-btn { background: #334155; padding: 4px 8px; font-size: 0.75rem; margin-left: 8px; }
+
+.input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid #333; color: white; padding: 10px; border-radius: 6px; box-sizing: border-box; margin-bottom: 12px; font-family: monospace; }
+.input-field:focus { outline: none; border-color: var(--accent); }
+
+#sdk-section{margin-top:24px;display:none;background:var(--card);padding:16px;border-radius:8px; border: 1px solid rgba(0, 242, 255, 0.3);}
+pre{background:#000;padding:16px;color:#00f2ff;overflow:auto;font-size:0.9rem;border-radius:6px;border:1px solid #333;}
+#status{margin-top:16px;font-size:0.95rem; font-weight: bold; text-align: center;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><span class="logo"><span class="mu-char">&mu;</span>TRON HUB</span> Neural Sync Config</h1>
+
+  <section>
+    <strong>🔗 接続するニューラル器官（API）</strong><br>
+    <label><input type="checkbox" id="api-docs" checked> Google Docs (文書記憶)</label>
+    <label><input type="checkbox" id="api-drive" checked> Google Drive (記憶領域)</label>
+    <label><input type="checkbox" id="api-sheets" checked> Google Sheets (構造化データ)</label>
+    <label><input type="checkbox" id="api-gemini" checked> Gemini Vertex AI (推論エンジン)</label>
+  </section>
+
+  <section>
+    <strong>🔐 認証プロトコルの選択</strong><br>
+    <label><input type="radio" name="auth" value="oauth" checked> OAuth 2.0 (自分専用の鍵を生成・推奨)</label>
+    <label><input type="radio" name="auth" value="sa"> Service Account (システム間連携用JSON)</label>
+  </section>
+
+  <!-- OAuth UI -->
+  <section id="oauth-section">
+    <div class="tutorial-box">
+      <h3 class="step-title">Step 1: ニューラル接続キーの自動生成（GCPウィザード）</h3>
+      <p class="step-text">以下のボタンを押すと、Google Cloud の自動構成ウィザードが起動し、μTRON分散コンピューティングに必要な全API（Docs, Drive, Sheets）が一括で有効化されます。<br>画面の指示に従い「Webアプリケーション」としてキーを作成し、JSONをダウンロードしてください。</p>
+      
+      <a href="https://console.cloud.google.com/apis/enableflow?apiid=docs.googleapis.com,drive.googleapis.com,sheets.googleapis.com" target="_blank" style="display:block; width:100%; text-align:center; padding:12px; background:linear-gradient(135deg, #10b981, #059669); color:white; font-weight:bold; text-decoration:none; border-radius:6px; margin-bottom:12px; transition:0.2s; box-sizing:border-box; border:1px solid #34d399;">
+        ⚙️ 自動セットアップ・ウィザードを起動
+      </a>
+
+      <p class="step-text">※ 認証情報作成時に要求される<strong>「承認済みのリダイレクト URI」</strong>には、以下のURLをコピーして貼り付けてください：</p>
+      <div class="copy-box">
+        <div class="copy-text" id="redirect-uri-display">loading...</div>
+        <button class="copy-btn" id="btn-copy-uri">コピー</button>
+      </div>
+
+      <h3 class="step-title" style="margin-top: 20px;">Step 2: 鍵（キー）の注入</h3>
+      <p class="step-text">ダウンロードした <code>client_secret_xxxx.json</code> を下のエリアにドラッグ＆ドロップしてください。（手動入力も可能です）</p>
+      
+      <!-- Drag & Drop Zone -->
+      <div id="drop-zone" style="border: 2px dashed rgba(0, 242, 255, 0.5); border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 16px; background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;">
+          <p style="margin: 0; color: var(--accent); font-weight: bold;">📁 ここに JSON ファイルをドロップして自動注入</p>
+          <input type="file" id="json-upload" accept=".json" style="display: none;">
+      </div>
+
+      <label style="font-size:0.85rem; color:var(--dim);">クライアント ID</label>
+      <input type="text" id="input-client-id" class="input-field" placeholder="xxxxxxxxx-xxxxxx.apps.googleusercontent.com">
+      
+      <label style="font-size:0.85rem; color:var(--dim);">クライアント シークレット</label>
+      <input type="password" id="input-client-secret" class="input-field" placeholder="GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxxx">
+
+      <h3 class="step-title" style="margin-top: 20px;">Step 3: ニューラル接続の確立</h3>
+      <p class="step-text">鍵の注入が完了したら、以下のボタンを押してあなたの Google アカウントとリンクさせます。</p>
+      <button id="btn-auth-oauth" style="width:100%; margin-top:8px;">Googleアカウントで認証・接続</button>
+    </div>
+  </section>
+
+  <!-- Service Account UI -->
+  <section id="sa-section" style="display:none;">
+    <div class="tutorial-box">
+      <h3 class="step-title">Service Account キーの注入</h3>
+      <p class="step-text">Google Cloud Console で生成した Service Account の JSON キーファイルを選択してください。</p>
+      <input type="file" id="sa-file" accept=".json" style="margin-top:8px; color:white;">
+      <p id="sa-status" style="color:#f59e0b;font-size:0.85rem; margin-top:12px;"></p>
+    </div>
+  </section>
+
+  <button id="btn-save" style="width:100%;margin-top:24px;padding:14px;font-size:1.1rem;background:linear-gradient(135deg, #7c3aed, #4c1d95);">設定を保存して SDK を生成</button>
+  <div id="status"></div>
+
+  <section id="sdk-section">
+    <h3 style="margin-top:0; color: #4ade80;">✅ 生成された Python SDK</h3>
+    <p style="font-size:0.8rem;color:var(--dim);">このコードを μTRON のコンソールやスクリプトで実行することで、即座にAPI操作が可能になります。</p>
+    <pre><code id="code-snippet"></code></pre>
+    <button id="btn-copy">コードをコピー</button>
+  </section>
+
+</div>
+<script src="settings.js"></script>
+</body>
+</html>
