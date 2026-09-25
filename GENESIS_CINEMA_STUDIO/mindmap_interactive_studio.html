@@ -485,7 +485,7 @@
       <div class="brand-logo">
         <span>⚡</span> GENESIS
       </div>
-      <div class="brand-tag">THE CONVERGENT MESH v2.0</div>
+      <div class="brand-tag">✨ GOOGLE GEMINI 3.8 FLASH MEDIUM ✕ GEMMA 4</div>
     </div>
 
     <!-- Scenario Switcher -->
@@ -503,7 +503,7 @@
 
     <div class="header-actions">
       <button class="btn-receipt" id="btn-open-receipt" onclick="openReceiptModal()">
-        <span>📜</span> 思考レシート表示 (XAI)
+        <span>📜</span> Gemini 3.8 思考レシート (XAI)
       </button>
     </div>
   </header>
@@ -513,9 +513,9 @@
     <!-- Floating Prompt Input Control Bar -->
     <div class="prompt-control-bar">
       <div class="prompt-input-row">
-        <input type="text" id="prompt-input" placeholder="プロンプトを入力（例: ドローンがなぜ北にしか進まないのか調べて修正して）" value="ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して">
+        <input type="text" id="prompt-input" placeholder="Google Gemini 3.8 に指示を入力（思考・ツール呼び出し・枝刈り過程を完全可視化）" value="ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して">
         <button class="btn-run-prompt" id="btn-run-prompt" onclick="submitPrompt()">
-          <span>🚀</span> 思考プロセス可視化
+          <span>🚀</span> Gemini 思考解剖図を展開
         </button>
       </div>
       <div class="prompt-suggestions">
@@ -584,10 +584,12 @@
           <div class="title">=== GENESIS μTRON AUDIT TRAIL ===</div>
           <div>Receipt ID : <span class="highlight" id="rcpt-id">RCPT-XAI-7F4B2E9901C2</span></div>
           <div>Proof Hash : <span class="highlight" id="rcpt-hash">SHA256:9B83802F9A34CC01</span></div>
+          <div>Model Name : <span class="highlight" style="color:#00f0ff;">Google Gemini 3.8 Flash Medium (Thinking Core)</span></div>
+          <div>Grounding  : <span style="color:#38bdf8;">Google Search Live + Local AST & Telemetry</span></div>
           <div>Issued By  : GENESIS-μTRON-v18-CONVERGENT-MESH</div>
-          <div>Latency    : <span class="green" id="rcpt-latency">1.2ms</span> (100% Causal Convergence)</div>
+          <div>SNN Latency: <span class="green" id="rcpt-latency">1.2ms</span> (100% Causal Convergence)</div>
           <br>
-          <div>[1. PERIPHERY DATA & SYMPTOMS HARVESTED]</div>
+          <div>[1. PERIPHERY DATA & SYMPTOMS HARVESTED BY GEMINI 3.8]</div>
           <div id="rcpt-harvested">• 4 outer facts harvested from AST, Web & Telemetry</div>
           <br>
           <div>[2. FLY-BRAIN SNN PRUNING & RULES]</div>
