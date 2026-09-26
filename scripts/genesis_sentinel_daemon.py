@@ -67,6 +67,22 @@ def run_hygiene_and_swarm(changed_file: str):
     rel_path = os.path.relpath(changed_file, str(WORKSPACE_ROOT))
     print(f"[{timestamp}] ⚡ Detected change in: {rel_path}", flush=True)
 
+    # 0. Orchestration Visualization: Reveal file in IDE & display desktop HUD
+    ide_cmd = Path(r"C:\Users\magic\AppData\Local\Programs\Antigravity IDE\bin\antigravity-ide.cmd")
+    hud_script = WORKSPACE_ROOT / "scripts" / "genesis_hud_overlay.py"
+    try:
+        # Non-blocking IDE focus
+        if ide_cmd.exists():
+            subprocess.Popen([str(ide_cmd), "-r", "-g", changed_file], creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+        # Non-blocking Cyberpunk Desktop HUD
+        if hud_script.exists():
+            subprocess.Popen(
+                ["python", str(hud_script), "⚡ GENESIS 3重防壁オーケストレーション", "【第1防壁 ➔ 第2防壁】2.0 ➔ IDE 処理移送", f"{rel_path} (LSP監査 & 現場調整)"],
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            )
+    except Exception as e:
+        pass
+
     # 1. IDE / LSP Ruff Auto-Fix (if Python file)
     ruff_applied = False
     if changed_file.endswith(".py"):
@@ -83,7 +99,15 @@ def run_hygiene_and_swarm(changed_file: str):
     try:
         swarm_script = WORKSPACE_ROOT / "core" / "genesis_swarm_orchestrator.py"
         if swarm_script.exists():
-            res = subprocess.run(["python", str(swarm_script)], cwd=str(WORKSPACE_ROOT), capture_output=True, text=True, timeout=10)
+            res = subprocess.run(
+                ["python", str(swarm_script)],
+                cwd=str(WORKSPACE_ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10
+            )
             if res.returncode == 0:
                 swarm_status = "ALL_GREEN_SWARM_VERIFIED"
     except Exception:
@@ -98,6 +122,7 @@ def run_hygiene_and_swarm(changed_file: str):
         "sdk_swarm_status": swarm_status,
         "sdk_swarm_latency_ms": swarm_latency_ms,
         "triple_shield_state": "100%_ALL_GREEN",
+        "orchestration_visualized": True,
         "uptime_pid": os.getpid()
     }
     with open(HEARTBEAT_FILE, "w", encoding="utf-8") as f:
