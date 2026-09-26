@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "memory-knowledge-graph": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "genesis-neuro-math": {
+      "command": "python",
+      "args": ["-m", "core.standard_neuro_framework_bridge"]
+    }
+  }
+}
