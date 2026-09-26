@@ -18,5 +18,13 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "errorLens.enabled": true,
-  "errorLens.followCursor": "allLines"
+  "errorLens.followCursor": "allLines",
+  "errorLens.exclude": [
+    "E501",
+    "line too long"
+  ],
+  "flake8.args": [
+    "--max-line-length=120",
+    "--extend-ignore=E501"
+  ]
 }
