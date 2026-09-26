@@ -560,11 +560,14 @@
 
     <!-- Scenario Switcher -->
     <div class="scenario-tabs">
-      <button class="tab-btn active" id="tab-swe" onclick="switchScenario('swe_bench_bug', this)">
-        <span>💻</span> SWE-bench バグ真因
+      <button class="tab-btn active" id="tab-bio" onclick="switchScenario('biological_brain_snn', this)">
+        <span>🧠</span> 生体脳 ✕ FlyWire SNN
       </button>
       <button class="tab-btn" id="tab-drone" onclick="switchScenario('rescue_drone_3d', this)">
         <span>🛸</span> 3D自律ドローン救助
+      </button>
+      <button class="tab-btn" id="tab-swe" onclick="switchScenario('swe_bench_bug', this)">
+        <span>💻</span> SWE-bench バグ真因
       </button>
       <button class="tab-btn" id="tab-clinical" onclick="switchScenario('clinical_safety', this)">
         <span>🏥</span> 医療安全 5R規則
@@ -578,12 +581,37 @@
     </div>
   </header>
 
+  <!-- 🧬 Neuromodulator & Homeostasis Telemetry Ribbon (Theater Edition) -->
+  <div style="background:rgba(5,8,16,0.95); border-bottom:1px solid rgba(0,240,255,0.15); padding:6px 20px; display:flex; align-items:center; justify-content:space-between; z-index:45; font-family:'JetBrains Mono',monospace;">
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div style="display:flex; align-items:center; gap:6px; font-size:10px;">
+        <span style="font-weight:700; color:#94a3b8;">🧬 DA (ドーパミン)</span>
+        <div style="width:40px; height:5px; background:#1e293b; border-radius:3px; overflow:hidden;"><div id="bar-dopamine" style="width:98%; height:100%; background:linear-gradient(90deg,#10b981,#00f0ff);"></div></div>
+        <span id="val-dopamine" style="color:#cbd5e1; font-weight:700;">0.98</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:10px;">
+        <span style="font-weight:700; color:#94a3b8;">⚡ NA (ノルアドレナリン)</span>
+        <div style="width:40px; height:5px; background:#1e293b; border-radius:3px; overflow:hidden;"><div id="bar-noradrenaline" style="width:18%; height:100%; background:linear-gradient(90deg,#f43f5e,#fbbf24);"></div></div>
+        <span id="val-noradrenaline" style="color:#cbd5e1; font-weight:700;">0.18</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:10px;">
+        <span style="font-weight:700; color:#94a3b8;">🛡️ 5-HT (セロトニン)</span>
+        <div style="width:40px; height:5px; background:#1e293b; border-radius:3px; overflow:hidden;"><div id="bar-serotonin" style="width:96%; height:100%; background:linear-gradient(90deg,#8b5cf6,#c084fc);"></div></div>
+        <span id="val-serotonin" style="color:#cbd5e1; font-weight:700;">0.96</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:10px; color:#94a3b8; font-weight:700;">❤️ 生存ホメオスタシス:</span>
+      <span id="val-homeostasis" style="color:#34d399; font-weight:700; font-size:9.5px; background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">EQUILIBRIUM (99%)</span>
+    </div>
+  </div>
+
   <!-- Interactive Visual Canvas Container -->
   <div id="canvas-container">
     <!-- Floating Prompt Input Control Bar -->
     <div class="prompt-control-bar">
       <div class="prompt-input-row">
-        <input type="text" id="prompt-input" placeholder="Google Gemini 3.8 に指示を入力（思考・ツール呼び出し・枝刈り過程を完全可視化）" value="ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して">
+        <input type="text" id="prompt-input" placeholder="Google Gemini 3.8 に指示を入力（思考・ツール呼び出し・枝刈り過程を完全可視化）" value="生体脳と同じ機能を持つ機械脳を作るには、どのような仕組みや機能を持たせたらいいのかな？">
         <button class="btn-run-prompt" id="btn-run-prompt" onclick="submitPrompt()">
           <span>🚀</span> Gemini 思考解剖図を展開
         </button>
@@ -593,11 +621,10 @@
       </div>
       <div class="prompt-suggestions">
         <span style="font-size:10px; color:var(--text-muted); font-weight:600;">クイック入力:</span>
-        <div class="suggestion-chip" onclick="setPromptAndRun('量子コンピュータのショアのアルゴリズムでなぜRSA暗号が解読されるのか教えて')">⚛️ 量子RSA暗号解読 (Web✕Gemini知識)</div>
+        <div class="suggestion-chip" onclick="setPromptAndRun('生体脳と同じ機能を持つ機械脳を作るには、どのような仕組みや機能を持たせたらいいのかな？')">🧠 生体脳模倣 ✕ SNN ✕ FlyWire</div>
         <div class="suggestion-chip" onclick="setPromptAndRun('ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して')">🛸 ドローン直進バグ</div>
+        <div class="suggestion-chip" onclick="setPromptAndRun('量子コンピュータのショアのアルゴリズムでなぜRSA暗号が解読されるのか教えて')">⚛️ 量子RSA暗号解読</div>
         <div class="suggestion-chip" onclick="setPromptAndRun('患者P-102のワーファリン投与可否を厚労省5R規則と照合して')">🏥 ワーファリン5R照合</div>
-        <div class="suggestion-chip" onclick="setPromptAndRun('Next.js SSRでwindow参照によるハイドレーションエラーを解消して')">💻 Next.js ハイドレーション</div>
-        <div class="suggestion-chip" onclick="setPromptAndRun('Pythonコードの循環インポート例外の真因を特定して')">⚡ Python循環参照例外</div>
       </div>
     </div>
 
@@ -610,26 +637,41 @@
 
     <canvas id="mindmap-canvas"></canvas>
 
-    <!-- Floating Dynamic Island HUD Pill -->
-    <div class="dynamic-hud-pill">
+    <!-- Floating Dynamic Island HUD Pill (7-Pillars Rigorous Cybernetics Edition) -->
+    <div class="dynamic-hud-pill" style="max-width:95vw; flex-wrap:wrap; gap:12px; padding:8px 16px;">
       <div class="hud-metric">
         <span class="label">Domain</span>
-        <span class="value" id="hud-scenario-title" style="color:#38bdf8;">SWE-bench Verified</span>
+        <span class="value" id="hud-scenario-title" style="color:#38bdf8;">Biological Brain SNN</span>
       </div>
       <div class="hud-divider"></div>
       <div class="hud-metric">
-        <span class="label">SNN Latency</span>
-        <span class="value" id="hud-latency" style="color:#34d399;">1.2ms</span>
+        <span class="label">Nengo LIF Rate</span>
+        <span class="value" style="color:#10b981;">63.04 Hz</span>
       </div>
       <div class="hud-divider"></div>
       <div class="hud-metric">
-        <span class="label">Fly-Brain Pruning</span>
-        <span class="value" id="hud-pruned" style="color:#a855f7;">60 branches</span>
+        <span class="label">snnTorch STDP</span>
+        <span class="value" style="color:#00f0ff;">Δw: +0.005518</span>
       </div>
       <div class="hud-divider"></div>
       <div class="hud-metric">
-        <span class="label">Root Cause Confidence</span>
-        <span class="value" id="hud-confidence" style="color:#00f0ff;">99.8%</span>
+        <span class="label">PyMDP FEP (F)</span>
+        <span class="value" style="color:#fbbf24;">0.6931</span>
+      </div>
+      <div class="hud-divider"></div>
+      <div class="hud-metric">
+        <span class="label">WebGPU WGSL</span>
+        <span class="value" style="color:#c084fc;">10k Neurons (0.12ms)</span>
+      </div>
+      <div class="hud-divider"></div>
+      <div class="hud-metric">
+        <span class="label">Pruned</span>
+        <span class="value" id="hud-pruned" style="color:#f472b6;">34 branches</span>
+      </div>
+      <div class="hud-divider"></div>
+      <div class="hud-metric">
+        <span class="label">Confidence</span>
+        <span class="value" id="hud-confidence" style="color:#34d399;">99.8%</span>
       </div>
     </div>
 
