@@ -345,6 +345,10 @@ class SidePanelXAIEngine {
             this.camera.targetX = mouseX - this.canvas.width / 2 - mouseWorldX * newZoom;
             this.camera.targetY = mouseY - this.canvas.height / 2 - mouseWorldY * newZoom;
         }, { passive: false });
+
+        this.canvas.addEventListener('dblclick', () => {
+            this.resetView();
+        });
     }
 
     resize() {
@@ -1181,20 +1185,84 @@ class SidePanelXAIEngine {
         this.ctx.scale(this.camera.zoom, this.camera.zoom);
         this.ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
 
-        if (this.links.length > 0 && Math.random() < 0.65) {
+        // =====================================================================
+        // 🌌 逆マインドマップ: 因果オービット環 (Causal Layer Rings) の描画
+        // =====================================================================
+        const pRadius = Math.min(this.canvas.width, this.canvas.height) * 0.38;
+        const iRadius = Math.min(this.canvas.width, this.canvas.height) * 0.20;
+
+        // レイヤー1 (最外環): 一次証拠・生体コネクトーム層
+        this.ctx.beginPath();
+        this.ctx.arc(this.centerNode.x, this.centerNode.y, pRadius, 0, Math.PI * 2);
+        this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+        this.ctx.lineWidth = 1;
+        this.ctx.setLineDash([4, 6]);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+
+        // レイヤー2 (中間環): SNN力学・反射枝刈り層
+        this.ctx.beginPath();
+        this.ctx.arc(this.centerNode.x, this.centerNode.y, iRadius, 0, Math.PI * 2);
+        this.ctx.strokeStyle = 'rgba(168, 85, 247, 0.12)';
+        this.ctx.lineWidth = 1;
+        this.ctx.setLineDash([3, 4]);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+
+        // パーティクル生成 (逆方向: 外側から中心核へ)
+        if (this.links.length > 0 && Math.random() < 0.75) {
             const randomLink = this.links[Math.floor(Math.random() * this.links.length)];
             this.spawnParticle(randomLink);
         }
 
+        // =====================================================================
+        // ⚡ 因果逆行リンクの描画 (外側 ➔ 中心へ収束する逆マインドマップ)
+        // =====================================================================
+        const activeNode = this.hoveredNode || this.selectedNode;
         for (const link of this.links) {
+            const isConnected = activeNode && (
+                link.source === activeNode || 
+                link.target === activeNode || 
+                (activeNode.layer === 'periphery' && link.target.id === 'core_root_cause')
+            );
+
             this.ctx.beginPath();
             this.ctx.moveTo(link.source.x, link.source.y);
             this.ctx.lineTo(link.target.x, link.target.y);
-            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-            this.ctx.lineWidth = 1.2;
-            this.ctx.stroke();
+
+            if (isConnected) {
+                // 因果トレースハイライト (超発光ネオン)
+                this.ctx.strokeStyle = link.source.color || '#00f0ff';
+                this.ctx.lineWidth = 2.4;
+                this.ctx.shadowBlur = 12;
+                this.ctx.shadowColor = link.source.color || '#00f0ff';
+                this.ctx.stroke();
+                this.ctx.shadowBlur = 0;
+
+                // 逆行方向矢印 (外側から中心核へ)
+                const midX = (link.source.x + link.target.x) / 2;
+                const midY = (link.source.y + link.target.y) / 2;
+                const angle = Math.atan2(link.target.y - link.source.y, link.target.x - link.source.x);
+                this.ctx.save();
+                this.ctx.translate(midX, midY);
+                this.ctx.rotate(angle);
+                this.ctx.beginPath();
+                this.ctx.moveTo(5, 0);
+                this.ctx.lineTo(-5, -3.5);
+                this.ctx.lineTo(-3, 0);
+                this.ctx.lineTo(-5, 3.5);
+                this.ctx.closePath();
+                this.ctx.fillStyle = link.source.color || '#00f0ff';
+                this.ctx.fill();
+                this.ctx.restore();
+            } else {
+                this.ctx.strokeStyle = activeNode ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.09)';
+                this.ctx.lineWidth = 1.2;
+                this.ctx.stroke();
+            }
         }
 
+        // 収束エネルギー粒子 (Particles)
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
             p.progress += p.speed;

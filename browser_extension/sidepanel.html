@@ -870,6 +870,13 @@
   <div class="canvas-container" id="canvas-container">
     <canvas id="sidepanel-canvas"></canvas>
 
+    <!-- 🧭 逆マインドマップ・因果逆行ガイド HUD -->
+    <div class="reverse-mindmap-hud" style="position:absolute; top:8px; left:10px; z-index:20; pointer-events:none; display:flex; align-items:center; gap:6px; background:rgba(6,11,20,0.85); border:1px solid rgba(0,240,255,0.25); border-radius:6px; padding:3px 8px; backdrop-filter:blur(8px); box-shadow:0 2px 8px rgba(0,0,0,0.5);">
+      <span style="color:#00f0ff; font-size:10px;">⏪</span>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:700; color:#e2e8f0;">逆マインドマップ: 根拠 ➔ SNN枝刈り ➔ 根本原因</span>
+      <span style="font-size:8.5px; color:#94a3b8; margin-left:2px;">(Wクリックで全景復帰)</span>
+    </div>
+
     <div class="zoom-controls">
       <button class="zoom-btn" id="btn-zoom-in" title="拡大">➕</button>
       <button class="zoom-btn" id="btn-zoom-out" title="縮小">➖</button>
