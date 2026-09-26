@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "genesis-cybernetics"
+version = "2.0.0"
+description = "GENESIS Zero-Mock Mathematical Cybernetics Suite (Nengo, snnTorch, PyMDP, FlyWire, WebGPU)"
+readme = "PARTNER_TECH_HANDOVER.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "GENESIS Cybernetics Systems & Magician K2" }
+]
+dependencies = [
+    "pydantic>=2.5.0",
+    "numpy>=1.24.0",
+    "playwright>=1.40.0",
+    "pytest>=7.4.0",
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

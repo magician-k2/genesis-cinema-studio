@@ -1,0 +1,15 @@
+{
+  "name": "genesis-cybernetics",
+  "version": "2.0.0",
+  "description": "GENESIS Zero-Mock Mathematical Cybernetics Suite",
+  "private": true,
+  "scripts": {
+    "test:types": "tsc --noEmit",
+    "test:e2e": "python scratch/test_mindmap_studio.py && python scratch/test_sidepanel_extension.py",
+    "verify:all": "python scripts/verify_rigor_all.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0"
+  }
+}
