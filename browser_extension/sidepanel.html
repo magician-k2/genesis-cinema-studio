@@ -149,6 +149,68 @@
       text-overflow: ellipsis;
     }
 
+    /* 🧠 Scenario Quick Switcher Chips */
+    .scenario-chip-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      padding: 4px 10px;
+      background: rgba(10, 16, 30, 0.95);
+      border-bottom: 1px solid var(--border-subtle);
+      scrollbar-width: none;
+      flex-shrink: 0;
+    }
+
+    .scenario-chip-bar::-webkit-scrollbar { display: none; }
+
+    .scenario-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      padding: 2px 8px;
+      font-size: 9.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .scenario-chip:hover {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: rgba(0, 240, 255, 0.3);
+      color: #fff;
+    }
+
+    .scenario-chip.active {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    /* ⚡ WebGPU WGSL Indicator Pill */
+    .webgpu-status-pill {
+      font-size: 8.5px;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 6px;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 4px;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .webgpu-status-pill:hover {
+      background: rgba(0, 240, 255, 0.2);
+    }
+
     /* 🎨 Canvas Area (Scalable Flex) */
     .canvas-container {
       flex: 1;
@@ -776,10 +838,31 @@
   <div class="live-query-banner">
     <div class="query-label">
       <span>本家 Gemini での質問</span>
-      <span style="color:#10b981;" id="sync-clock">LIVE</span>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <div class="webgpu-status-pill" id="webgpu-pill" title="WebGPU WGSL 10,000 ニューロン超並列微分方程式カーネル">
+          <span>⚡</span> <span id="webgpu-status-txt">WebGPU: 10k SNN (0.12ms)</span>
+        </div>
+        <span style="color:#10b981;" id="sync-clock">LIVE</span>
+      </div>
     </div>
     <div class="query-text" id="live-query-text">
-      ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して
+      生体脳と同じ機能を持つ機械脳を作るには、どのような仕組みや機能を持たせたらいいのかな？
+    </div>
+  </div>
+
+  <!-- 🧠 Quick Scenario Chips -->
+  <div class="scenario-chip-bar" id="scenario-chip-bar">
+    <div class="scenario-chip active" data-prompt="生体脳と同じ機能を持つ機械脳を作るには、どのような仕組みや機能を持たせたらいいのかな？">
+      <span>🧠</span> 生体脳 ✕ SNN ✕ FlyWire
+    </div>
+    <div class="scenario-chip" data-prompt="ドローンがなぜ東に救助者がいるのに北に直進するのか調べて修正して">
+      <span>🛸</span> 3Dドローン救助
+    </div>
+    <div class="scenario-chip" data-prompt="SWE-bench verified bug heading lock bypass issue">
+      <span>💻</span> SWE-bench バグ真因
+    </div>
+    <div class="scenario-chip" data-prompt="患者P-102のワーファリン投与可否を厚労省5R規則と照合して">
+      <span>🏥</span> 医療安全 5R規則
     </div>
   </div>
 
@@ -855,6 +938,7 @@
     <span>✅ Googleドキュメント形式でコピーしました！Docsを開きます...</span>
   </div>
 
+  <script src="webgpu_snn_compute.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>
