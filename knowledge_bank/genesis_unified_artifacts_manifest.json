@@ -1,0 +1,692 @@
+{
+  "version": "1.0.0-UNIFIED-ARTIFACTS",
+  "generated_at": "2026-09-26 15:18:27",
+  "artifacts": [
+    {
+      "filename": "GENESIS_Presentation.pptx",
+      "relative_path": "outputs/GENESIS_Presentation.pptx",
+      "size_bytes": 34832,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_210947.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_210947.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_210947.md",
+      "relative_path": "outputs/Research_Proposal_20260816_210947.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_212657.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_212657.md",
+      "size_bytes": 1805,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_212657.md",
+      "relative_path": "outputs/Research_Proposal_20260816_212657.md",
+      "size_bytes": 1077,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_212723.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_212723.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_212723.md",
+      "relative_path": "outputs/Research_Proposal_20260816_212723.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_212728.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_212728.md",
+      "size_bytes": 1805,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_212728.md",
+      "relative_path": "outputs/Research_Proposal_20260816_212728.md",
+      "size_bytes": 1077,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_212746.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_212746.md",
+      "size_bytes": 1805,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_212746.md",
+      "relative_path": "outputs/Research_Proposal_20260816_212746.md",
+      "size_bytes": 1077,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_212811.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_212811.md",
+      "size_bytes": 1805,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_212811.md",
+      "relative_path": "outputs/Research_Proposal_20260816_212811.md",
+      "size_bytes": 1077,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_212900.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_212900.md",
+      "size_bytes": 1805,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_212900.md",
+      "relative_path": "outputs/Research_Proposal_20260816_212900.md",
+      "size_bytes": 1077,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_212917.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_212917.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_212917.md",
+      "relative_path": "outputs/Research_Proposal_20260816_212917.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_220933.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_220933.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_220933.md",
+      "relative_path": "outputs/Research_Proposal_20260816_220933.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_221207.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_221207.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_221207.md",
+      "relative_path": "outputs/Research_Proposal_20260816_221207.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_223022.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_223022.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_223022.md",
+      "relative_path": "outputs/Research_Proposal_20260816_223022.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_224026.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_224026.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_224026.md",
+      "relative_path": "outputs/Research_Proposal_20260816_224026.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_230528.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_230528.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_230528.md",
+      "relative_path": "outputs/Research_Proposal_20260816_230528.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260816_230902.md",
+      "relative_path": "outputs/Academic_Thesis_20260816_230902.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260816_230902.md",
+      "relative_path": "outputs/Research_Proposal_20260816_230902.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "clip_1.mp4",
+      "relative_path": "outputs/clip_1.mp4",
+      "size_bytes": 1640371,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "clip_2.mp4",
+      "relative_path": "outputs/clip_2.mp4",
+      "size_bytes": 1802611,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "clip_3.mp4",
+      "relative_path": "outputs/clip_3.mp4",
+      "size_bytes": 1931178,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "clip_4.mp4",
+      "relative_path": "outputs/clip_4.mp4",
+      "size_bytes": 1991737,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "clip_5.mp4",
+      "relative_path": "outputs/clip_5.mp4",
+      "size_bytes": 2300336,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "clip_6.mp4",
+      "relative_path": "outputs/clip_6.mp4",
+      "size_bytes": 1903644,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "concat_list.txt",
+      "relative_path": "outputs/concat_list.txt",
+      "size_bytes": 372,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "GENESIS_Gemini_Challenge_2Min_Master_Demo_EN.mp4",
+      "relative_path": "outputs/GENESIS_Gemini_Challenge_2Min_Master_Demo_EN.mp4",
+      "size_bytes": 11617947,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "GENESIS_Gemini_Challenge_2Min_Master_Demo_JA.mp4",
+      "relative_path": "outputs/GENESIS_Gemini_Challenge_2Min_Master_Demo_JA.mp4",
+      "size_bytes": 11563317,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "Academic_Thesis_20260823_141544.md",
+      "relative_path": "outputs/Academic_Thesis_20260823_141544.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260823_141544.md",
+      "relative_path": "outputs/Research_Proposal_20260823_141544.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260824_222157.md",
+      "relative_path": "outputs/Academic_Thesis_20260824_222157.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260824_222157.md",
+      "relative_path": "outputs/Research_Proposal_20260824_222157.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260824_222601.md",
+      "relative_path": "outputs/Academic_Thesis_20260824_222601.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260824_222602.md",
+      "relative_path": "outputs/Research_Proposal_20260824_222602.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260824_223139.md",
+      "relative_path": "outputs/Academic_Thesis_20260824_223139.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260824_223140.md",
+      "relative_path": "outputs/Research_Proposal_20260824_223140.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260824_230826.md",
+      "relative_path": "outputs/Academic_Thesis_20260824_230826.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260824_230826.md",
+      "relative_path": "outputs/Research_Proposal_20260824_230826.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260824_230842.zip",
+      "relative_path": "outputs/GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260824_230842.zip",
+      "size_bytes": 34460948,
+      "category": "package",
+      "description": "Shared GENESIS Artifact (package)"
+    },
+    {
+      "filename": "GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260824_230917.zip",
+      "relative_path": "outputs/GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260824_230917.zip",
+      "size_bytes": 41872991,
+      "category": "package",
+      "description": "Shared GENESIS Artifact (package)"
+    },
+    {
+      "filename": "GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_LATEST.zip",
+      "relative_path": "outputs/GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_LATEST.zip",
+      "size_bytes": 41872885,
+      "category": "package",
+      "description": "Shared GENESIS Artifact (package)"
+    },
+    {
+      "filename": "GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260824_230955.zip",
+      "relative_path": "outputs/GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260824_230955.zip",
+      "size_bytes": 41873177,
+      "category": "package",
+      "description": "Shared GENESIS Artifact (package)"
+    },
+    {
+      "filename": "GENESIS_ARCHITECTURE_DIAGRAM.html",
+      "relative_path": "outputs/GENESIS_ARCHITECTURE_DIAGRAM.html",
+      "size_bytes": 4211,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "GENESIS_ARCHITECTURE_DIAGRAM.png",
+      "relative_path": "outputs/GENESIS_ARCHITECTURE_DIAGRAM.png",
+      "size_bytes": 336494,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "GENESIS_ARCHITECTURE_DIAGRAM.pdf",
+      "relative_path": "outputs/GENESIS_ARCHITECTURE_DIAGRAM.pdf",
+      "size_bytes": 438292,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "GENESIS_DEVPOST_THUMBNAIL.png",
+      "relative_path": "outputs/GENESIS_DEVPOST_THUMBNAIL.png",
+      "size_bytes": 326986,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "GENESIS_DEVPOST_THUMBNAIL.jpg",
+      "relative_path": "outputs/GENESIS_DEVPOST_THUMBNAIL.jpg",
+      "size_bytes": 534828,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "GENESIS_ALL_THINGS_AGENTIC_DEMO_4MIN.mp4",
+      "relative_path": "outputs/GENESIS_ALL_THINGS_AGENTIC_DEMO_4MIN.mp4",
+      "size_bytes": 5530143,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260825_150810.zip",
+      "relative_path": "outputs/GENESIS_ALL_THINGS_AGENTIC_SUBMISSION_20260825_150810.zip",
+      "size_bytes": 41872885,
+      "category": "package",
+      "description": "Shared GENESIS Artifact (package)"
+    },
+    {
+      "filename": "telepathy_quiz_mt_info_results.json",
+      "relative_path": "outputs/telepathy_quiz_mt_info_results.json",
+      "size_bytes": 15849,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "GENESIS_Agentic_Cinema_3Min_Demo.mp4",
+      "relative_path": "outputs/GENESIS_Agentic_Cinema_3Min_Demo.mp4",
+      "size_bytes": 3508138,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "kaggle_arc_prize_2026_submission.py",
+      "relative_path": "outputs/kaggle_arc_prize_2026_submission.py",
+      "size_bytes": 2414,
+      "category": "code",
+      "description": "Shared GENESIS Artifact (code)"
+    },
+    {
+      "filename": "Academic_Thesis_20260906_232955.md",
+      "relative_path": "outputs/Academic_Thesis_20260906_232955.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260906_232955.md",
+      "relative_path": "outputs/Research_Proposal_20260906_232955.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260907_002904.md",
+      "relative_path": "outputs/Academic_Thesis_20260907_002904.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260907_002904.md",
+      "relative_path": "outputs/Research_Proposal_20260907_002904.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Academic_Thesis_20260907_005314.md",
+      "relative_path": "outputs/Academic_Thesis_20260907_005314.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260907_005314.md",
+      "relative_path": "outputs/Research_Proposal_20260907_005314.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "cinema_lite_ui.png",
+      "relative_path": "outputs/cinema_lite_ui.png",
+      "size_bytes": 772925,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "cinema_ui_ja.png",
+      "relative_path": "outputs/cinema_ui_ja.png",
+      "size_bytes": 776406,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "cinema_ui_en.png",
+      "relative_path": "outputs/cinema_ui_en.png",
+      "size_bytes": 774800,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "cinema_ui_crop_monitor.png",
+      "relative_path": "outputs/cinema_ui_crop_monitor.png",
+      "size_bytes": 348765,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "cinema_ui_crop_timeline.png",
+      "relative_path": "outputs/cinema_ui_crop_timeline.png",
+      "size_bytes": 104289,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_studio.png",
+      "relative_path": "outputs/screen_studio.png",
+      "size_bytes": 774800,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_modal_char.png",
+      "relative_path": "outputs/screen_modal_char.png",
+      "size_bytes": 332209,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_modal_sb.png",
+      "relative_path": "outputs/screen_modal_sb.png",
+      "size_bytes": 260489,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_modal_loc.png",
+      "relative_path": "outputs/screen_modal_loc.png",
+      "size_bytes": 263388,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_modal_ytmusic.png",
+      "relative_path": "outputs/screen_modal_ytmusic.png",
+      "size_bytes": 271204,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "GENESIS_CINEMA_DEVPOST_THUMBNAIL.png",
+      "relative_path": "outputs/GENESIS_CINEMA_DEVPOST_THUMBNAIL.png",
+      "size_bytes": 326986,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_minimax_studio.png",
+      "relative_path": "outputs/screen_minimax_studio.png",
+      "size_bytes": 284146,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_docs_to_music_studio.png",
+      "relative_path": "outputs/screen_docs_to_music_studio.png",
+      "size_bytes": 303157,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_phase4_mobile_e2e_complete.png",
+      "relative_path": "outputs/screen_phase4_mobile_e2e_complete.png",
+      "size_bytes": 280840,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_music_to_cinema_storyboard.png",
+      "relative_path": "outputs/screen_music_to_cinema_storyboard.png",
+      "size_bytes": 501572,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_cinema_lite_synced_storyboard.png",
+      "relative_path": "outputs/screen_cinema_lite_synced_storyboard.png",
+      "size_bytes": 623839,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_music_studio_minimax_agentic.png",
+      "relative_path": "outputs/screen_music_studio_minimax_agentic.png",
+      "size_bytes": 420432,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_shared_engine_music_studio.png",
+      "relative_path": "outputs/screen_shared_engine_music_studio.png",
+      "size_bytes": 502340,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_shared_engine_cinema_lite.png",
+      "relative_path": "outputs/screen_shared_engine_cinema_lite.png",
+      "size_bytes": 617204,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "Academic_Thesis_20260920_205028.md",
+      "relative_path": "outputs/Academic_Thesis_20260920_205028.md",
+      "size_bytes": 1783,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "Research_Proposal_20260920_205028.md",
+      "relative_path": "outputs/Research_Proposal_20260920_205028.md",
+      "size_bytes": 1086,
+      "category": "document",
+      "description": "Shared GENESIS Artifact (document)"
+    },
+    {
+      "filename": "screen_superfast_climb_verified.png",
+      "relative_path": "outputs/screen_superfast_climb_verified.png",
+      "size_bytes": 314000,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_deadlock_reverse_and_reroute.png",
+      "relative_path": "outputs/screen_deadlock_reverse_and_reroute.png",
+      "size_bytes": 275894,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_random_map_generated.png",
+      "relative_path": "outputs/screen_random_map_generated.png",
+      "size_bytes": 362645,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_omnidirectional_victim_spawned.png",
+      "relative_path": "outputs/screen_omnidirectional_victim_spawned.png",
+      "size_bytes": 362116,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_3d_volumetric_climb_avoidance.png",
+      "relative_path": "outputs/screen_3d_volumetric_climb_avoidance.png",
+      "size_bytes": 322196,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_dive_abort_and_reroute.png",
+      "relative_path": "outputs/screen_dive_abort_and_reroute.png",
+      "size_bytes": 354101,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_boulevard_avoidance_success.png",
+      "relative_path": "outputs/screen_boulevard_avoidance_success.png",
+      "size_bytes": 193769,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "screen_direct_hover_avoidance.png",
+      "relative_path": "outputs/screen_direct_hover_avoidance.png",
+      "size_bytes": 194232,
+      "category": "image",
+      "description": "Shared GENESIS Artifact (image)"
+    },
+    {
+      "filename": "GENESIS_muTRON_XAI_Chrome_Extension_v1.0.zip",
+      "relative_path": "outputs/GENESIS_muTRON_XAI_Chrome_Extension_v1.0.zip",
+      "size_bytes": 38592,
+      "category": "package",
+      "description": "Shared GENESIS Artifact (package)"
+    }
+  ]
+}

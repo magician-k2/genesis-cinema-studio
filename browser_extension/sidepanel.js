@@ -311,8 +311,35 @@ class SidePanelXAIEngine {
         }
     }
 
+    updateBioTelemetryUI(da, na, st, homeoText) {
+        const barDa = document.getElementById('bar-dopamine');
+        const valDa = document.getElementById('val-dopamine');
+        const barNa = document.getElementById('bar-noradrenaline');
+        const valNa = document.getElementById('val-noradrenaline');
+        const barSt = document.getElementById('bar-serotonin');
+        const valSt = document.getElementById('val-serotonin');
+        const valHomeo = document.getElementById('val-homeostasis');
+
+        if (barDa && valDa) {
+            barDa.style.width = `${Math.round(da * 100)}%`;
+            valDa.innerText = da.toFixed(2);
+        }
+        if (barNa && valNa) {
+            barNa.style.width = `${Math.round(na * 100)}%`;
+            valNa.innerText = na.toFixed(2);
+        }
+        if (barSt && valSt) {
+            barSt.style.width = `${Math.round(st * 100)}%`;
+            valSt.innerText = st.toFixed(2);
+        }
+        if (valHomeo && homeoText) {
+            valHomeo.innerText = homeoText;
+        }
+    }
+
     async runSynchronizedSession(prompt, sessionId) {
         this.clearChronicle();
+        this.updateBioTelemetryUI(0.65, 0.40, 0.88, "SYNCHRONIZING (95%)");
         this.addChronicleLog("T+000ms", `🎯 Geminiから受信: 『${prompt.slice(0, 22)}...』`, "local");
 
         const dag = this.buildDAGFromPrompt(prompt);
@@ -320,6 +347,7 @@ class SidePanelXAIEngine {
 
         await new Promise(r => setTimeout(r, 100));
         if (sessionId && this.currentSessionId !== sessionId) return;
+        this.updateBioTelemetryUI(0.72, 0.50, 0.85, "HYPOTHESIS MESH (94%)");
         this.addChronicleLog("T+085ms", `🔍 クエリ意図分解 & 探索スコープ設定: [${dag.domain.slice(0, 24)}...]`, "gemini");
 
         this.nodes = [this.centerNode];
@@ -371,6 +399,8 @@ class SidePanelXAIEngine {
 
         await new Promise(r => setTimeout(r, 120));
         if (sessionId && this.currentSessionId !== sessionId) return;
+        // 枝刈りフェーズ: ノルアドレナリン(NA)が危機覚醒サージ！
+        this.updateBioTelemetryUI(0.68, 0.88, 0.70, "PRUNING 34 BRANCHES (91%)");
         const pruneDetails = {
             mapping: dag.prune_mapping || "➔ Gemini回答 第1章「クロック同期式コンピュータの限界」の論理根拠",
             params: `棄却数: ${dag.pruned_branches}本 | 棄却対象: 高消費電力GPU同期並列計算、誤差逆伝播(Backprop)`,
@@ -414,6 +444,8 @@ class SidePanelXAIEngine {
         if (sessionId && this.currentSessionId !== sessionId) return;
         this.centerNode.subLabel = dag.root_cause;
         this.centerNode.pulse = 1.0;
+        // 真因確定フェーズ: ドーパミン(DA)急上昇、ホメオスタシス安定！
+        this.updateBioTelemetryUI(0.98, 0.18, 0.96, "EQUILIBRIUM (99%)");
         const coreDetails = {
             mapping: "➔ Gemini回答 全5大レイヤーの総合論理フレームワークを確定・出力開始",
             params: `因果確信度: ${(dag.confidence * 100).toFixed(1)}% | ゼロ幻覚監査合格 | 収束時間: ${dag.elapsed_ms || 1.2}ms SNN`,
