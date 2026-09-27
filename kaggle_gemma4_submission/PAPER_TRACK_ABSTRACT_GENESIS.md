@@ -36,5 +36,31 @@ guaranteeing full forensic auditability.
 
 ---
 
+## 🏛️ Figure 1: Overall System Architecture (Parallel Factory Pipeline)
+
+```
+[Any Device (Smartphone / Tablet / PC)]
+                 │ (Natural Language Intent)
+                 ▼
+     [Antigravity 2.0 Conductor] ── Task Decomposition & DAG Routing
+                 │
+  ┌──────────────┼──────────────┬──────────────┐
+  ▼              ▼              ▼              ▼
+[IDE ①: UI]   [IDE ②: SNN]   [IDE ...: API] [IDE ⑩: Tests]
+  └──────┬───────┴──────┬───────┴──────┬───────┘
+         │ (Code Creation + Unit Tests Passed)
+         ▼
+[Antigravity 2.0 Integration Gate] ── E2E Integration Testing
+         │ (100% Green Verified)
+         ▼
+[Google Antigravity SDK & Portable Core Packaging]
+★ Guaranteed Zero-Dependency Execution (Runs with No Internet)
+         │
+         ▼
+[Final Deployment & Self-Managing Knowledge in Google Drive via Gemma 4]
+```
+
+---
+
 ## 🚀 Practical Impact for Everyday Developers
 By packaging the entire runtime into a zero-dependency portable core, GENESIS proves that reliable, autonomous software repair can be executed on consumer hardware without leaking proprietary code to third-party cloud APIs.
