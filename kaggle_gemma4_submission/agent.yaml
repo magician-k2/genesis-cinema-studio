@@ -35,6 +35,10 @@ skills:
     entrypoint: "skills.patch_generator:generate_git_patch"
     description: "Produces unified diff (git patch) with proper hunk headers for automated git apply validation."
 
+  - name: "surgical_patch_synthesizer"
+    entrypoint: "skills.surgical_patch_synthesizer:synthesize_patch"
+    description: "Performs AST-guided surgical code splicing and unified diff generation with guaranteed indentation safety."
+
 metadata:
   zero_dependency_offline: true
   eu_ai_act_compliant: true
