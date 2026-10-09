@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GENESIS IN-CAR COCKPIT | 次世代車載大画面 4画面パノラマディスプレイ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cockpit: {
+              bg: '#080c14',
+              card: '#0f1726',
+              border: '#1e293b',
+              accent: '#38bdf8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #06090e;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glass-panel {
+      background: rgba(13, 20, 36, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .screen-container {
+      position: relative;
+      background: #020617;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .screen-header {
+      padding: 0.6rem 1rem;
+      background: rgba(15, 23, 42, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-white">
+
+  <!-- ======================================================== -->
+  <!-- 🚗 COCKPIT MINIMAL TOP BAR (車載メーター・ヘッダー)      -->
+  <!-- ======================================================== -->
+  <header class="px-6 py-2.5 bg-slate-950/80 border-b border-slate-800/60 backdrop-blur flex items-center justify-between sticky top-0 z-30">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2">
+        <span class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span class="font-extrabold text-sm tracking-wider text-white">GENESIS COCKPIT</span>
+      </div>
+      <span class="text-xs text-slate-500">|</span>
+      <span class="text-xs text-slate-400 mono">AUTONOMOUS DISASTER CARTOGRAPHER</span>
+    </div>
+
+    <!-- Cluster Speed & Status -->
+    <div class="flex items-center space-x-6">
+      <div class="flex items-baseline space-x-1">
+        <span id="speedDisplay" class="font-bold text-lg mono text-white">42</span>
+        <span class="text-[10px] text-slate-400">km/h</span>
+      </div>
+      <div class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[11px] mono text-emerald-400 font-bold">
+        DRIVE [D]
+      </div>
+      <div class="text-xs mono text-slate-400" id="liveClock">22:45</div>
+    </div>
+
+    <!-- Quick Scenario Switches & Settings Toggle -->
+    <div class="flex items-center space-x-2">
+      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 space-x-1 text-xs">
+        <button onclick="setScenario('NORMAL')" id="btnScenNormal" class="px-2.5 py-1 rounded-lg text-slate-300 bg-slate-800 font-medium transition">
+          平常
+        </button>
+        <button onclick="setScenario('FLOOD')" id="btnScenFlood" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-medium transition">
+          🌊 冠水
+        </button>
+        <button onclick="setScenario('RUPTURE')" id="btnScenRupture" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-medium transition">
+          ⚡ 地割れ
+        </button>
+        <button onclick="setScenario('PEDESTRIAN')" id="btnScenPed" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-medium transition">
+          🚶 飛び出し
+        </button>
+      </div>
+
+      <!-- Settings Button -->
+      <button onclick="toggleSettingsDrawer()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center space-x-1.5 transition shadow-lg">
+        <span>⚙️</span>
+        <span>設定</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================================================== -->
+  <!-- 📺 MAIN ULTRA-WIDE DISPLAY: 4-SCREEN PANORAMA            -->
+  <!-- ======================================================== -->
+  <main class="flex-1 p-4 grid grid-cols-12 gap-4 max-w-[1920px] w-full mx-auto">
+
+    <!-- ---------------------------------------------------- -->
+    <!-- ① TOP-LEFT: 自動車に取り付けたカメラ映像             -->
+    <!-- ---------------------------------------------------- -->
+    <div class="col-span-12 lg:col-span-6 screen-container min-h-[360px]">
+      <div class="screen-header">
+        <div class="flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          <h2 class="text-xs font-bold text-slate-200 tracking-tight">① 自動車に取り付けたカメラ映像 (フロント実写)</h2>
+        </div>
+        <span class="text-[10px] mono px-2 py-0.5 rounded bg-slate-900 text-cyan-300 border border-slate-800">
+          60 FPS LIVE
+        </span>
+      </div>
+      <div class="relative flex-1 bg-black overflow-hidden">
+        <canvas id="frontCamCanvas" width="760" height="340" class="w-full h-full block"></canvas>
+        
+        <!-- Minimal Hazard Alert on Camera -->
+        <div id="camAlertBanner" class="hidden absolute top-3 left-3 text-xs bg-rose-600/90 backdrop-blur text-white font-bold px-3 py-1.5 rounded-lg shadow-xl flex items-center space-x-1.5">
+          <span>⚠️</span>
+          <span id="camAlertText">冠水道路を検知 (水深 28.5cm)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- ② TOP-RIGHT: Google MAPの2D MAP画像 (リアル道路情報) -->
+    <!-- ---------------------------------------------------- -->
+    <div class="col-span-12 lg:col-span-6 screen-container min-h-[360px]">
+      <div class="screen-header">
+        <div class="flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <h2 class="text-xs font-bold text-slate-200 tracking-tight">② Google MAP 2D画像 (通行不可・迂回路リアル表示)</h2>
+        </div>
+        <span id="mapRouteStatusBadge" class="text-[10px] mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          通常経路案内中
+        </span>
+      </div>
+      <div class="relative flex-1 bg-slate-950 overflow-hidden">
+        <canvas id="mapCanvas" width="760" height="340" class="w-full h-full block"></canvas>
+        
+        <!-- Clean Floating Route ETA -->
+        <div class="absolute bottom-3 right-3 text-xs bg-slate-950/85 backdrop-blur px-3 py-2 rounded-xl border border-slate-800 shadow-xl space-y-0.5">
+          <div class="text-[10px] text-slate-400" id="routeDestLabel">目的地: 広域避難所</div>
+          <div class="text-emerald-400 font-bold mono text-sm" id="routeEtaLabel">2.2 分 (1.1 km)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- ③ BOTTOM-LEFT: Google MAPのストリートビュー (過去データ)-->
+    <!-- ---------------------------------------------------- -->
+    <div class="col-span-12 lg:col-span-6 screen-container min-h-[360px]">
+      <div class="screen-header">
+        <div class="flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+          <h2 class="text-xs font-bold text-slate-200 tracking-tight">③ Google MAP ストリートビュー (従来の過去データ)</h2>
+        </div>
+        <span class="text-[10px] mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
+          2024年5月 晴天公式記録
+        </span>
+      </div>
+      <div class="relative flex-1 bg-black overflow-hidden">
+        <canvas id="streetviewCanvas" width="760" height="340" class="w-full h-full block"></canvas>
+        
+        <!-- Street View Pegman & Location Tag -->
+        <div class="absolute top-3 left-3 text-[11px] bg-slate-950/80 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300">
+          東京都渋谷区神南 / アンダーパス平常時
+        </div>
+        <div class="absolute bottom-3 right-3 w-7 h-7 bg-amber-500/20 text-amber-300 rounded-lg flex items-center justify-center font-bold text-xs border border-amber-500/30">
+          🚶
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- ④ BOTTOM-RIGHT: カメラからリアル表示 (歩行者・自転車)-->
+    <!-- ---------------------------------------------------- -->
+    <div class="col-span-12 lg:col-span-6 screen-container min-h-[360px]">
+      <div class="screen-header">
+        <div class="flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+          <h2 class="text-xs font-bold text-slate-200 tracking-tight">④ カメラからリアル危険検知 (歩行者・自転車AI追跡)</h2>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span id="pedStatusBadge" class="text-[10px] mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            周囲警戒中 (クリア)
+          </span>
+        </div>
+      </div>
+      <div class="relative flex-1 bg-black overflow-hidden">
+        <canvas id="hazardDetectionCanvas" width="760" height="340" class="w-full h-full block"></canvas>
+        
+        <!-- AR Warning Toast for Pedestrian / Bicycle -->
+        <div id="pedAlertToast" class="hidden absolute top-3 right-3 text-xs bg-amber-500/90 backdrop-blur text-slate-950 font-bold px-3 py-1.5 rounded-lg shadow-xl flex items-center space-x-1.5 animate-bounce">
+          <span>⚠️</span>
+          <span id="pedAlertMessage">飛び出し歩行者を検知！衝突余裕 1.4秒</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ======================================================== -->
+  <!-- ⚙️ SYSTEM SETTINGS DRAWER (隠した各機能の設定・表示)     -->
+  <!-- ======================================================== -->
+  <div id="settingsDrawer" class="fixed inset-y-0 right-0 w-[540px] bg-slate-950/98 backdrop-blur-2xl border-l border-slate-800 p-6 z-50 transform translate-x-full transition-transform duration-300 flex flex-col shadow-2xl space-y-5 overflow-y-auto">
+    
+    <!-- Drawer Header -->
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div class="flex items-center space-x-2.5">
+        <span class="text-xl">⚙️</span>
+        <div>
+          <h3 class="font-bold text-base text-white">システム設定 ＆ クラウド連携</h3>
+          <p class="text-[11px] text-slate-400">大画面から隠した全機能の設定・監視・接続ステータス</p>
+        </div>
+      </div>
+      <button onclick="toggleSettingsDrawer()" class="text-slate-400 hover:text-white p-2 rounded-lg bg-slate-900 border border-slate-800">
+        ✕
+      </button>
+    </div>
+
+    <!-- 1. Google Account & Cloud Infrastructure -->
+    <div class="glass-panel rounded-xl p-4 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-white flex items-center space-x-2">
+          <span>🌐</span>
+          <span>Google アカウント ＆ クラウドインフラ</span>
+        </span>
+        <span class="text-[10px] mono px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">Google Account 基盤</span>
+      </div>
+      <div class="text-[11px] space-y-1.5 text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Google 認証ID:</span>
+          <span class="mono text-white font-medium">magician.k2@gmail.com</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">所属・企業メール:</span>
+          <span class="mono text-cyan-300 font-medium">251zs04264@student.zen.ac.jp</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Google Cloud 展開:</span>
+          <span class="text-emerald-400 font-medium">Cloud Run / Vertex AI / Eventarc</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Street View 動的更新:</span>
+          <span class="text-cyan-400 font-medium">リアルタイム差分同期 有効</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1.5. Dedicated Google Drive & Parallel Fan-Out Pipeline -->
+    <div class="glass-panel rounded-xl p-4 space-y-2.5 border border-cyan-500/40">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-cyan-300 flex items-center space-x-2">
+          <span>📁</span>
+          <span>ドラレコ・保険専用 Google Drive ＆ 並列配信 (Fan-Out)</span>
+        </span>
+        <span class="text-[10px] mono px-2 py-0.5 bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/30">完全サンドボックス</span>
+      </div>
+      <div class="text-[11px] space-y-2 text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400">専用Drive保管庫:</span>
+          <span class="mono text-cyan-200 font-medium">drive.google.com/drive/folders/genesis-telematics-vault</span>
+        </div>
+        <div class="flex justify-between items-center text-[10px] text-slate-400 border-b border-slate-800 pb-1.5">
+          <span>プライバシー保護:</span>
+          <span class="text-emerald-400 font-semibold">契約者個人ファイルと完全隔離（暗号化）</span>
+        </div>
+        
+        <!-- Parallel Fan-Out Endpoints -->
+        <div class="space-y-1 pt-1">
+          <div class="text-[10px] text-slate-400 font-bold flex items-center justify-between">
+            <span>リアルタイム並列配信先 (マルチファンアウト):</span>
+            <span class="text-emerald-400 mono">遅延 < 15ms</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 text-[10px] pt-1">
+            <div class="p-1.5 rounded bg-slate-950/60 border border-slate-800 flex items-start space-x-1.5">
+              <span class="text-amber-400">🏢</span>
+              <div>
+                <span class="font-bold text-slate-200">損害保険 3社</span>
+                <p class="text-[9px] text-slate-400">当事者事故＋他車目撃アングル自動突合</p>
+              </div>
+            </div>
+            <div class="p-1.5 rounded bg-slate-950/60 border border-slate-800 flex items-start space-x-1.5">
+              <span class="text-rose-400">🚨</span>
+              <div>
+                <span class="font-bold text-slate-200">JARTIC / 警察管制</span>
+                <p class="text-[9px] text-slate-400">冠水・地割れ遮断・緊急車両啓開</p>
+              </div>
+            </div>
+            <div class="p-1.5 rounded bg-slate-950/60 border border-slate-800 flex items-start space-x-1.5">
+              <span class="text-blue-400">🗺️</span>
+              <div>
+                <span class="font-bold text-slate-200">Google Maps / SV</span>
+                <p class="text-[9px] text-slate-400">最新パノラマ更新・即時迂回案内</p>
+              </div>
+            </div>
+            <div class="p-1.5 rounded bg-slate-950/60 border border-slate-800 flex items-start space-x-1.5">
+              <span class="text-purple-400">🏛️</span>
+              <div>
+                <span class="font-bold text-slate-200">自治体 / 国交省 BCP</span>
+                <p class="text-[9px] text-slate-400">大規模災害時 道路修繕優先度マップ</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Dormant Smartphone + Gemma 4 Local Vigilance -->
+    <div class="glass-panel rounded-xl p-4 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-white flex items-center space-x-2">
+          <span>📱</span>
+          <span>車載休眠スマホ ✕ Gemma 4 車内監視</span>
+        </span>
+        <span class="text-[10px] mono px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/30">SIM契約不要</span>
+      </div>
+      <div class="text-[11px] space-y-1.5 text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+        <div class="flex justify-between">
+          <span class="text-slate-400">常時監視エンジン:</span>
+          <span class="mono text-white font-medium">Gemma 4 on NPU (完全オフライン)</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">省電力モード:</span>
+          <span class="text-emerald-400 font-medium">120μW 超低電力呼吸休眠</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Bluetooth 自動同期:</span>
+          <span class="text-cyan-400 font-medium">乗車時瞬時ハンドシェイク完了</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">不在時インシデント:</span>
+          <span class="text-slate-300">0 件 (当て逃げ・車上荒らしなし)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Commercial 360 Dashcam Overwrite -->
+    <div class="glass-panel rounded-xl p-4 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-white flex items-center space-x-2">
+          <span>📷</span>
+          <span>市販360°ドラレコ書き換え設定</span>
+        </span>
+        <span class="text-[10px] mono px-2 py-0.5 bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/30">ハード製造ゼロ</span>
+      </div>
+      <div class="text-[11px] space-y-1.5 text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+        <div class="flex justify-between">
+          <span class="text-slate-400">ベース機器:</span>
+          <span class="text-white font-medium">Comtec 360° / Yupiteru / Insta360</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">導入ファーム:</span>
+          <span class="mono text-emerald-400 font-medium">GENESIS Edge-OS v2.4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. InsurTech Auto-Billing & Fault Ratio -->
+    <div class="glass-panel rounded-xl p-4 space-y-2.5 border border-amber-500/30">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-amber-300 flex items-center space-x-2">
+          <span>💼</span>
+          <span>損害保険 (InsurTech) B2B自動課金</span>
+        </span>
+        <span class="text-[10px] mono px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/30">課金API稼働中</span>
+      </div>
+      <div class="text-[11px] space-y-1.5 text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+        <div class="flex justify-between">
+          <span class="text-slate-400">照会接続先:</span>
+          <span class="text-white font-medium">東京海上 / 三井住友海上 / 損保ジャパン</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">客観的過失割合:</span>
+          <span class="text-emerald-400 font-bold">CLASS_A 確定テレマティクス</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">水没全損回避フィー:</span>
+          <span class="text-amber-400 font-bold">¥3,500/query 自動計上</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">ドライバー負担:</span>
+          <span class="text-emerald-400 font-bold">¥0 (完全無料提供)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. GENESIS Neuro-Cybernetic Engine (延髄・脊髄) -->
+    <div class="glass-panel rounded-xl p-4 space-y-2.5 border border-indigo-500/30">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-indigo-300 flex items-center space-x-2">
+          <span>⚡</span>
+          <span>延髄 ＆ 脊髄 生体サイバネティクス</span>
+        </span>
+        <span class="text-[10px] mono text-indigo-400" id="drawerCpgPulse">128 BPM (1000Hz)</span>
+      </div>
+      <div class="text-[11px] space-y-1.5 text-slate-300 bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+        <div class="flex justify-between">
+          <span class="text-slate-400">延髄 1000Hz CPG:</span>
+          <span class="text-indigo-400 font-bold">自律全センサー位相同期 稼働中</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">脊髄反射弧 (Reflex Arc):</span>
+          <span class="text-rose-400 font-bold">3.2 ms 超神速大脳バイパス</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">ハエ脳 EMD 光流:</span>
+          <span class="mono text-cyan-400" id="drawerEmdVal">-0.0012 (tau=9.8s)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT: LOGIC, CANVASES, ANIMATIONS                  -->
+  <!-- ======================================================== -->
+  <script>
+    let currentScenario = 'NORMAL'; // 'NORMAL', 'FLOOD', 'RUPTURE', 'PEDESTRIAN'
+    let frameCount = 0;
+    let isSettingsOpen = false;
+
+    // Clock
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('liveClock').innerText = 
+        now.toTimeString().split(' ')[0].substring(0, 5);
+    }, 1000);
+
+    function toggleSettingsDrawer() {
+      isSettingsOpen = !isSettingsOpen;
+      const d = document.getElementById('settingsDrawer');
+      if (isSettingsOpen) d.classList.remove('translate-x-full');
+      else d.classList.add('translate-x-full');
+    }
+
+    function setScenario(scen) {
+      currentScenario = scen;
+      const btns = {
+        'NORMAL': document.getElementById('btnScenNormal'),
+        'FLOOD': document.getElementById('btnScenFlood'),
+        'RUPTURE': document.getElementById('btnScenRupture'),
+        'PEDESTRIAN': document.getElementById('btnScenPed')
+      };
+      for (const [k, b] of Object.entries(btns)) {
+        b.className = (k === scen)
+          ? "px-2.5 py-1 rounded-lg text-white bg-indigo-600 font-bold shadow transition"
+          : "px-2.5 py-1 rounded-lg text-slate-400 hover:text-white font-medium transition";
+      }
+
+      // Alert Visibility
+      const banner = document.getElementById('camAlertBanner');
+      const toast = document.getElementById('pedAlertToast');
+      if (scen === 'FLOOD') {
+        banner.classList.remove('hidden');
+        document.getElementById('camAlertText').innerText = "冠水道路を検知 (水深 28.5cm)";
+        toast.classList.add('hidden');
+      } else if (scen === 'RUPTURE') {
+        banner.classList.remove('hidden');
+        document.getElementById('camAlertText').innerText = "道路地割れを検知 (段差 24cm)";
+        toast.classList.add('hidden');
+      } else if (scen === 'PEDESTRIAN') {
+        banner.classList.add('hidden');
+        toast.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+        toast.classList.add('hidden');
+      }
+
+      executeClosedLoop();
+    }
+
+    // ========================================================
+    // ① FRONT CAMERA CANVAS (実写ドラレコ視界)
+    // ========================================================
+    function drawFrontCam() {
+      const cvs = document.getElementById('frontCamCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Sky
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.52);
+      skyGrad.addColorStop(0, currentScenario === 'FLOOD' ? '#090d16' : '#0b1329');
+      skyGrad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h * 0.52);
+
+      // Rain if flood
+      if (currentScenario === 'FLOOD') {
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+        ctx.lineWidth = 1;
+        for (let r = 0; r < 35; r++) {
+          const rx = (Math.random() * w), ry = (Math.random() * h);
+          ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 7, ry + 16); ctx.stroke();
+        }
+      }
+
+      // Highway Underpass Structure
+      const vpX = w / 2, vpY = h * 0.48;
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(w * 0.16, vpY - 45, w * 0.68, 28);
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('SHIBUYA UNDERPASS CLEARANCE 3.8M', w * 0.32, vpY - 28);
+
+      // Road
+      const roadGrad = ctx.createLinearGradient(0, vpY, 0, h);
+      roadGrad.addColorStop(0, '#1e293b');
+      roadGrad.addColorStop(1, '#090d16');
+      ctx.fillStyle = roadGrad;
+      ctx.beginPath(); ctx.moveTo(vpX, vpY); ctx.lineTo(w * 0.04, h); ctx.lineTo(w * 0.96, h); ctx.closePath(); ctx.fill();
+
+      // White Lane Dashes
+      ctx.strokeStyle = '#e2e8f0'; ctx.setLineDash([14, 14]); ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(vpX, vpY); ctx.lineTo(vpX, h); ctx.stroke(); ctx.setLineDash([]);
+
+      // Road Hazards (Flood / Rupture)
+      if (currentScenario === 'FLOOD') {
+        const poolTopY = h * 0.65;
+        const poolGrad = ctx.createLinearGradient(0, poolTopY, 0, h);
+        poolGrad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+        poolGrad.addColorStop(1, 'rgba(14, 116, 144, 0.7)');
+        ctx.fillStyle = poolGrad;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.26, poolTopY); ctx.lineTo(w * 0.74, poolTopY);
+        ctx.lineTo(w * 0.88, h); ctx.lineTo(w * 0.12, h);
+        ctx.closePath(); ctx.fill();
+
+        ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2.5;
+        ctx.strokeRect(w * 0.22, poolTopY - 8, w * 0.56, h - poolTopY);
+      } else if (currentScenario === 'RUPTURE') {
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.3, h * 0.7); ctx.lineTo(w * 0.45, h * 0.78);
+        ctx.lineTo(w * 0.4, h * 0.85); ctx.lineTo(w * 0.65, h * 0.9);
+        ctx.stroke();
+      }
+
+      frameCount++;
+      requestAnimationFrame(drawFrontCam);
+    }
+    requestAnimationFrame(drawFrontCam);
+
+    // ========================================================
+    // ② GOOGLE MAP 2D CANVAS (リアル道路情報・通行不可・迂回)
+    // ========================================================
+    const mapNodes = {
+      "START": { x: 90, y: 170, name: "現在地" },
+      "JUNCTION": { x: 260, y: 170, name: "神南交差点" },
+      "HAZARD": { x: 420, y: 170, name: "アンダーパス" },
+      "BYPASS": { x: 420, y: 65, name: "国道246高台バイパス" },
+      "DEST": { x: 670, y: 170, name: "広域避難所" }
+    };
+
+    function drawMap() {
+      const cvs = document.getElementById('mapCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Dark Maps Grid
+      ctx.fillStyle = '#1e2430'; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#262f40';
+      ctx.fillRect(40, 20, 160, 110); ctx.fillRect(480, 20, 160, 110);
+      ctx.fillRect(40, 210, 160, 110); ctx.fillRect(480, 210, 160, 110);
+
+      // Park
+      ctx.fillStyle = '#193828';
+      ctx.beginPath(); ctx.roundRect(240, 80, 110, 60, 8); ctx.fill();
+      ctx.fillStyle = '#34d399'; ctx.font = '10px sans-serif';
+      ctx.fillText('代々木緑地', 260, 115);
+
+      // Base Roads
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(60, 170); ctx.lineTo(w - 60, 170); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(260, 170); ctx.lineTo(420, 65); ctx.lineTo(w - 60, 170); ctx.stroke();
+
+      const isBlocked = (currentScenario === 'FLOOD' || currentScenario === 'RUPTURE');
+
+      // Active Route (Green/Purple Line)
+      ctx.strokeStyle = isBlocked ? '#10b981' : '#38bdf8';
+      ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(mapNodes.START.x, mapNodes.START.y);
+      ctx.lineTo(mapNodes.JUNCTION.x, mapNodes.JUNCTION.y);
+
+      if (isBlocked) {
+        // Divert to Bypass
+        ctx.lineTo(mapNodes.BYPASS.x, mapNodes.BYPASS.y);
+        ctx.lineTo(mapNodes.DEST.x, mapNodes.DEST.y);
+      } else {
+        // Direct
+        ctx.lineTo(mapNodes.HAZARD.x, mapNodes.HAZARD.y);
+        ctx.lineTo(mapNodes.DEST.x, mapNodes.DEST.y);
+      }
+      ctx.stroke();
+
+      // Blocked 🚫 Indicator on Hazard Point
+      if (isBlocked) {
+        const cx = mapNodes.HAZARD.x, cy = mapNodes.HAZARD.y;
+        ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 6; ctx.setLineDash([6, 6]);
+        ctx.beginPath(); ctx.moveTo(330, 170); ctx.lineTo(500, 170); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 9, cy - 3, 18, 6);
+        ctx.fillStyle = '#f43f5e'; ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('🚫 通行不可', cx - 30, cy + 26);
+      }
+
+      // Pins
+      for (const [k, n] of Object.entries(mapNodes)) {
+        ctx.beginPath(); ctx.arc(n.x, n.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = k === 'START' ? '#3b82f6' : (k === 'DEST' ? '#ef4444' : '#f8fafc');
+        ctx.fill(); ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(n.name, n.x - 24, n.y > 160 ? n.y + 18 : n.y - 12);
+      }
+    }
+
+    // ========================================================
+    // ③ GOOGLE STREET VIEW CANVAS (過去の晴天データ)
+    // ========================================================
+    function drawStreetView() {
+      const cvs = document.getElementById('streetviewCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Sky
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.52);
+      skyGrad.addColorStop(0, '#0284c7');
+      skyGrad.addColorStop(1, '#bae6fd');
+      ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, w, h * 0.52);
+
+      // Tokyo Skyline Buildings
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(w * 0.08, h * 0.24, 60, h * 0.28);
+      ctx.fillRect(w * 0.8, h * 0.22, 65, h * 0.3);
+
+      // Trees
+      ctx.fillStyle = '#16a34a';
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath(); ctx.arc(w * 0.15 + i * 20, h * 0.48, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(w * 0.75 + i * 20, h * 0.48, 12, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Underpass Structure (Pristine)
+      const vpX = w / 2, vpY = h * 0.48;
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(w * 0.16, vpY - 45, w * 0.68, 28);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('SHIBUYA HIGHWAY UNDERPASS - 2024 BASELINE', w * 0.26, vpY - 28);
+
+      // Dry Clean Road
+      const roadGrad = ctx.createLinearGradient(0, vpY, 0, h);
+      roadGrad.addColorStop(0, '#64748b'); roadGrad.addColorStop(1, '#334155');
+      ctx.fillStyle = roadGrad;
+      ctx.beginPath(); ctx.moveTo(vpX, vpY); ctx.lineTo(w * 0.04, h); ctx.lineTo(w * 0.96, h); ctx.closePath(); ctx.fill();
+
+      // White Center Dashes
+      ctx.strokeStyle = '#ffffff'; ctx.setLineDash([14, 14]); ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(vpX, vpY); ctx.lineTo(vpX, h); ctx.stroke(); ctx.setLineDash([]);
+
+      // Crosswalk
+      ctx.fillStyle = '#ffffff';
+      for (let z = 0; z < 8; z++) ctx.fillRect(w * 0.24 + z * 32, h * 0.78, 18, 14);
+
+      // Chevron Navigation Arrow (^)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.beginPath(); ctx.arc(vpX, h * 0.7, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(vpX - 6, h * 0.72); ctx.lineTo(vpX, h * 0.68); ctx.lineTo(vpX + 6, h * 0.72); ctx.stroke();
+    }
+
+    // ========================================================
+    // ④ HAZARD DETECTION CANVAS (飛び出す歩行者・周りの自転車)
+    // ========================================================
+    let pedX = 140, pedY = 220;
+    let bikeX = 580, bikeY = 200;
+
+    function drawHazardDetection() {
+      const cvs = document.getElementById('hazardDetectionCanvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Camera feed background
+      ctx.fillStyle = '#0a0f1d';
+      ctx.fillRect(0, 0, w, h);
+
+      // Street Grid lines (perspective)
+      ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(w / 2, h * 0.4); ctx.lineTo(w * 0.1, h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(w / 2, h * 0.4); ctx.lineTo(w * 0.9, h); ctx.stroke();
+
+      // 🚶 PEDESTRIAN (飛び出す歩行者)
+      if (currentScenario === 'PEDESTRIAN') {
+        // Pedestrian walks across street
+        pedX += 0.8;
+        if (pedX > w * 0.45) pedX = 140;
+
+        // Red AI Bounding Box
+        ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3;
+        ctx.strokeRect(pedX, pedY - 65, 45, 95);
+
+        // Label Tag
+        ctx.fillStyle = '#f43f5e'; ctx.fillRect(pedX, pedY - 86, 175, 21);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.fillText('⚠️ 飛び出し歩行者 (1.4s)', pedX + 4, pedY - 71);
+
+        // Draw Stylized Pedestrian Icon
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath(); ctx.arc(pedX + 22, pedY - 50, 9, 0, Math.PI * 2); ctx.fill(); // Head
+        ctx.fillRect(pedX + 16, pedY - 40, 12, 35); // Body
+        ctx.fillRect(pedX + 10, pedY - 5, 8, 30); // Leg L
+        ctx.fillRect(pedX + 26, pedY - 5, 8, 30); // Leg R
+      } else {
+        // Normal Pedestrian walking on sidewalk
+        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(120, pedY - 50, 35, 75);
+        ctx.fillStyle = '#10b981'; ctx.font = '10px monospace';
+        ctx.fillText('歩行者 (歩道安全)', 120, pedY - 56);
+      }
+
+      // 🚲 BICYCLE (周りに影響する自転車)
+      bikeY = 210 + Math.sin(frameCount * 0.05) * 6;
+      bikeX -= 0.3;
+      if (bikeX < w * 0.6) bikeX = 620;
+
+      // Cyan AI Bounding Box for Bicycle
+      ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2.5;
+      ctx.strokeRect(bikeX, bikeY - 55, 75, 80);
+
+      // Label Tag
+      ctx.fillStyle = '#06b6d4'; ctx.fillRect(bikeX, bikeY - 76, 150, 20);
+      ctx.fillStyle = '#0f172a'; ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.fillText('🚲 並走自転車 (間隔 1.8m)', bikeX + 4, bikeY - 62);
+
+      // Draw Stylized Bicycle
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(bikeX + 18, bikeY + 12, 11, 0, Math.PI * 2); ctx.stroke(); // Wheel 1
+      ctx.beginPath(); ctx.arc(bikeX + 56, bikeY + 12, 11, 0, Math.PI * 2); ctx.stroke(); // Wheel 2
+      ctx.beginPath(); ctx.moveTo(bikeX + 18, bikeY + 12); ctx.lineTo(bikeX + 38, bikeY - 10); ctx.lineTo(bikeX + 56, bikeY + 12); ctx.stroke(); // Frame
+
+      requestAnimationFrame(drawHazardDetection);
+    }
+    requestAnimationFrame(drawHazardDetection);
+
+    // ========================================================
+    // BACKEND CLOSED LOOP & SYNCHRONIZATION
+    // ========================================================
+    async function executeClosedLoop() {
+      try {
+        const res = await fetch('/api/cognitive/cycle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tilt_perturbation: currentScenario === 'RUPTURE' ? 0.35 : 0.05,
+            sound_flash: currentScenario === 'FLOOD' ? 0.85 : 0.40
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'COGNITIVE_CLOSED_LOOP_SUCCESS') {
+          // Update Map Route status
+          const isBlocked = (currentScenario === 'FLOOD' || currentScenario === 'RUPTURE');
+          const badge = document.getElementById('mapRouteStatusBadge');
+          if (isBlocked) {
+            badge.innerText = "高台バイパス迂回路案内中";
+            badge.className = "text-[10px] mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
+            document.getElementById('routeEtaLabel').innerText = "5.4 分 (2.3 km)";
+          } else {
+            badge.innerText = "通常経路案内中";
+            badge.className = "text-[10px] mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            document.getElementById('routeEtaLabel').innerText = "2.2 分 (1.1 km)";
+          }
+
+          // Update Settings drawer indicators
+          const emd = data.fly_brain_biomimetics.emd_optical_flow;
+          document.getElementById('drawerEmdVal').innerText = 
+            `${emd.optical_flow_vector_x} (tau=${emd.collision_tau_sec}s)`;
+
+          drawMap();
+        }
+      } catch (e) {
+        drawMap();
+      }
+    }
+
+    // 1000Hz Medulla Continuous Poller
+    async function pollLiveCpgPulse() {
+      try {
+        const res = await fetch('/api/cognitive/pulse');
+        const data = await res.json();
+        if (data.success && data.pulse) {
+          document.getElementById('drawerCpgPulse').innerText = `${data.pulse.cpg_bpm} BPM (${data.pulse.unconscious_heartbeat_hz} Hz)`;
+        }
+      } catch (e) {}
+    }
+    setInterval(pollLiveCpgPulse, 200);
+
+    // Initial render
+    drawMap();
+    drawStreetView();
+    setTimeout(executeClosedLoop, 400);
+  </script>
+</body>
+</html>
