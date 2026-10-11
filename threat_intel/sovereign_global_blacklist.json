@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "authority": "GENESIS Sovereign DNS Shield & Google Workspace Threat Mesh",
+  "storage_backend": "Google Drive (/content/drive/MyDrive/GENESIS_ROOT/threat_intel)",
+  "workspace_integration": {
+    "gmail_phishing_shield": "ACTIVE",
+    "sheets_audit_ledger": "ACTIVE",
+    "drive_immutable_sync": "SYNCHRONIZED",
+    "last_synced_at": 1791740000.0
+  },
+  "sinkhole_ip": "0.0.0.0",
+  "quarantined_threats": {
+    "malicious-phishing-branch.xyz": {
+      "real_ip": "198.51.100.99",
+      "asn": "AS65530-ROGUE-SPOOFER",
+      "threat_type": "INTRUSION_DETECTED",
+      "quarantined_by": "SCOUT-01",
+      "sinkhole": "0.0.0.0",
+      "status": "PERMANENT_SINKHOLE",
+      "quarantined_at": 1791730501.4874134
+    },
+    "fake-branch-login-phishing.com": {
+      "real_ip": "203.0.113.88",
+      "asn": "AS65530-ROGUE-HOST",
+      "threat_type": "CREDENTIAL_HARVESTER",
+      "quarantined_by": "SCOUT-01 (Android 13 Container)",
+      "sinkhole": "0.0.0.0",
+      "status": "PERMANENT_SINKHOLE",
+      "quarantined_at": 1791739250.0
+    },
+    "spoofed-invoice-wire-fraud.net": {
+      "real_ip": "192.0.2.144",
+      "asn": "AS64496-BULK-SPAM",
+      "threat_type": "GMAIL_BEC_FRAUD",
+      "quarantined_by": "GMAIL_WORKSPACE_SENTRY",
+      "sinkhole": "0.0.0.0",
+      "status": "PERMANENT_SINKHOLE",
+      "quarantined_at": 1791739300.0
+    }
+  },
+  "shared_devices": [
+    "pc.genesis.internal",
+    "mobile.genesis.internal",
+    "tablet.genesis.internal",
+    "notebook.genesis.internal",
+    "scout1.genesis.internal"
+  ],
+  "merkle_integrity_root": "6f3cdc1e27f9bc321b69d8689f99fa335b9fb6620963f3d119e87f67dcd825e3",
+  "last_updated_at": 1791730501.487446
+}

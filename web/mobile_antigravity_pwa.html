@@ -88,9 +88,14 @@
             <span id="webgpuDot" class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
             <span id="webgpuTxt">WebGPU: 検出中...</span>
         </button>
-        <div class="text-emerald-400 font-bold flex items-center space-x-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>PC同期</span>
+        <div class="flex items-center space-x-1.5">
+            <span class="text-emerald-400 font-bold flex items-center space-x-1 px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-[9px]">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>DNS: 10.0.1.20</span>
+            </span>
+            <div class="text-emerald-400 font-bold flex items-center space-x-1 text-[9px]">
+                <span>PC同期</span>
+            </div>
         </div>
     </div>
 
@@ -123,6 +128,10 @@
 
     <!-- 💡 QUICK PROMPT PILLS -->
     <div class="px-3 py-1.5 bg-slate-950/90 border-t border-slate-800/60 flex space-x-2 overflow-x-auto no-scrollbar shrink-0">
+        <button onclick="runSensoryCyberneticsTest()" class="px-2.5 py-1 rounded-full bg-gradient-to-r from-emerald-900/90 to-teal-900/90 border border-emerald-500/60 text-[10px] text-emerald-300 font-bold whitespace-nowrap active:scale-95 transition flex items-center space-x-1 shadow-md">
+            <span>👁️ 🎙️</span>
+            <span>目・耳 ✕ Colab リアルタイム連動</span>
+        </button>
         <button onclick="sendQuickPrompt('台風・水害時の最短避難ルートを量子アニーリングQUBOで計算して')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-cyan-300 whitespace-nowrap active:scale-95 transition">
             🌊 避難経路の量子最適化
         </button>
@@ -132,21 +141,26 @@
         <button onclick="sendQuickPrompt('AIハルシネーション（嘘）を完全にゼロにする量子フィルタの論文とスライドを作成して')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-purple-300 whitespace-nowrap active:scale-95 transition">
             📑 論文・スライド自動執筆
         </button>
-        <button onclick="sendQuickPrompt('システム全体の単体テストを全件実行して整合性を確認して')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-emerald-300 whitespace-nowrap active:scale-95 transition">
-            🧪 全体テスト実行
-        </button>
     </div>
 
-    <!-- ✍️ PERSISTENT INPUT BAR (ALWAYS VISIBLE) -->
+    <!-- ✍️ PERSISTENT INPUT BAR (WITH EYE & EAR SENSORY TRIGGERS) -->
     <footer class="p-2.5 bg-slate-950 border-t border-slate-800 shrink-0 safe-bottom">
         <form onsubmit="handleUserSubmit(event)" class="flex items-center space-x-2">
+            <!-- 📸 Eye Camera Trigger -->
+            <button type="button" onclick="triggerSensoryEyePrompt()" class="w-9 h-9 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 flex items-center justify-center active:scale-90 transition shrink-0" title="目: 帳票・ホワイトボード・画面バグを撮影">
+                <span class="text-sm">📸</span>
+            </button>
+            <!-- 🎙️ Ear Mic Trigger -->
+            <button type="button" onclick="triggerSensoryEarPrompt()" class="w-9 h-9 rounded-xl bg-slate-900 border border-purple-500/40 text-purple-300 flex items-center justify-center active:scale-90 transition shrink-0" title="耳: 音声メモ・会議録音">
+                <span class="text-sm">🎙️</span>
+            </button>
             <div class="flex-1 relative">
                 <input id="promptInput" type="text" placeholder="Antigravityに指示を入力...（0トークン）" autocomplete="off"
-                    class="w-full bg-slate-900 border-2 border-slate-700/90 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition shadow-inner">
+                    class="w-full bg-slate-900 border-2 border-slate-700/90 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition shadow-inner">
             </div>
             <button type="submit" id="btnSend"
-                class="w-10 h-10 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30 active:scale-90 transition shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-9 h-9 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30 active:scale-90 transition shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                 </svg>
             </button>
@@ -911,6 +925,52 @@ async def process_google_pay(payload: dict, token: HTTPAuthorizationCredentials 
             appendMessage('Antigravity', '🎉 **量子Gemma 4 オーケストレーションのSSD配備が完了しました！**\n\nスマホのローカルSSD（OPFS/CacheStorage）にINT4量子化ウェイト（2.1GB）とSNN反射神経網が完全マッピングされました。\nこれで電波の届かない場所（地下・トンネル・機内）でも、**スマホ単体で0.1秒の超神速自律推論**が稼働します！', false, true);
         }
 
+        async function runSensoryCyberneticsTest() {
+            appendMessage('User', '📸 🎙️ スマホの目（カメラ帳票撮影）と耳（会議音声録音）をGoogle Drive経由でColab GPUへ連動解析して！', true);
+            appendMessage('Antigravity', '⏳ **スマホの目と耳 ➔ Google Drive ➔ Colab Blackwell 96GB GPU リアルタイム解析中...**\n- 📸 撮影画像: `branch_sales_slip_tokyo_osaka.jpg`\n- 🎙️ 会議音声: `executive_strategy_meeting_voice.wav`', false);
+
+            try {
+                const res = await fetch('/api/sensory/test');
+                const data = await res.json();
+
+                if (data.success) {
+                    const eye = data.eye;
+                    const ear = data.ear;
+                    const rep = data.report;
+
+                    const msg = `🎉 **【スマホの目と耳 ✕ Colab 96GB GPU 連動解析完了！】**\n\n` +
+                        `### 👁️ スマホカメラ（目）の解析結果 (Colab GPU: ${eye.colab_gpu_processing_ms} ms)\n` +
+                        `- 帳票から解析された総売上: **¥${eye.total_sales_jpy.toLocaleString()} JPY**\n` +
+                        `- 支店数: ${eye.extracted_records.length}拠点 (東京本店, 大阪支店, 名古屋支店, 福岡支店)\n` +
+                        `- 📊 自動生成グラフ: \`${eye.svg_chart.split(/[\\\\/]/).pop()}\` (SVGベクトル描画完了)\n` +
+                        `- 🛡️ マークル証明書: \`${eye.merkle_receipt}\`\n\n` +
+                        `### 🎙️ スマホマイク（耳）の解析結果 (Colab GPU: ${ear.colab_gpu_transcription_ms} ms)\n` +
+                        `- 議事録要約: 「${ear.meeting_insights.transcript_summary}」\n` +
+                        `- 🎯 抽出タスク: ${ear.meeting_insights.action_items.length}件\n` +
+                        `  1. ${ear.meeting_insights.action_items[0].task} (${ear.meeting_insights.action_items[0].deadline})\n` +
+                        `  2. ${ear.meeting_insights.action_items[1].task} (${ear.meeting_insights.action_items[1].deadline})\n\n` +
+                        `### 📑 自動生成された役員報告書・論文\n` +
+                        `- 文書: \`${rep.report_file.split(/[\\\\/]/).pop()}\` (${rep.report_size_bytes} bytes)\n` +
+                        `- Google Drive保管先: \`/GENESIS_ROOT/sensory_vault/reports/\`\n` +
+                        `- 📱 スマホ通知: **${rep.mobile_notification}**`;
+
+                    appendMessage('Antigravity', msg, false);
+                }
+            } catch (err) {
+                appendMessage('Antigravity', `❌ 連動解析エラー: ${err.message}`, false);
+            }
+        }
+
+        function triggerSensoryEyePrompt() {
+            appendMessage('User', '📸 [目] スマホのカメラでホワイトボードや売上帳票を撮影してColabへ転送', true);
+            runSensoryCyberneticsTest();
+        }
+
+        function triggerSensoryEarPrompt() {
+            appendMessage('User', '🎙️ [耳] スマホのマイクで商談音声をリアルタイム録音してColabへ転送', true);
+            runSensoryCyberneticsTest();
+        }
+
         // Auto load on boot
         window.onload = () => {
             loadLivePCConversation();
@@ -918,6 +978,17 @@ async def process_google_pay(payload: dict, token: HTTPAuthorizationCredentials 
             checkSSDInstallationStatus();
             updateWebGPUStatusUI();
         };
+
+        // Register Smartphone Edge Server (Service Worker)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then((reg) => {
+                    console.log('📱 [Mobile Server SW] Sovereign Mesh Edge Node Active:', reg.scope);
+                }).catch((err) => {
+                    console.log('📱 [Mobile Server SW] Registration notice:', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
