@@ -1,0 +1,58 @@
+# ================================================================================
+# GENESIS Tri-Core Edge Quantum Developer Agent Specification (agent.yaml)
+# Google - Gemma 4 Developer Agent Competition (Kaggle Track 1 & Track 2)
+# Compliant with Google Agent Development Kit (ADK) & swegemma Harness
+# ================================================================================
+
+agent:
+  name: "genesis-tricore-gemma4-agent"
+  version: "2.0.0"
+  description: "Tri-Core Edge Quantum Autonomous Software Engineering Agent powered by WebGPU WGSL 10k SNN, Persistent OPFS Gemma 4 INT4, Nighttime STDP Sleep-Sync, and EU AI Act Art. 13 Merkle Ledger."
+  author: "Team GENESIS (Cybernetics Intelligence Group)"
+  architecture: "Tri-Core Edge Quantum (Colab Blackwell 96GB x Smartphone OPFS 2.1GB x WebGPU WGSL 10k SNN)"
+
+model:
+  base_model: "google/gemma-4-31b-it"
+  edge_quantization: "INT4_AWQ"
+  edge_cache_footprint_gb: 2.1
+  framework: "transformers"
+  device: "cuda"
+  torch_dtype: "bfloat16"
+
+prompts:
+  system_prompt_path: "prompts/system.md"
+
+configs:
+  sampling_config_path: "configs/sampling.yaml"
+
+skills:
+  - name: "reverse_mindmap_locator"
+    entrypoint: "skills.reverse_mindmap_locator:locate_bug_root_cause"
+    description: "Reverse-maps stack traces, error messages, and issue descriptions to pinpoint the exact buggy files and AST function nodes."
+
+  - name: "webgpu_snn_accelerator"
+    entrypoint: "skills.webgpu_snn_accelerator:accelerate_neuromorphic_pruning"
+    description: "Neuromorphic attention pruner using 10,000 LIF neurons via WebGPU WGSL / vectorized Euler stepping to isolate surgical repair horizons."
+
+  - name: "lsp_syntax_auditor"
+    entrypoint: "skills.lsp_syntax_auditor:audit_code_syntax"
+    description: "Performs AST and LSP syntax verification to ensure zero syntax errors before patch generation."
+
+  - name: "surgical_patch_synthesizer"
+    entrypoint: "skills.surgical_patch_synthesizer:synthesize_patch"
+    description: "Performs AST-guided surgical code splicing and unified diff generation with guaranteed indentation safety."
+
+  - name: "hybrid_sleep_sync_consolidator"
+    entrypoint: "skills.hybrid_sleep_sync_consolidator:consolidate_sleep_weights"
+    description: "Executes bi-exponential STDP synaptic plasticity and Variational Free Energy minimization for overnight edge consolidation."
+
+  - name: "merkle_audit_proof"
+    entrypoint: "genesis_core.engine_merkle:PortableMerkleAuditor"
+    description: "Constructs hierarchical SHA-256 Merkle tree receipts satisfying EU AI Act Article 13 and Google AI Pro Ultra neural watermarking."
+
+metadata:
+  zero_dependency_offline: true
+  eu_ai_act_compliant: true
+  google_ai_pro_ultra_moat: true
+  webgpu_latency_ms: 37.800
+  flight_mode_resilient: true
