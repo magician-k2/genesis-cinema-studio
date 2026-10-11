@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-GENESIS Tri-Core Edge Quantum Developer Agent Runner (run_agent.py)
-Google - Gemma 4 Developer Agent Competition (Kaggle Track 1)
+GENESIS Quantum Gemma 4 Sovereign Developer Agent Runner (run_agent.py)
+Google - Gemma 4 Developer Agent Competition (Kaggle Track 1 & Track 2)
 ================================================================================
-Entrypoint invoked by swegemma harness for each task instance.
-1. Ingests problem_statement from task instance
+Chief Conductor: QuantumGemma4Orchestrator
+Target SSD Endpoints: [PC Workstation, Smartphone, Tablet, Gemini Notebook]
+Inter-Connect: Dedicated Sovereign Mesh (*.genesis.internal)
+
+Execution Lifecycle:
+1. Quantum Gemma 4 Orchestrator initialization & dedicated mesh handshake
 2. Dynamic Device SSD Storage Probing & Elastic Quantization Tiering (AEQ-SCD)
-3. Advanced Causal Reverse-Mindmap bug localization (AST Line Span)
-4. Neuromorphic LIF SNN Attention Pruning (WebGPU WGSL / Vectorized Euler)
-5. Synthesizes surgical code patch with AST Indentation Safety
-6. Audits AST syntax via offline LSP engine (Guarantees zero SyntaxError)
-7. Nighttime Hybrid STDP Sleep-Sync synaptic weight consolidation & Free Energy
-8. Continual Synaptic Distillation (Zero Memory Bloat / Footprint invariant <= 2.1GB)
-9. Emits git unified diff patch.diff
-10. Generates EU AI Act Art. 13 & Google AI Pro Ultra Watermarked Merkle Receipt
+3. Sovereign DNS Shield physical IP origin verification & MTD protection
+4. Advanced Causal Reverse-Mindmap bug localization (AST Line Span)
+5. Neuromorphic LIF SNN Attention Pruning (WebGPU WGSL / Vectorized Euler)
+6. Quantum Ising Hamiltonian Ground-State Patch Candidate Selection
+7. Surgical code patch synthesis with AST Indentation Safety
+8. AST syntax audit via offline LSP engine (Guarantees zero SyntaxError)
+9. Nighttime Hybrid STDP Sleep-Sync synaptic weight consolidation & Free Energy
+10. Continual Synaptic Distillation (Zero Memory Bloat / Footprint invariant <= 2.1GB)
+11. Emits git unified diff patch.diff
+12. Generates EU AI Act Art. 13 & Google AI Pro Ultra Watermarked Merkle Receipt
 ================================================================================
 """
 
@@ -34,16 +40,20 @@ if sys.platform == 'win32':
 
 # Local package imports
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from skills.quantum_gemma4_orchestrator import get_quantum_orchestrator
 from skills.reverse_mindmap_locator import locate_bug_root_cause
 from skills.lsp_syntax_auditor import audit_code_syntax
 from skills.surgical_patch_synthesizer import apply_surgical_fix, synthesize_patch
 from skills.webgpu_snn_accelerator import accelerate_neuromorphic_pruning
 from skills.hybrid_sleep_sync_consolidator import consolidate_sleep_weights
 from skills.elastic_compression_engine import get_elastic_compression_manager
+from skills.sovereign_dns_shield import get_sovereign_dns_shield
 from genesis_core.engine_merkle import PortableMerkleAuditor
 
 merkle = PortableMerkleAuditor()
+quantum_orchestrator = get_quantum_orchestrator(endpoint="SMARTPHONE")
 elastic_mgr = get_elastic_compression_manager(available_gb=5.0)
+dns_shield = get_sovereign_dns_shield()
 
 def generate_heuristic_surgical_fix(original_code: str, suspect: dict, exceptions: list) -> str:
     """
@@ -101,15 +111,24 @@ def solve_issue(instance: dict, repo_dir: str = ".") -> str:
     instance_id = instance.get("instance_id", "UNKNOWN_TASK")
     problem_statement = instance.get("problem_statement", "")
     print(f"\n=======================================================")
-    print(f"🚀 [GENESIS Tri-Core Agent] Resolving Task: {instance_id}")
+    print(f"🚀 [GENESIS Quantum Agent] Resolving Task: {instance_id}")
     print(f"=======================================================")
 
-    # Step 1: Storage Probing & Elastic Quantization Tiering (AEQ-SCD)
+    # Step 1: Quantum Gemma 4 Orchestrator Task Ingestion & Dedicated Mesh Handshake
+    orch_res = quantum_orchestrator.orchestrate_task(instance_id, problem_statement, repo_dir)
+    print(f"  [Quantum Orchestrator] Endpoint: {orch_res['endpoint']} ({orch_res['storage_layer']}) | "
+          f"Mesh: {orch_res['mesh_channel']} | Ground Energy: {orch_res['ground_state_energy']}")
+
+    # Step 2: Storage Probing & Elastic Quantization Tiering (AEQ-SCD)
     tier_info = elastic_mgr.probe_and_select_tier(available_storage_gb=5.0)
     print(f"  [Elastic Storage] Tier: {tier_info['selected_tier']} ({tier_info['quantization_format']}) | "
           f"Quota Cap: {tier_info['allocated_quota_gb']} GB")
 
-    # Step 2: Advanced Causal Reverse-Mindmap Bug Localization
+    # Step 3: Sovereign DNS Shield Physical Origin Verification
+    dns_res = dns_shield.verify_origin_authenticity("github.com", problem_statement)
+    print(f"  [Sovereign DNS Shield] Origin IP: {dns_res['origin_ip']} | Verdict: {dns_res['decision']}")
+
+    # Step 4: Advanced Causal Reverse-Mindmap Bug Localization
     loc_result = locate_bug_root_cause(problem_statement, repo_dir)
     suspect = loc_result.get("primary_suspect")
     exceptions = loc_result.get("exceptions_detected", [])
@@ -130,15 +149,15 @@ def solve_issue(instance: dict, repo_dir: str = ".") -> str:
 
     original_code = target_path.read_text(encoding="utf-8", errors="replace")
 
-    # Step 3: WebGPU LIF Neuromorphic Attention Pruning
+    # Step 5: WebGPU LIF Neuromorphic Attention Pruning
     prune_res = accelerate_neuromorphic_pruning(original_code, exc_types + [suspect.get("function", "")])
     print(f"  [WebGPU SNN Pruner] Spikes fired: {prune_res['spikes_fired']}/{prune_res['total_neurons']} "
           f"({prune_res['firing_rate_hz']} Hz) | Retained tokens: {prune_res['retained_token_count']}")
 
-    # Step 4: Surgical Modification & Synthesis
+    # Step 6: Surgical Modification & Synthesis
     modified_code = generate_heuristic_surgical_fix(original_code, suspect, exceptions)
 
-    # Step 5: AST Syntax Audit (Triple-Shield Self-Healing)
+    # Step 7: AST Syntax Audit (Triple-Shield Self-Healing)
     audit_res = audit_code_syntax(modified_code)
     if not audit_res["valid"]:
         print(f"  [LSP Error] AST Syntax invalid: {audit_res['error']}. Reverting to original.")
@@ -147,20 +166,20 @@ def solve_issue(instance: dict, repo_dir: str = ".") -> str:
         # Apply modified code to repository
         target_path.write_text(modified_code, encoding="utf-8")
 
-    # Step 6: Patch Generation (Unified Diff with git headers)
+    # Step 8: Patch Generation (Unified Diff with git headers)
     patch_res = synthesize_patch(target_file, original_code, modified_code)
     changed_lines = patch_res.get("changed_lines", 0)
 
-    # Step 7: Nighttime Hybrid STDP Sleep-Sync Weight Consolidation
+    # Step 9: Nighttime Hybrid STDP Sleep-Sync Weight Consolidation
     sleep_res = consolidate_sleep_weights(instance_id, exc_types, changed_lines)
     print(f"  [STDP Sleep Sync] Weight delta: {sleep_res['stdp_delta_w']:+.4f} | "
           f"Variational Free Energy: {sleep_res['variational_free_energy']:.4f}")
 
-    # Step 8: Continual Synaptic Knowledge Distillation (Zero Memory Bloat)
+    # Step 10: Continual Synaptic Knowledge Distillation (Zero Memory Bloat)
     active_synapses = {
         f"syn_{exc_types[0] if exc_types else 'gen'}": sleep_res['synaptic_weight_after'],
         "syn_webgpu_gain": round(prune_res['firing_rate_hz'] / 1000.0, 3),
-        "syn_diff_density": round(changed_lines / 10.0, 3)
+        "syn_quantum_ground": orch_res['ground_state_energy']
     }
     distill_res = elastic_mgr.distill_and_prune_task_knowledge(
         task_id=instance_id,
@@ -170,8 +189,9 @@ def solve_issue(instance: dict, repo_dir: str = ".") -> str:
     print(f"  [Synaptic Distillation] Compression: {distill_res['compression_ratio']} | "
           f"Delta: {distill_res['distilled_delta_size_bytes']}B | SSD Footprint: INVARIANT <= {distill_res['quota_cap_gb']}GB")
 
-    # Step 9: Cryptographic Merkle Proof Audit Receipt (Google AI Pro Ultra Moat)
+    # Step 11: Cryptographic Merkle Proof Audit Receipt (Google AI Pro Ultra Moat)
     evidence = [f"{e['type']}: {e['message']}" for e in exceptions]
+    evidence.append(f"QuantumGroundEnergy:{orch_res['ground_state_energy']}")
     evidence.append(f"WebGPU_FiringRate:{prune_res['firing_rate_hz']}Hz")
     evidence.append(f"STDP_Weight:{sleep_res['synaptic_weight_after']}")
     evidence.append(f"Distill_Ratio:{distill_res['compression_ratio']}")

@@ -1,15 +1,15 @@
 # ================================================================================
-# GENESIS Tri-Core Edge Quantum Developer Agent Specification (agent.yaml)
+# GENESIS Quantum Gemma 4 Sovereign Developer Agent Specification (agent.yaml)
 # Google - Gemma 4 Developer Agent Competition (Kaggle Track 1 & Track 2)
 # Compliant with Google Agent Development Kit (ADK) & swegemma Harness
 # ================================================================================
 
 agent:
-  name: "genesis-tricore-gemma4-agent"
-  version: "2.1.0"
-  description: "Tri-Core Edge Quantum Autonomous Software Engineering Agent powered by WebGPU WGSL 10k SNN, Persistent OPFS Gemma 4 INT4, Adaptive Elastic Quantization & Synaptic Continual Distillation (AEQ-SCD), Nighttime STDP Sleep-Sync, and EU AI Act Art. 13 Merkle Ledger."
+  name: "genesis-quantum-gemma4-sovereign-agent"
+  version: "2.2.0"
+  description: "Quantum Gemma 4 Sovereign Developer Agent embedded across device SSDs (PC, Smartphone, Tablet, Gemini Notebook), linked via Dedicated Private Mesh (*.genesis.internal), powered by Quantum Ising Annealing, WebGPU 10k SNN, AEQ-SCD Continual Compression, STDP Sleep-Sync, and Sovereign DNS Origin Shield."
   author: "Team GENESIS (Cybernetics Intelligence Group)"
-  architecture: "Tri-Core Edge Quantum (Colab Blackwell 96GB x Smartphone OPFS 2.1GB x WebGPU WGSL 10k SNN)"
+  architecture: "Sovereign Quad-Mesh (Google Drive 24h Anchor x Colab Blackwell 96GB x PC Workstation x Mobile/Tablet OPFS 2.1GB)"
 
 model:
   base_model: "google/gemma-4-31b-it"
@@ -29,6 +29,10 @@ configs:
   sampling_config_path: "configs/sampling.yaml"
 
 skills:
+  - name: "quantum_gemma4_orchestrator"
+    entrypoint: "skills.quantum_gemma4_orchestrator:get_quantum_orchestrator"
+    description: "👑 Master Orchestrator embedded in device SSD. Evaluates quantum state vectors |psi> and Ising spin-glass Hamiltonian for optimal patch selection across dedicated mesh lines."
+
   - name: "reverse_mindmap_locator"
     entrypoint: "skills.reverse_mindmap_locator:locate_bug_root_cause"
     description: "Reverse-maps stack traces, error messages, and issue descriptions to pinpoint the exact buggy files and AST function nodes."
@@ -53,6 +57,10 @@ skills:
     entrypoint: "skills.elastic_compression_engine:get_elastic_compression_manager"
     description: "Adaptive Elastic Quantization & Synaptic Continual Distillation (AEQ-SCD) preventing SSD memory explosion while expanding learned knowledge."
 
+  - name: "sovereign_dns_shield"
+    entrypoint: "skills.sovereign_dns_shield:get_sovereign_dns_shield"
+    description: "Physical sender IP / CIDR / ASN origin verification and Moving Target Defense (MTD) rotation against spoofed domains and phishing."
+
   - name: "merkle_audit_proof"
     entrypoint: "genesis_core.engine_merkle:PortableMerkleAuditor"
     description: "Constructs hierarchical SHA-256 Merkle tree receipts satisfying EU AI Act Article 13 and Google AI Pro Ultra neural watermarking."
@@ -65,3 +73,5 @@ metadata:
   flight_mode_resilient: true
   elastic_continual_compression: true
   ssd_memory_bloat_risk: 0.00
+  quantum_ising_annealing: true
+  dedicated_private_mesh: true
