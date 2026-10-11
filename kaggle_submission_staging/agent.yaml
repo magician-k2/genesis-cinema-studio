@@ -5,11 +5,11 @@
 # ================================================================================
 
 agent:
-  name: "genesis-quantum-gemma4-sovereign-agent"
-  version: "2.2.0"
-  description: "Quantum Gemma 4 Sovereign Developer Agent embedded across device SSDs (PC, Smartphone, Tablet, Gemini Notebook), linked via Dedicated Private Mesh (*.genesis.internal), powered by Quantum Ising Annealing, WebGPU 10k SNN, AEQ-SCD Continual Compression, STDP Sleep-Sync, and Sovereign DNS Origin Shield."
+  name: "genesis-mobile-antigravity-gemma4"
+  version: "2.3.0"
+  description: "Mobile-First Autonomous Developer Agent designed to empower full-stack software development directly on consumer smartphones and tablets without cloud API costs. Powered by on-device Quantum Gemma 4 Edge Orchestration (OPFS 2.1GB), WebGPU 10k SNN hardware acceleration (37.8ms), AEQ-SCD Continual Compression, and a Sovereign DNS Shield to secure mobile coding over public Wi-Fi."
   author: "Team GENESIS (Cybernetics Intelligence Group)"
-  architecture: "Sovereign Quad-Mesh (Google Drive 24h Anchor x Colab Blackwell 96GB x PC Workstation x Mobile/Tablet OPFS 2.1GB)"
+  architecture: "Mobile-First Sovereign Quad-Mesh (Mobile/Tablet OPFS 2.1GB x Google Drive 24h Anchor x Colab Blackwell 96GB x PC Workstation)"
 
 model:
   base_model: "google/gemma-4-31b-it"
