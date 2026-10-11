@@ -5,3 +5,4 @@ from .patch_generator import generate_git_patch
 from .surgical_patch_synthesizer import apply_surgical_fix, synthesize_patch
 from .webgpu_snn_accelerator import WebGPUSNNAccelerator, accelerate_neuromorphic_pruning
 from .hybrid_sleep_sync_consolidator import HybridSleepSyncConsolidator, consolidate_sleep_weights
+from .elastic_compression_engine import AdaptiveElasticCompressionEngine, get_elastic_compression_manager
