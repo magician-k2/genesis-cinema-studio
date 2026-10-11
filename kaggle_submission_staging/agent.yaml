@@ -27,6 +27,8 @@ prompts:
 
 configs:
   sampling_config_path: "configs/sampling.yaml"
+  google_ai_ecosystem_path: "configs/google_ai_ecosystem.json"
+  colab_master_notebook_path: "notebooks/GENESIS_Antigravity2_Colab_Master.ipynb"
 
 skills:
   - name: "quantum_gemma4_orchestrator"
@@ -75,3 +77,5 @@ metadata:
   ssd_memory_bloat_risk: 0.00
   quantum_ising_annealing: true
   dedicated_private_mesh: true
+  colab_antigravity2_included: true
+  google_ai_latest_stack: "google-genai v1.0+ (Gemma 4 31B & Gemini 2.5 Pro)"
