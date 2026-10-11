@@ -26,8 +26,11 @@
   - スマホ最下部入力バー（`100dvh`）の画面固定＆キーボード追従完了。
 - **👑 圧倒的参入障壁：「GENESIS限定」エコシステム防壁（Moat）**:
   - Googleアカウント ✕ Google AI Pro Ultra 暗号化ニューラル・ウォーターマーク（SHA-256 ✕ Ed25519電子署名）構想を公式提出パッケージへ統合。
+- **🌙 夜間ハイブリッド自走・睡眠時同期エンジン（GENESIS Hybrid Sleep-Sync Engine）**:
+  - `core/genesis_hybrid_night_sync_engine.py` 実装完了。
+  - PC省電力巡回 ✕ Colab Pro夜間1〜2時間集中バッチ（月1,200円枠内で無人切断リスク回避） ✕ スマホSleep Sync（STDPシナプス可塑性定着 $\Delta w = A_+ e^{-\Delta t/\tau_+}$）。
 - **📑 ハッカソン公式提出パッケージ更新完了**:
-  - `knowledge_bank/HACKATHON_SUBMISSION_MASTER_GENESIS_2026.md` 更新済み。
+  - `knowledge_bank/HACKATHON_SUBMISSION_MASTER_GENESIS_2026.md` 更新済み（全テスト 28/28 PASS）。
 
 ## 🎯 新しいチャットでの開始用プロンプト（ユーザー様向け）
 新しいチャットを開いた際は、以下の1行を貼り付けるだけで、Antigravityがこのファイルを自動で読み込み、1秒で全く同じ状態から超高速に再開できます：

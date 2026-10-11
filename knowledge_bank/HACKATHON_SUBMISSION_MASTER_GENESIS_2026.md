@@ -83,6 +83,13 @@ flowchart TD
   $$\tau_m \frac{dV}{dt} = -(V - V_{rest}) + R_m I(t)$$
 - 実機スクリーンショット実測値：**10,000ニューロン並列演算 = 37.800 ms**。
 
+### ④ 夜間ハイブリッド自走・睡眠時同期（Hybrid Sleep-Sync Engine）
+- **Proプラン（月1,200円枠）で24時間自律進化を完全達成**:
+  - **PC側（低電力常時巡回）**: 画面オフ・CPU低負荷でWeb/arXiv論文・講義資料を常時巡回収集（GPU負荷ゼロ・電力微小）。
+  - **Colab Pro側（高密度ピンポイント集中バッチ）**: PCが集めたデータを夜間の短時間（1〜2時間）だけBlackwell/A100 GPUで超並列一括消化。24時間常時接続の必要がなく、**無人切断リスクを完全回避しながら月100ユニット枠内で余裕完結**。
+  - **スマホ側（充電スタンド上のSleep Sync）**: 生体の睡眠時記憶固定化（海馬 ➔ 大脳皮質）に倣い、**STDP可塑性学習則（$\Delta w = A_+ e^{-\Delta t/\tau_+}$）**により日中対話ログをSNNシナプス重みへ定着。
+  - **朝起きた瞬間のRehydration**: Google Drive経由でPC・スマホ双方に昨晩の完成論文・スライドが0.01秒で展開。
+
 ---
 
 ## 🔒 4. 圧倒的参入障壁：「GENESIS限定」エコシステム防壁（Moat）
@@ -148,6 +155,7 @@ flowchart TD
 
 1. **GitHubリポジトリ**: `https://github.com/magician-k2/GENESIS_ROOT`
    - **3層直結モバイルPWA**: `web/mobile_antigravity_pwa.html`（OPFS 2.1GB ✕ WebGPU WGSL 10k SNN）
+   - **夜間ハイブリッド自走・睡眠時同期エンジン**: `core/genesis_hybrid_night_sync_engine.py`
    - **PC双方向リアルタイム同期**: `core/genesis_antigravity_history_sync.py`
    - **Colab Blackwell中枢**: `core/genesis_colab_bridge.py`, `core/genesis_blackwell_neural_core.py`
    - **自律出版基本キット**: `web/gemini_agentic_notebook_studio.html`, `web/publisher_studio.html`, `web/agentic_video_studio.html`
@@ -157,4 +165,4 @@ flowchart TD
    - スマホローカルSSD配備ログ：`CERTIFIED (2.1GB) (OPFS CacheStorage)`
    - PCチャット同期：リアルタイム完全一致確認済み
 3. **回帰テストスイート**:
-   - `python -m unittest tests/test_*.py` ➔ **23/23 全テスト 100% PASS**（1.74秒）
+   - `python -m unittest tests/test_*.py` ➔ **28/28 全テスト 100% PASS**（1.98秒）
