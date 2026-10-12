@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GENESIS Sensory Lens & Drive Vault</title>
+    <meta name="theme-color" content="#030712">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #030712; color: #f3f4f6; touch-action: manipulation; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-bar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+        .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+    </style>
+</head>
+<body class="h-full flex flex-col justify-between overflow-hidden relative select-none">
+
+    <!-- 🔝 TOP CONTROL BAR (Folder & Camera Switcher) -->
+    <header class="p-3 glass-bar flex flex-col gap-2 z-30 shrink-0">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <a href="/mobile" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 active:scale-90 transition">
+                    ◀
+                </a>
+                <div>
+                    <h1 class="text-xs font-black tracking-wider text-cyan-400 flex items-center gap-1.5">
+                        <span>👁️ 🎙️</span>
+                        <span>GENESIS SENSORY LENS</span>
+                    </h1>
+                    <div class="text-[9px] text-slate-400 mono">Google Drive ✕ 24H Gemini 2.5 Pro 連動</div>
+                </div>
+            </div>
+            
+            <!-- 🔄 Camera Switcher Button (Front/Back) -->
+            <button id="btnSwitchCam" onclick="toggleCameraFacing()" class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/60 text-cyan-300 text-xs font-bold flex items-center space-x-1 active:scale-95 transition shadow">
+                <span id="camIcon">🔄</span>
+                <span id="camLabel">裏カメラ (リア)</span>
+            </button>
+        </div>
+
+        <!-- 📁 Target Folder Selector (Google Drive) -->
+        <div class="flex items-center space-x-2 text-[11px] pt-1 border-t border-slate-800">
+            <span class="text-slate-400 font-semibold whitespace-nowrap">📁 保存先:</span>
+            <select id="folderSelect" onchange="handleFolderChange()" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 focus:outline-none focus:border-cyan-400">
+                <option value="images">sensory_vault / 現場写真・帳票</option>
+                <option value="meetings">sensory_vault / 役員・商談会議</option>
+                <option value="invoices">sensory_vault / 経理・領収書</option>
+                <option value="bugs">sensory_vault / 画面バグ・エラー</option>
+                <option value="custom">＋ 任意のフォルダ名を指定...</option>
+            </select>
+            <input id="customFolderInput" type="text" placeholder="フォルダ名" class="hidden w-28 bg-slate-900 border border-cyan-500 rounded-lg px-2 py-1 text-slate-200">
+        </div>
+    </header>
+
+    <!-- 📷 LIVE CAMERA PREVIEW (FULLSCREEN VIEWPORT) -->
+    <main class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+        <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+        <canvas id="captureCanvas" class="hidden"></canvas>
+
+        <!-- Status Overlays -->
+        <div id="recordingBadge" class="absolute top-4 left-4 px-3 py-1 rounded-full bg-rose-600/90 text-white text-xs font-bold glow-red items-center space-x-2 hidden">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span id="recordingTimer">REC 00:00</span>
+        </div>
+
+        <!-- 24h Pro Continuous Engine Badge -->
+        <div class="absolute top-4 right-4 px-2.5 py-1 rounded-full glass-bar text-[10px] text-emerald-400 font-bold flex items-center space-x-1.5 mono">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>24H PRO 常駐稼働 (Ultra不要)</span>
+        </div>
+
+        <!-- Capture Flash Effect -->
+        <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-150"></div>
+    </main>
+
+    <!-- 🎮 BOTTOM ACTION CONTROLS -->
+    <footer class="p-4 glass-bar flex flex-col gap-3 shrink-0 safe-bottom">
+        <div class="flex items-center justify-around">
+            
+            <!-- 🎙️ Audio Recording Button -->
+            <button id="btnAudioRec" onclick="toggleAudioRecording()" class="flex flex-col items-center space-y-1 active:scale-95 transition">
+                <div class="w-12 h-12 rounded-full bg-purple-950 border-2 border-purple-500/80 flex items-center justify-center text-purple-300 shadow-md">
+                    <span id="audioIcon" class="text-xl">🎙️</span>
+                </div>
+                <span id="audioLabel" class="text-[10px] text-purple-300 font-bold">音声録音</span>
+            </button>
+
+            <!-- 📸 Shutter Button (Photo) -->
+            <button id="btnPhotoSnap" onclick="snapPhoto()" class="w-16 h-16 rounded-full bg-cyan-500 p-1 flex items-center justify-center shadow-lg shadow-cyan-500/40 active:scale-90 transition">
+                <div class="w-full h-full rounded-full border-2 border-slate-950 bg-white"></div>
+            </button>
+
+            <!-- 🎥 Video Recording Button -->
+            <button id="btnVideoRec" onclick="toggleVideoRecording()" class="flex flex-col items-center space-y-1 active:scale-95 transition">
+                <div id="videoCircle" class="w-12 h-12 rounded-full bg-rose-950 border-2 border-rose-500/80 flex items-center justify-center text-rose-300 shadow-md">
+                    <span id="videoIcon" class="text-xl">🎥</span>
+                </div>
+                <span id="videoLabel" class="text-[10px] text-rose-300 font-bold">動画録画</span>
+            </button>
+        </div>
+
+        <!-- Live Sync Notification Banner -->
+        <div id="toastBanner" class="p-2 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-[11px] text-emerald-300 flex items-center justify-between hidden">
+            <span id="toastMsg" class="truncate font-medium">☁️ Google Driveへ即時同期完了！</span>
+            <span class="text-emerald-400 font-bold mono">PASS ✅</span>
+        </div>
+    </footer>
+
+    <script>
+        let currentFacingMode = "environment"; // default rear camera
+        let stream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecordingVideo = false;
+        let isRecordingAudio = false;
+        let timerInterval = null;
+        let timerSeconds = 0;
+
+        async function initCamera() {
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode },
+                    audio: true
+                });
+                document.getElementById('cameraVideo').srcObject = stream;
+            } catch (err) {
+                console.warn("Camera init fallback:", err);
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    document.getElementById('cameraVideo').srcObject = stream;
+                } catch (e) {
+                    alert("カメラの起動に失敗しました: " + e.message);
+                }
+            }
+        }
+
+        function toggleCameraFacing() {
+            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+            const label = document.getElementById('camLabel');
+            label.textContent = currentFacingMode === "environment" ? "裏カメラ (リア)" : "表カメラ (イン)";
+            initCamera();
+        }
+
+        function handleFolderChange() {
+            const sel = document.getElementById('folderSelect');
+            const custom = document.getElementById('customFolderInput');
+            if (sel.value === 'custom') {
+                custom.classList.remove('hidden');
+                custom.focus();
+            } else {
+                custom.classList.add('hidden');
+            }
+        }
+
+        function getTargetFolder() {
+            const sel = document.getElementById('folderSelect');
+            if (sel.value === 'custom') {
+                return document.getElementById('customFolderInput').value.trim() || 'custom_vault';
+            }
+            return sel.value;
+        }
+
+        function triggerFlash() {
+            const flash = document.getElementById('flashOverlay');
+            flash.style.opacity = '0.9';
+            setTimeout(() => flash.style.opacity = '0', 150);
+        }
+
+        function showToast(msg) {
+            const banner = document.getElementById('toastBanner');
+            const txt = document.getElementById('toastMsg');
+            txt.textContent = msg;
+            banner.classList.remove('hidden');
+            setTimeout(() => banner.classList.add('hidden'), 4000);
+        }
+
+        // 📸 Snap Photo & Upload to Google Drive Vault
+        async function snapPhoto() {
+            triggerFlash();
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('captureCanvas');
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            const folder = getTargetFolder();
+
+            showToast(`📸 写真保存中... [Google Drive: sensory_vault/${folder}]`);
+
+            try {
+                const res = await fetch('/api/lens/capture', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        media_type: 'photo',
+                        image_data: dataUrl,
+                        folder: folder,
+                        facing: currentFacingMode
+                    })
+                });
+                const result = await res.json();
+                showToast(`✅ Google Drive (${folder}/${result.filename}) に保存完了！`);
+            } catch (err) {
+                showToast(`❌ 保存エラー: ${err.message}`);
+            }
+        }
+
+        // 🎥 Video Recording
+        function toggleVideoRecording() {
+            if (!isRecordingVideo) {
+                startVideoRec();
+            } else {
+                stopVideoRec();
+            }
+        }
+
+        function startVideoRec() {
+            isRecordingVideo = true;
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = uploadVideoRecording;
+            mediaRecorder.start();
+
+            document.getElementById('videoLabel').textContent = "停止";
+            document.getElementById('videoCircle').classList.add('bg-rose-600', 'glow-red');
+            document.getElementById('recordingBadge').classList.remove('hidden');
+            document.getElementById('recordingBadge').classList.add('flex');
+            startTimer();
+        }
+
+        function stopVideoRec() {
+            isRecordingVideo = false;
+            mediaRecorder.stop();
+            document.getElementById('videoLabel').textContent = "動画録画";
+            document.getElementById('videoCircle').classList.remove('bg-rose-600', 'glow-red');
+            document.getElementById('recordingBadge').classList.add('hidden');
+            document.getElementById('recordingBadge').classList.remove('flex');
+            stopTimer();
+        }
+
+        async function uploadVideoRecording() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const folder = getTargetFolder();
+                showToast(`🎥 動画アップロード中... [Google Drive: ${folder}]`);
+                try {
+                    const res = await fetch('/api/lens/capture', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            media_type: 'video',
+                            video_data: reader.result,
+                            folder: folder
+                        })
+                    });
+                    const data = await res.json();
+                    showToast(`✅ 動画保存完了: ${data.filename}`);
+                } catch (e) {
+                    showToast(`❌ 動画アップロード失敗: ${e.message}`);
+                }
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        // 🎙️ Audio Recording
+        function toggleAudioRecording() {
+            if (!isRecordingAudio) {
+                isRecordingAudio = true;
+                recordedChunks = [];
+                const audioStream = new MediaStream(stream.getAudioTracks());
+                mediaRecorder = new MediaRecorder(audioStream);
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                mediaRecorder.onstop = uploadAudioRecording;
+                mediaRecorder.start();
+
+                document.getElementById('audioLabel').textContent = "録音中...";
+                document.getElementById('audioIcon').textContent = "⏹️";
+                startTimer();
+            } else {
+                isRecordingAudio = false;
+                mediaRecorder.stop();
+                document.getElementById('audioLabel').textContent = "音声録音";
+                document.getElementById('audioIcon').textContent = "🎙️";
+                stopTimer();
+            }
+        }
+
+        async function uploadAudioRecording() {
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const folder = getTargetFolder();
+                showToast(`🎙️ 音声保存中... [Google Drive: ${folder}]`);
+                try {
+                    const res = await fetch('/api/lens/capture', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            media_type: 'audio',
+                            audio_data: reader.result,
+                            folder: folder
+                        })
+                    });
+                    const data = await res.json();
+                    showToast(`✅ 音声保存完了: ${data.filename}`);
+                } catch (e) {
+                    showToast(`❌ 音声保存失敗: ${e.message}`);
+                }
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        function startTimer() {
+            timerSeconds = 0;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('recordingTimer').textContent = `REC ${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        window.onload = initCamera;
+    </script>
+</body>
+</html>

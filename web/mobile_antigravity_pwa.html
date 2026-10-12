@@ -128,6 +128,10 @@
 
     <!-- 💡 QUICK PROMPT PILLS -->
     <div class="px-3 py-1.5 bg-slate-950/90 border-t border-slate-800/60 flex space-x-2 overflow-x-auto no-scrollbar shrink-0">
+        <a href="/lens" class="px-2.5 py-1 rounded-full bg-cyan-950/90 border border-cyan-500/70 text-[10px] text-cyan-300 font-bold whitespace-nowrap active:scale-95 transition flex items-center space-x-1 shadow-md">
+            <span>📷</span>
+            <span>現場キャプチャ局 (/lens)</span>
+        </a>
         <button onclick="runSensoryCyberneticsTest()" class="px-2.5 py-1 rounded-full bg-gradient-to-r from-emerald-900/90 to-teal-900/90 border border-emerald-500/60 text-[10px] text-emerald-300 font-bold whitespace-nowrap active:scale-95 transition flex items-center space-x-1 shadow-md">
             <span>👁️ 🎙️</span>
             <span>目・耳 ✕ Colab リアルタイム連動</span>
@@ -138,16 +142,14 @@
         <button onclick="sendQuickPrompt('認証機能とGoogle Pay決済がついたFastAPIバックエンドコードを書いて')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-amber-300 whitespace-nowrap active:scale-95 transition">
             💳 0トークンでFastAPI生成
         </button>
-        <button onclick="sendQuickPrompt('AIハルシネーション（嘘）を完全にゼロにする量子フィルタの論文とスライドを作成して')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-purple-300 whitespace-nowrap active:scale-95 transition">
-            📑 論文・スライド自動執筆
-        </button>
     </div>
 
     <!-- ✍️ PERSISTENT INPUT BAR (WITH EYE & EAR SENSORY TRIGGERS) -->
     <footer class="p-2.5 bg-slate-950 border-t border-slate-800 shrink-0 safe-bottom">
+        <input type="file" id="mobileCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleMobilePhotoCaptured(event)">
         <form onsubmit="handleUserSubmit(event)" class="flex items-center space-x-2">
-            <!-- 📸 Eye Camera Trigger -->
-            <button type="button" onclick="triggerSensoryEyePrompt()" class="w-9 h-9 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 flex items-center justify-center active:scale-90 transition shrink-0" title="目: 帳票・ホワイトボード・画面バグを撮影">
+            <!-- 📸 Eye Camera Trigger (Direct to PC Chat) -->
+            <button type="button" onclick="triggerSensoryEyePrompt()" class="w-9 h-9 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 flex items-center justify-center active:scale-90 transition shrink-0" title="スマホで撮影してPCチャット欄へ直接取り込む">
                 <span class="text-sm">📸</span>
             </button>
             <!-- 🎙️ Ear Mic Trigger -->
@@ -962,8 +964,37 @@ async def process_google_pay(payload: dict, token: HTTPAuthorizationCredentials 
         }
 
         function triggerSensoryEyePrompt() {
-            appendMessage('User', '📸 [目] スマホのカメラでホワイトボードや売上帳票を撮影してColabへ転送', true);
-            runSensoryCyberneticsTest();
+            const camInput = document.getElementById('mobileCameraInput');
+            if (camInput) {
+                camInput.click();
+            }
+        }
+
+        async function handleMobilePhotoCaptured(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const base64Data = e.target.result;
+                appendMessage('User', '📸 **[スマホ撮影写真をPCのAntigravityチャット欄へ直接転送中...]**', true);
+
+                try {
+                    const res = await fetch('/api/chat/push_media', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image_data: base64Data,
+                            source: 'mobile_camera'
+                        })
+                    });
+                    const data = await res.json();
+                    appendMessage('Antigravity', '✨ **写真をPCのAntigravityチャット欄へ直接取り込みました！**\n\nPC側のAntigravity画面にこの画像がリアルタイム展開されました。PCからそのまま質問やプロンプトを送信できます。', false);
+                } catch (err) {
+                    appendMessage('Antigravity', `❌ PCへの画像転送エラー: ${err.message}`, false);
+                }
+            };
+            reader.readAsDataURL(file);
         }
 
         function triggerSensoryEarPrompt() {

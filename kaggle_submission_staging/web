@@ -3,992 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GENESIS Mobile Antigravity 2.0</title>
-    <link rel="manifest" href="manifest.webmanifest">
+    <title>GENESIS Sensory Lens & Drive Vault</title>
     <meta name="theme-color" content="#030712">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        html, body {
-            height: 100dvh;
-            max-height: 100dvh;
-            overflow: hidden;
-            background-color: #030712;
-            color: #f3f4f6;
-            font-family: 'Inter', -apple-system, sans-serif;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #030712; color: #f3f4f6; touch-action: manipulation; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .bubble-user {
-            background: linear-gradient(135deg, #0284c7, #2563eb);
-            border-radius: 18px 18px 4px 18px;
-        }
-        .bubble-agent {
-            background: rgba(30, 41, 59, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 18px 18px 18px 4px;
-        }
-        .safe-bottom {
-            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
-        }
-        .modal-fade {
-            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-        }
+        .glass-bar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+        .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
     </style>
 </head>
-<body class="flex flex-col justify-between select-none relative">
+<body class="h-full flex flex-col justify-between overflow-hidden relative select-none">
 
-    <!-- 🌐 STATUS HEADER -->
-    <header class="h-12 bg-slate-950/95 border-b border-slate-800 px-3.5 flex items-center justify-between z-40 shrink-0">
-        <div class="flex items-center space-x-2">
-            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center shadow-md">
-                <span class="text-xs font-black text-white">2.0</span>
-            </div>
-            <div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="font-extrabold text-xs tracking-wide bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">ANTIGRAVITY</span>
-                    <span class="text-[8px] px-1 py-0.2 rounded bg-cyan-950 text-cyan-300 mono font-bold border border-cyan-800">COLAB</span>
+    <!-- 🔝 TOP CONTROL BAR (Folder & Camera Switcher) -->
+    <header class="p-3 glass-bar flex flex-col gap-2 z-30 shrink-0">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <a href="/mobile" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 active:scale-90 transition">
+                    ◀
+                </a>
+                <div>
+                    <h1 class="text-xs font-black tracking-wider text-cyan-400 flex items-center gap-1.5">
+                        <span>👁️ 🎙️</span>
+                        <span>GENESIS SENSORY LENS</span>
+                    </h1>
+                    <div class="text-[9px] text-slate-400 mono">Google Drive ✕ 24H Gemini 2.5 Pro 連動</div>
                 </div>
-                <div class="text-[9px] text-slate-400 flex items-center space-x-1">
-                    <span id="syncIndicator" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="syncLabel">PC ＆ Blackwell 完全同期中</span>
-                </div>
             </div>
+            
+            <!-- 🔄 Camera Switcher Button (Front/Back) -->
+            <button id="btnSwitchCam" onclick="toggleCameraFacing()" class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/60 text-cyan-300 text-xs font-bold flex items-center space-x-1 active:scale-95 transition shadow">
+                <span id="camIcon">🔄</span>
+                <span id="camLabel">裏カメラ (リア)</span>
+            </button>
         </div>
-        <div class="flex items-center space-x-1.5">
-            <!-- ➕ New Chat Button -->
-            <button onclick="createNewSession()" class="h-8 px-2.5 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white flex items-center space-x-1 text-xs font-bold shadow-md shadow-cyan-500/20 active:scale-95 transition" title="新規チャット作成">
-                <span class="text-sm font-extrabold">+</span>
-                <span>新規</span>
-            </button>
-            <!-- 🔍 Search & History Button -->
-            <button onclick="openHistoryModal()" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700/80 flex items-center justify-center text-cyan-300 active:scale-90 transition shadow" title="PCチャット履歴・全セッション">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-            </button>
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 mono font-bold">
-                $0.00
-            </span>
+
+        <!-- 📁 Target Folder Selector (Google Drive) -->
+        <div class="flex items-center space-x-2 text-[11px] pt-1 border-t border-slate-800">
+            <span class="text-slate-400 font-semibold whitespace-nowrap">📁 保存先:</span>
+            <select id="folderSelect" onchange="handleFolderChange()" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 focus:outline-none focus:border-cyan-400">
+                <option value="images">sensory_vault / 現場写真・帳票</option>
+                <option value="meetings">sensory_vault / 役員・商談会議</option>
+                <option value="invoices">sensory_vault / 経理・領収書</option>
+                <option value="bugs">sensory_vault / 画面バグ・エラー</option>
+                <option value="custom">＋ 任意のフォルダ名を指定...</option>
+            </select>
+            <input id="customFolderInput" type="text" placeholder="フォルダ名" class="hidden w-28 bg-slate-900 border border-cyan-500 rounded-lg px-2 py-1 text-slate-200">
         </div>
     </header>
 
-    <!-- 📊 MINI TELEMETRY STRIP (BLACKWELL CLOUD & MOBILE WEBGPU) -->
-    <div class="px-3 py-1.5 bg-slate-900/90 border-b border-slate-800/60 flex items-center justify-between text-[10px] mono shrink-0">
-        <div class="text-cyan-400 flex items-center space-x-1">
-            <span>⚡ Blackwell 96GB</span>
-        </div>
-        <!-- 🚀 Interactive WebGPU Benchmark & Status Pill -->
-        <button id="webgpuBadge" onclick="runWebGPUBenchmark()" class="flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-cyan-950/90 border border-cyan-500/60 text-[9px] text-cyan-300 font-bold active:scale-95 transition shadow-sm hover:border-cyan-400" title="WebGPUハードウェア検知 & 10,000 SNN WGSLベンチマーク">
-            <span id="webgpuDot" class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-            <span id="webgpuTxt">WebGPU: 検出中...</span>
-        </button>
-        <div class="flex items-center space-x-1.5">
-            <span class="text-emerald-400 font-bold flex items-center space-x-1 px-1.5 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-[9px]">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>DNS: 10.0.1.20</span>
-            </span>
-            <div class="text-emerald-400 font-bold flex items-center space-x-1 text-[9px]">
-                <span>PC同期</span>
-            </div>
-        </div>
-    </div>
+    <!-- 📷 LIVE CAMERA PREVIEW (FULLSCREEN VIEWPORT) -->
+    <main class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+        <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+        <canvas id="captureCanvas" class="hidden"></canvas>
 
-    <!-- 🧠 QUANTUM GEMMA 4 SSD ORCHESTRATION BAR (MOBILE BASIC KIT) -->
-    <div id="ssdOrchestrationBar" class="px-3.5 py-1.5 bg-gradient-to-r from-slate-950 via-indigo-950/50 to-slate-950 border-b border-indigo-900/60 flex items-center justify-between text-[10px] shrink-0">
-        <div class="flex items-center space-x-2">
-            <span class="text-sm">💾</span>
-            <div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="font-bold text-slate-200">量子Gemma 4 SSD配備:</span>
-                    <span id="ssdStatusBadge" class="px-1.5 py-0.2 rounded font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800">未配備</span>
-                </div>
-                <div id="ssdStatusSub" class="text-[9px] text-slate-400">スマホSSD (OPFS) ✕ WebGPU WGSL高速並列化 (0.01ms)</div>
-            </div>
+        <!-- Status Overlays -->
+        <div id="recordingBadge" class="absolute top-4 left-4 px-3 py-1 rounded-full bg-rose-600/90 text-white text-xs font-bold glow-red items-center space-x-2 hidden">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span id="recordingTimer">REC 00:00</span>
         </div>
-        <button id="btnInstallSSD" onclick="triggerGemma4SSDInstall()" class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-[10px] flex items-center space-x-1 shadow-md shadow-indigo-500/25 active:scale-95 transition">
-            <span id="ssdBtnIcon">📥</span>
-            <span id="ssdBtnLabel">SSD配備 (2.1GB)</span>
-        </button>
-    </div>
 
-    <!-- 💬 CHAT STREAM AREA (SCROLLABLE & SYNCED WITH PC) -->
-    <main id="chatStream" class="flex-1 overflow-y-auto p-3.5 space-y-3.5">
-        <!-- Live synced messages will be injected here automatically -->
-        <div id="initialLoading" class="flex items-center justify-center h-40 text-slate-500 text-xs space-x-2">
-            <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
-            <span>PC版Antigravityの対話ログをリアルタイム同期中...</span>
+        <!-- 24h Pro Continuous Engine Badge -->
+        <div class="absolute top-4 right-4 px-2.5 py-1 rounded-full glass-bar text-[10px] text-emerald-400 font-bold flex items-center space-x-1.5 mono">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>24H PRO 常駐稼働 (Ultra不要)</span>
         </div>
+
+        <!-- Capture Flash Effect -->
+        <div id="flashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-150"></div>
     </main>
 
-    <!-- 💡 QUICK PROMPT PILLS -->
-    <div class="px-3 py-1.5 bg-slate-950/90 border-t border-slate-800/60 flex space-x-2 overflow-x-auto no-scrollbar shrink-0">
-        <button onclick="runSensoryCyberneticsTest()" class="px-2.5 py-1 rounded-full bg-gradient-to-r from-emerald-900/90 to-teal-900/90 border border-emerald-500/60 text-[10px] text-emerald-300 font-bold whitespace-nowrap active:scale-95 transition flex items-center space-x-1 shadow-md">
-            <span>👁️ 🎙️</span>
-            <span>目・耳 ✕ Colab リアルタイム連動</span>
-        </button>
-        <button onclick="sendQuickPrompt('台風・水害時の最短避難ルートを量子アニーリングQUBOで計算して')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-cyan-300 whitespace-nowrap active:scale-95 transition">
-            🌊 避難経路の量子最適化
-        </button>
-        <button onclick="sendQuickPrompt('認証機能とGoogle Pay決済がついたFastAPIバックエンドコードを書いて')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-amber-300 whitespace-nowrap active:scale-95 transition">
-            💳 0トークンでFastAPI生成
-        </button>
-        <button onclick="sendQuickPrompt('AIハルシネーション（嘘）を完全にゼロにする量子フィルタの論文とスライドを作成して')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700/80 text-[10px] text-purple-300 whitespace-nowrap active:scale-95 transition">
-            📑 論文・スライド自動執筆
-        </button>
-    </div>
+    <!-- 🎮 BOTTOM ACTION CONTROLS -->
+    <footer class="p-4 glass-bar flex flex-col gap-3 shrink-0 safe-bottom">
+        <div class="flex items-center justify-around">
+            
+            <!-- 🎙️ Audio Recording Button -->
+            <button id="btnAudioRec" onclick="toggleAudioRecording()" class="flex flex-col items-center space-y-1 active:scale-95 transition">
+                <div class="w-12 h-12 rounded-full bg-purple-950 border-2 border-purple-500/80 flex items-center justify-center text-purple-300 shadow-md">
+                    <span id="audioIcon" class="text-xl">🎙️</span>
+                </div>
+                <span id="audioLabel" class="text-[10px] text-purple-300 font-bold">音声録音</span>
+            </button>
 
-    <!-- ✍️ PERSISTENT INPUT BAR (WITH EYE & EAR SENSORY TRIGGERS) -->
-    <footer class="p-2.5 bg-slate-950 border-t border-slate-800 shrink-0 safe-bottom">
-        <form onsubmit="handleUserSubmit(event)" class="flex items-center space-x-2">
-            <!-- 📸 Eye Camera Trigger -->
-            <button type="button" onclick="triggerSensoryEyePrompt()" class="w-9 h-9 rounded-xl bg-slate-900 border border-cyan-500/40 text-cyan-300 flex items-center justify-center active:scale-90 transition shrink-0" title="目: 帳票・ホワイトボード・画面バグを撮影">
-                <span class="text-sm">📸</span>
+            <!-- 📸 Shutter Button (Photo) -->
+            <button id="btnPhotoSnap" onclick="snapPhoto()" class="w-16 h-16 rounded-full bg-cyan-500 p-1 flex items-center justify-center shadow-lg shadow-cyan-500/40 active:scale-90 transition">
+                <div class="w-full h-full rounded-full border-2 border-slate-950 bg-white"></div>
             </button>
-            <!-- 🎙️ Ear Mic Trigger -->
-            <button type="button" onclick="triggerSensoryEarPrompt()" class="w-9 h-9 rounded-xl bg-slate-900 border border-purple-500/40 text-purple-300 flex items-center justify-center active:scale-90 transition shrink-0" title="耳: 音声メモ・会議録音">
-                <span class="text-sm">🎙️</span>
+
+            <!-- 🎥 Video Recording Button -->
+            <button id="btnVideoRec" onclick="toggleVideoRecording()" class="flex flex-col items-center space-y-1 active:scale-95 transition">
+                <div id="videoCircle" class="w-12 h-12 rounded-full bg-rose-950 border-2 border-rose-500/80 flex items-center justify-center text-rose-300 shadow-md">
+                    <span id="videoIcon" class="text-xl">🎥</span>
+                </div>
+                <span id="videoLabel" class="text-[10px] text-rose-300 font-bold">動画録画</span>
             </button>
-            <div class="flex-1 relative">
-                <input id="promptInput" type="text" placeholder="Antigravityに指示を入力...（0トークン）" autocomplete="off"
-                    class="w-full bg-slate-900 border-2 border-slate-700/90 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 transition shadow-inner">
-            </div>
-            <button type="submit" id="btnSend"
-                class="w-9 h-9 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30 active:scale-90 transition shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                </svg>
-            </button>
-        </form>
+        </div>
+
+        <!-- Live Sync Notification Banner -->
+        <div id="toastBanner" class="p-2 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-[11px] text-emerald-300 flex items-center justify-between hidden">
+            <span id="toastMsg" class="truncate font-medium">☁️ Google Driveへ即時同期完了！</span>
+            <span class="text-emerald-400 font-bold mono">PASS ✅</span>
+        </div>
     </footer>
 
-    <!-- 🔍 CHAT HISTORY & SEARCH POPUP MODAL (PC SIDEBAR & LOG SYNC) -->
-    <div id="historyModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end hidden opacity-0 modal-fade">
-        <div class="bg-slate-900 border-t border-slate-700 rounded-t-3xl h-[86dvh] flex flex-col overflow-hidden shadow-2xl safe-bottom">
-            <!-- Modal Header -->
-            <div class="p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
-                <div class="flex items-center space-x-2">
-                    <span class="text-base">🖥️</span>
-                    <div>
-                        <div class="flex items-center space-x-1.5">
-                            <span class="font-bold text-xs text-white">PC版Antigravity完全同期</span>
-                            <span id="historyCountBadge" class="text-[9px] px-1.5 py-0.2 rounded-full bg-cyan-950 text-cyan-300 mono border border-cyan-800">同期中</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400">PCのサイドバー ＆ 会話ログと100%連動</div>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <button onclick="createNewSession()" class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold text-[10px] active:scale-95 transition shadow shadow-cyan-500/20">
-                        ＋ 新規チャット
-                    </button>
-                    <button onclick="refreshLiveSync()" class="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-cyan-300 active:scale-95 transition">
-                        🔄 更新
-                    </button>
-                    <button onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center active:scale-90 transition">
-                        ✕
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tab Switcher (Current Log vs All Sessions) -->
-            <div class="px-3 pt-2 bg-slate-950 flex border-b border-slate-800 text-xs shrink-0">
-                <button id="tabBtnCurrent" onclick="switchModalTab('CURRENT')" class="flex-1 pb-2 border-b-2 border-cyan-400 text-cyan-300 font-bold text-center">
-                    💬 現在の会話ログ
-                </button>
-                <button id="tabBtnSessions" onclick="switchModalTab('SESSIONS')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-400 font-bold text-center">
-                    📂 PC全セッション (49件+)
-                </button>
-            </div>
-
-            <!-- Search Input Box -->
-            <div class="p-2.5 bg-slate-950/80 border-b border-slate-800 shrink-0">
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
-                        🔍
-                    </span>
-                    <input id="searchInput" type="text" oninput="handleSearchInput()" placeholder="会話・コード・セッションを検索..."
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400">
-                </div>
-            </div>
-
-            <!-- History List (Scrollable) -->
-            <div id="historyListContainer" class="flex-1 overflow-y-auto p-3 space-y-2">
-                <!-- Dynamically populated from PC brain -->
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="p-2.5 border-t border-slate-800 bg-slate-950 flex justify-between items-center text-[10px] text-slate-400 shrink-0">
-                <span class="text-cyan-400 mono">Active Session: 6f843046... (車載コックピット)</span>
-                <span class="text-emerald-400">● 100% 同期済み</span>
-            </div>
-        </div>
-    </div>
-
     <script>
-        const chatStream = document.getElementById('chatStream');
-        const promptInput = document.getElementById('promptInput');
-        const btnSend = document.getElementById('btnSend');
-        const historyModal = document.getElementById('historyModal');
-        const searchInput = document.getElementById('searchInput');
-        const historyListContainer = document.getElementById('historyListContainer');
-        const historyCountBadge = document.getElementById('historyCountBadge');
-        const tabBtnCurrent = document.getElementById('tabBtnCurrent');
-        const tabBtnSessions = document.getElementById('tabBtnSessions');
+        let currentFacingMode = "environment"; // default rear camera
+        let stream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecordingVideo = false;
+        let isRecordingAudio = false;
+        let timerInterval = null;
+        let timerSeconds = 0;
 
-        let currentModalTab = 'CURRENT';
-        let liveCurrentTurns = [];
-        let liveSessions = [];
-
-        // 🚀 Load live conversation from PC Antigravity brain on boot
-        async function loadLivePCConversation() {
+        async function initCamera() {
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+            }
             try {
-                const res = await fetch('/api/antigravity/current_chat?limit=30');
-                const data = await res.json();
-                if (data.success && data.turns && data.turns.length > 0) {
-                    liveCurrentTurns = data.turns;
-                    renderChatStream(data.turns);
-                } else {
-                    renderDefaultWelcome();
-                }
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: currentFacingMode },
+                    audio: true
+                });
+                document.getElementById('cameraVideo').srcObject = stream;
             } catch (err) {
-                console.warn('Could not fetch PC live chat:', err);
-                renderDefaultWelcome();
+                console.warn("Camera init fallback:", err);
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    document.getElementById('cameraVideo').srcObject = stream;
+                } catch (e) {
+                    alert("カメラの起動に失敗しました: " + e.message);
+                }
             }
         }
 
-        function renderDefaultWelcome() {
-            chatStream.innerHTML = `
-                <div class="flex items-start space-x-2.5">
-                    <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center shrink-0 shadow-md">
-                        <span class="text-xs font-bold text-white">AG</span>
-                    </div>
-                    <div class="bubble-agent p-3 max-w-[88%] shadow-lg space-y-1.5">
-                        <div class="text-[11px] font-bold text-cyan-300 flex items-center space-x-1">
-                            <span>Antigravity 2.0 (In-Situ Brain)</span>
-                            <span class="text-[8px] px-1 rounded bg-cyan-900/60 text-cyan-200">READY</span>
-                        </div>
-                        <div class="text-xs text-slate-200 leading-relaxed">
-                            こんにちは！Antigravity 2.0 です。<br>
-                            PC版Antigravityと100%リアルタイム同期しています。右上の 🔍 アイコンからPC側の全履歴・セッションを確認できます！
-                        </div>
-                    </div>
-                </div>
-            `;
+        function toggleCameraFacing() {
+            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+            const label = document.getElementById('camLabel');
+            label.textContent = currentFacingMode === "environment" ? "裏カメラ (リア)" : "表カメラ (イン)";
+            initCamera();
         }
 
-        function renderChatStream(turns) {
-            chatStream.innerHTML = '';
-            turns.forEach(t => {
-                appendMessage('You', t.prompt, true, false);
-                appendMessage('Antigravity', t.answer, false, false);
-            });
-            chatStream.scrollTop = chatStream.scrollHeight;
-        }
-
-        async function loadLivePCSessions() {
-            try {
-                const res = await fetch('/api/antigravity/sessions?limit=50');
-                const data = await res.json();
-                if (data.success && data.sessions) {
-                    liveSessions = data.sessions;
-                }
-            } catch (err) {
-                console.warn('Could not fetch PC sessions:', err);
-            }
-        }
-
-        function switchModalTab(tab) {
-            currentModalTab = tab;
-            if (tab === 'CURRENT') {
-                tabBtnCurrent.className = 'flex-1 pb-2 border-b-2 border-cyan-400 text-cyan-300 font-bold text-center';
-                tabBtnSessions.className = 'flex-1 pb-2 border-b-2 border-transparent text-slate-400 font-bold text-center';
+        function handleFolderChange() {
+            const sel = document.getElementById('folderSelect');
+            const custom = document.getElementById('customFolderInput');
+            if (sel.value === 'custom') {
+                custom.classList.remove('hidden');
+                custom.focus();
             } else {
-                tabBtnCurrent.className = 'flex-1 pb-2 border-b-2 border-transparent text-slate-400 font-bold text-center';
-                tabBtnSessions.className = 'flex-1 pb-2 border-b-2 border-cyan-400 text-cyan-300 font-bold text-center';
+                custom.classList.add('hidden');
             }
-            renderModalList();
         }
 
-        function openHistoryModal() {
-            historyModal.classList.remove('hidden');
-            setTimeout(() => {
-                historyModal.classList.remove('opacity-0');
-            }, 10);
-            searchInput.value = '';
-            refreshLiveSync();
+        function getTargetFolder() {
+            const sel = document.getElementById('folderSelect');
+            if (sel.value === 'custom') {
+                return document.getElementById('customFolderInput').value.trim() || 'custom_vault';
+            }
+            return sel.value;
         }
 
-        function closeHistoryModal() {
-            historyModal.classList.add('opacity-0');
-            setTimeout(() => {
-                historyModal.classList.add('hidden');
-            }, 200);
+        function triggerFlash() {
+            const flash = document.getElementById('flashOverlay');
+            flash.style.opacity = '0.9';
+            setTimeout(() => flash.style.opacity = '0', 150);
         }
 
-        async function refreshLiveSync() {
-            await Promise.all([loadLivePCConversation(), loadLivePCSessions()]);
-            renderModalList();
+        function showToast(msg) {
+            const banner = document.getElementById('toastBanner');
+            const txt = document.getElementById('toastMsg');
+            txt.textContent = msg;
+            banner.classList.remove('hidden');
+            setTimeout(() => banner.classList.add('hidden'), 4000);
         }
 
-        async function createNewSession() {
+        // 📸 Snap Photo & Upload to Google Drive Vault
+        async function snapPhoto() {
+            triggerFlash();
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('captureCanvas');
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            const folder = getTargetFolder();
+
+            showToast(`📸 写真保存中... [Google Drive: sensory_vault/${folder}]`);
+
             try {
-                const nowTitle = 'スマホセッション ' + new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                const res = await fetch('/api/antigravity/new_session', {
+                const res = await fetch('/api/lens/capture', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: nowTitle })
+                    body: JSON.stringify({
+                        media_type: 'photo',
+                        image_data: dataUrl,
+                        folder: folder,
+                        facing: currentFacingMode
+                    })
                 });
-                const data = await res.json();
-                console.log('New session initialized:', data);
+                const result = await res.json();
+                showToast(`✅ Google Drive (${folder}/${result.filename}) に保存完了！`);
             } catch (err) {
-                console.warn('New session call:', err);
+                showToast(`❌ 保存エラー: ${err.message}`);
             }
-
-            // Reset chat stream and show clean welcome
-            chatStream.innerHTML = '';
-            liveCurrentTurns = [];
-            appendMessage('Antigravity', '✨ **新しいチャットセッションを開始しました！**\nPC版AntigravityおよびColab Blackwell 96GB GPUと同期しています。何を開発・推論しましょうか？（トークン代完全0円）', false, true);
-            closeHistoryModal();
-            refreshLiveSync();
         }
 
-        function handleSearchInput() {
-            renderModalList();
-        }
-
-        function renderModalList() {
-            const query = searchInput.value.toLowerCase().trim();
-            historyListContainer.innerHTML = '';
-
-            if (currentModalTab === 'CURRENT') {
-                // Render current session turns (What you talked about on PC)
-                const filtered = liveCurrentTurns.filter(t => 
-                    t.prompt.toLowerCase().includes(query) ||
-                    t.answer.toLowerCase().includes(query)
-                );
-                historyCountBadge.innerText = `${filtered.length}件`;
-
-                if (filtered.length === 0) {
-                    historyListContainer.innerHTML = `<div class="h-32 flex items-center justify-center text-slate-500 text-xs">一致する対話がありません</div>`;
-                    return;
-                }
-
-                // Show in reverse order (latest first)
-                [...filtered].reverse().forEach((item, idx) => {
-                    const card = document.createElement('div');
-                    card.className = 'p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl space-y-1.5 active:bg-slate-700 transition cursor-pointer';
-                    card.onclick = () => {
-                        closeHistoryModal();
-                    };
-                    card.innerHTML = `
-                        <div class="flex justify-between items-center text-[10px] text-slate-400 mono">
-                            <span class="text-cyan-400 font-bold">💬 PC対話ターン</span>
-                            <span>${item.timestamp ? item.timestamp.replace('T', ' ').substring(0, 16) : ''}</span>
-                        </div>
-                        <div class="text-xs font-bold text-white line-clamp-1">
-                            ${escapeHtml(item.prompt)}
-                        </div>
-                        <div class="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
-                            ${escapeHtml(item.answer.replace(/```[\s\S]*?```/g, '[コードブロック]'))}
-                        </div>
-                    `;
-                    historyListContainer.appendChild(card);
-                });
-
+        // 🎥 Video Recording
+        function toggleVideoRecording() {
+            if (!isRecordingVideo) {
+                startVideoRec();
             } else {
-                // Render All PC Sessions (Sidebar sync)
-                const filtered = liveSessions.filter(s => 
-                    s.title.toLowerCase().includes(query) ||
-                    (s.snippet && s.snippet.toLowerCase().includes(query))
-                );
-                historyCountBadge.innerText = `${filtered.length}セッション`;
-
-                if (filtered.length === 0) {
-                    historyListContainer.innerHTML = `<div class="h-32 flex items-center justify-center text-slate-500 text-xs">一致するセッションがありません</div>`;
-                    return;
-                }
-
-                filtered.forEach(s => {
-                    const card = document.createElement('div');
-                    card.className = `p-3 ${s.is_current ? 'bg-cyan-950/50 border-cyan-500/60' : 'bg-slate-800/80 border-slate-700/80'} border rounded-xl space-y-1 active:bg-slate-700 transition cursor-pointer`;
-                    card.onclick = () => {
-                        if (s.is_current) {
-                            closeHistoryModal();
-                        } else {
-                            promptInput.value = s.snippet ? s.snippet : s.title;
-                            closeHistoryModal();
-                        }
-                    };
-                    card.innerHTML = `
-                        <div class="flex justify-between items-center text-[10px] mono">
-                            <span class="${s.is_current ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
-                                ${s.is_current ? '🟢 現在アクティブ (Active)' : '📂 保存セッション'}
-                            </span>
-                            <span class="text-slate-500">${s.timestamp}</span>
-                        </div>
-                        <div class="text-xs font-bold text-white line-clamp-1">
-                            ${escapeHtml(s.title)}
-                        </div>
-                        ${s.snippet ? `<div class="text-[10px] text-slate-400 line-clamp-1">${escapeHtml(s.snippet)}</div>` : ''}
-                    `;
-                    historyListContainer.appendChild(card);
-                });
+                stopVideoRec();
             }
         }
 
-        function appendMessage(sender, text, isUser = false, autoScroll = true) {
-            const row = document.createElement('div');
-            row.className = `flex items-start space-x-2.5 ${isUser ? 'justify-end' : ''}`;
+        function startVideoRec() {
+            isRecordingVideo = true;
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = uploadVideoRecording;
+            mediaRecorder.start();
 
-            if (isUser) {
-                row.innerHTML = `
-                    <div class="bubble-user p-2.5 max-w-[88%] text-xs text-white shadow-md">
-                        ${escapeHtml(text)}
-                    </div>
-                `;
+            document.getElementById('videoLabel').textContent = "停止";
+            document.getElementById('videoCircle').classList.add('bg-rose-600', 'glow-red');
+            document.getElementById('recordingBadge').classList.remove('hidden');
+            document.getElementById('recordingBadge').classList.add('flex');
+            startTimer();
+        }
+
+        function stopVideoRec() {
+            isRecordingVideo = false;
+            mediaRecorder.stop();
+            document.getElementById('videoLabel').textContent = "動画録画";
+            document.getElementById('videoCircle').classList.remove('bg-rose-600', 'glow-red');
+            document.getElementById('recordingBadge').classList.add('hidden');
+            document.getElementById('recordingBadge').classList.remove('flex');
+            stopTimer();
+        }
+
+        async function uploadVideoRecording() {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const folder = getTargetFolder();
+                showToast(`🎥 動画アップロード中... [Google Drive: ${folder}]`);
+                try {
+                    const res = await fetch('/api/lens/capture', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            media_type: 'video',
+                            video_data: reader.result,
+                            folder: folder
+                        })
+                    });
+                    const data = await res.json();
+                    showToast(`✅ 動画保存完了: ${data.filename}`);
+                } catch (e) {
+                    showToast(`❌ 動画アップロード失敗: ${e.message}`);
+                }
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        // 🎙️ Audio Recording
+        function toggleAudioRecording() {
+            if (!isRecordingAudio) {
+                isRecordingAudio = true;
+                recordedChunks = [];
+                const audioStream = new MediaStream(stream.getAudioTracks());
+                mediaRecorder = new MediaRecorder(audioStream);
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                mediaRecorder.onstop = uploadAudioRecording;
+                mediaRecorder.start();
+
+                document.getElementById('audioLabel').textContent = "録音中...";
+                document.getElementById('audioIcon').textContent = "⏹️";
+                startTimer();
             } else {
-                row.innerHTML = `
-                    <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center shrink-0 shadow-md">
-                        <span class="text-xs font-bold text-white">AG</span>
-                    </div>
-                    <div class="bubble-agent p-3 max-w-[88%] shadow-lg space-y-1.5">
-                        <div class="text-[11px] font-bold text-cyan-300 flex items-center space-x-1">
-                            <span>Antigravity 2.0</span>
-                            <span class="text-[8px] px-1 rounded bg-emerald-900/60 text-emerald-300 mono">$0.00</span>
-                        </div>
-                        <div class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">${formatMarkdown(text)}</div>
-                    </div>
-                `;
-            }
-            chatStream.appendChild(row);
-            if (autoScroll) {
-                chatStream.scrollTop = chatStream.scrollHeight;
+                isRecordingAudio = false;
+                mediaRecorder.stop();
+                document.getElementById('audioLabel').textContent = "音声録音";
+                document.getElementById('audioIcon').textContent = "🎙️";
+                stopTimer();
             }
         }
 
-        function formatMarkdown(text) {
-            let escaped = escapeHtml(text);
-            escaped = escaped.replace(/```([\s\S]*?)```/g, '<pre class="bg-black/90 p-2 rounded-lg border border-slate-800 text-[10px] mono text-cyan-300 overflow-x-auto my-1.5">$1</pre>');
-            escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>');
-            return escaped;
-        }
-
-        function escapeHtml(string) {
-            return String(string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-
-        function sendQuickPrompt(text) {
-            promptInput.value = text;
-            handleUserSubmit(new Event('submit'));
-        }
-
-        async function handleUserSubmit(e) {
-            if (e) e.preventDefault();
-            const text = promptInput.value.trim();
-            if (!text) return;
-
-            appendMessage('You', text, true);
-            promptInput.value = '';
-            promptInput.blur();
-
-            const thinkingRow = document.createElement('div');
-            thinkingRow.id = 'thinkingIndicator';
-            thinkingRow.className = 'flex items-start space-x-2.5';
-            thinkingRow.innerHTML = `
-                <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center shrink-0">
-                    <span class="text-xs text-cyan-400 animate-spin">⚡</span>
-                </div>
-                <div class="bubble-agent p-2.5 max-w-[88%] text-xs text-slate-400 flex items-center space-x-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                    <span>Blackwell 96GB GPU 自律推論中 (0トークン)...</span>
-                </div>
-            `;
-            chatStream.appendChild(thinkingRow);
-            chatStream.scrollTop = chatStream.scrollHeight;
-
-            let answerText = '';
-
-            try {
-                let endpoint = '/api/quantum/natural_language_compile';
-                if (text.includes('コード') || text.includes('FastAPI') || text.includes('テスト')) {
-                    endpoint = '/api/notebook/query';
+        async function uploadAudioRecording() {
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const folder = getTargetFolder();
+                showToast(`🎙️ 音声保存中... [Google Drive: ${folder}]`);
+                try {
+                    const res = await fetch('/api/lens/capture', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            media_type: 'audio',
+                            audio_data: reader.result,
+                            folder: folder
+                        })
+                    });
+                    const data = await res.json();
+                    showToast(`✅ 音声保存完了: ${data.filename}`);
+                } catch (e) {
+                    showToast(`❌ 音声保存失敗: ${e.message}`);
                 }
-
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: text, query: text })
-                });
-                const data = await res.json();
-
-                thinkingRow.remove();
-
-                if (data.explanation) {
-                    answerText = `【量子推論完了】\n${data.explanation}\n\n■ Google Cirq 回路コード:\n\`\`\`python\n${data.cirq_code}\n\`\`\``;
-                } else if (data.answer) {
-                    answerText = data.answer;
-                } else if (data.synthesis) {
-                    answerText = data.synthesis;
-                } else {
-                    answerText = `✅ **Colab Blackwell 96GB GPU で正常実行されました**\n\nタスク: ${text}\nステータス: SUCCESS\nトークン消費: 0 ($0.00)\n成果物は Google Drive の cortex_vault/ に安全に保存されました。`;
-                }
-            } catch (err) {
-                thinkingRow.remove();
-                const isGemma4Local = localStorage.getItem(SSD_KEY) === 'true';
-                if (isGemma4Local) {
-                    answerText = await runLocalGemma4SSDInference(text);
-                } else {
-                    answerText = `⚠️ **オフライン / 接続待機中**\nクラウドとの通信が一時的に途絶えています。\n上部の【📥 SSD配備 (2.1GB)】をタップして配備完了させると、電波のない完全オフライン環境でもスマホローカルSSD（OPFS）✕ WebGPU並列演算で即座に0.1秒自律推論が可能です。\n(通信詳細: ${err.message})`;
-                }
-            }
-
-            appendMessage('Antigravity', answerText, false);
-            // Append to in-memory turns
-            liveCurrentTurns.push({ prompt: text, answer: answerText, timestamp: new Date().toISOString() });
+            };
+            reader.readAsDataURL(blob);
         }
 
-        // ====================================================================
-        // 🚀 WEBGPU WGSL NEURAL ACCELERATOR (ZERO-MOCK & HARDWARE SENSING)
-        // ====================================================================
-        class GenesisMobileWebGPU {
-            constructor() {
-                this.isSupported = false;
-                this.device = null;
-                this.adapter = null;
-                this.adapterInfo = null;
-                this.pipeline = null;
-                this.numNeurons = 10000;
-                this.lastElapsedMs = 0;
-            }
-
-            async init() {
-                if (typeof navigator !== 'undefined' && navigator.gpu) {
-                    try {
-                        this.adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
-                        if (this.adapter) {
-                            if (this.adapter.requestAdapterInfo) {
-                                try { this.adapterInfo = await this.adapter.requestAdapterInfo(); } catch (_) {}
-                            }
-                            if (!this.adapterInfo && this.adapter.info) {
-                                this.adapterInfo = this.adapter.info;
-                            }
-                            this.device = await this.adapter.requestDevice();
-
-                            // Mathematical LIF Euler Integration WGSL Compute Shader
-                            const shaderModule = this.device.createShaderModule({
-                                code: `
-                                struct LIFParams {
-                                    tau_m: f32,
-                                    v_rest: f32,
-                                    v_reset: f32,
-                                    v_thresh: f32,
-                                    r_m: f32,
-                                    dt: f32,
-                                    num_neurons: u32,
-                                    _pad: u32,
-                                };
-
-                                @group(0) @binding(0) var<uniform> params: LIFParams;
-                                @group(0) @binding(1) var<storage, read_write> v_mem: array<f32>;
-                                @group(0) @binding(2) var<storage, read> i_syn: array<f32>;
-                                @group(0) @binding(3) var<storage, read_write> spikes: array<u32>;
-
-                                // LIF Euler Stepping: tau_m * dV/dt = -(V - V_rest) + R_m * I(t)
-                                @compute @workgroup_size(64)
-                                fn step_lif(@builtin(global_invocation_id) global_id: vec3<u32>) {
-                                    let idx = global_id.x;
-                                    if (idx >= params.num_neurons) {
-                                        return;
-                                    }
-                                    var v = v_mem[idx];
-                                    let i = i_syn[idx];
-                                    let dv = ( -(v - params.v_rest) + params.r_m * i ) * (params.dt / params.tau_m);
-                                    v = v + dv;
-                                    if (v >= params.v_thresh) {
-                                        spikes[idx] = 1u;
-                                        v = params.v_reset;
-                                    } else {
-                                        spikes[idx] = 0u;
-                                    }
-                                    v_mem[idx] = v;
-                                }
-                                `
-                            });
-
-                            this.pipeline = this.device.createComputePipeline({
-                                layout: 'auto',
-                                compute: { module: shaderModule, entryPoint: 'step_lif' }
-                            });
-
-                            this.isSupported = true;
-                            return true;
-                        }
-                    } catch (err) {
-                        console.warn("[WebGPU] Fallback to SIMD Float32Array:", err);
-                    }
-                }
-                this.isSupported = false;
-                return false;
-            }
-
-            async stepLIF(numNeurons = 10000, dt = 0.001) {
-                const t0 = performance.now();
-                if (this.isSupported && this.device && this.pipeline) {
-                    try {
-                        const paramData = new ArrayBuffer(32);
-                        const floatView = new Float32Array(paramData);
-                        const uintView = new Uint32Array(paramData);
-                        floatView[0] = 20.0;  // tau_m
-                        floatView[1] = -70.0; // v_rest
-                        floatView[2] = -70.0; // v_reset
-                        floatView[3] = -55.0; // v_thresh
-                        floatView[4] = 10.0;  // r_m
-                        floatView[5] = dt;    // dt
-                        uintView[6] = numNeurons;
-                        uintView[7] = 0;
-
-                        const paramBuffer = this.device.createBuffer({
-                            size: 32,
-                            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-                            mappedAtCreation: true
-                        });
-                        new Uint8Array(paramBuffer.getMappedRange()).set(new Uint8Array(paramData));
-                        paramBuffer.unmap();
-
-                        const vMemData = new Float32Array(numNeurons);
-                        const iSynData = new Float32Array(numNeurons);
-                        for (let i = 0; i < numNeurons; i++) {
-                            vMemData[i] = -70.0 + Math.random() * 14.0;
-                            iSynData[i] = 1.8 + Math.random() * 0.5;
-                        }
-
-                        const vBuffer = this.device.createBuffer({
-                            size: numNeurons * 4,
-                            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
-                            mappedAtCreation: true
-                        });
-                        new Float32Array(vBuffer.getMappedRange()).set(vMemData);
-                        vBuffer.unmap();
-
-                        const iBuffer = this.device.createBuffer({
-                            size: numNeurons * 4,
-                            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-                            mappedAtCreation: true
-                        });
-                        new Float32Array(iBuffer.getMappedRange()).set(iSynData);
-                        iBuffer.unmap();
-
-                        const spikeBuffer = this.device.createBuffer({
-                            size: numNeurons * 4,
-                            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
-                        });
-
-                        const bindGroup = this.device.createBindGroup({
-                            layout: this.pipeline.getBindGroupLayout(0),
-                            entries: [
-                                { binding: 0, resource: { buffer: paramBuffer } },
-                                { binding: 1, resource: { buffer: vBuffer } },
-                                { binding: 2, resource: { buffer: iBuffer } },
-                                { binding: 3, resource: { buffer: spikeBuffer } }
-                            ]
-                        });
-
-                        const commandEncoder = this.device.createCommandEncoder();
-                        const passEncoder = commandEncoder.beginComputePass();
-                        passEncoder.setPipeline(this.pipeline);
-                        passEncoder.setBindGroup(0, bindGroup);
-                        passEncoder.dispatchWorkgroups(Math.ceil(numNeurons / 64));
-                        passEncoder.end();
-
-                        this.device.queue.submit([commandEncoder.finish()]);
-                        await this.device.queue.onSubmittedWorkDone();
-
-                        const elapsed = performance.now() - t0;
-                        this.lastElapsedMs = elapsed;
-                        const gpuDesc = (this.adapterInfo && (this.adapterInfo.description || this.adapterInfo.architecture)) || 'Mobile GPU';
-                        return {
-                            mode: 'WebGPU_WGSL',
-                            gpuName: gpuDesc,
-                            numNeurons,
-                            elapsedMs: elapsed.toFixed(3),
-                            activeSpikes: Math.floor(numNeurons * 0.125)
-                        };
-                    } catch (e) {
-                        console.warn("[WebGPU step fallback]", e);
-                    }
-                }
-
-                // Vectorized Float32Array SIMD Fallback
-                const vMem = new Float32Array(numNeurons);
-                const iSyn = new Float32Array(numNeurons);
-                let spikes = 0;
-                const tau_m = 20.0, v_rest = -70.0, v_reset = -70.0, v_thresh = -55.0, r_m = 10.0;
-                for (let i = 0; i < numNeurons; i++) {
-                    vMem[i] = -65.0;
-                    iSyn[i] = 2.0;
-                    const dv = (-(vMem[i] - v_rest) + r_m * iSyn[i]) * (dt / tau_m);
-                    vMem[i] += dv;
-                    if (vMem[i] >= v_thresh) {
-                        spikes++;
-                        vMem[i] = v_reset;
-                    }
-                }
-                const elapsed = performance.now() - t0;
-                this.lastElapsedMs = elapsed;
-                return {
-                    mode: 'SIMD_Float32Array',
-                    gpuName: 'Mobile CPU SIMD Vector',
-                    numNeurons,
-                    elapsedMs: elapsed.toFixed(3),
-                    activeSpikes: spikes
-                };
-            }
+        function startTimer() {
+            timerSeconds = 0;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+                const secs = String(timerSeconds % 60).padStart(2, '0');
+                document.getElementById('recordingTimer').textContent = `REC ${mins}:${secs}`;
+            }, 1000);
         }
 
-        const genesisMobileWebGPU = new GenesisMobileWebGPU();
-
-        async function updateWebGPUStatusUI() {
-            const badge = document.getElementById('webgpuBadge');
-            const txt = document.getElementById('webgpuTxt');
-            const dot = document.getElementById('webgpuDot');
-            if (!badge || !txt) return;
-
-            const supported = await genesisMobileWebGPU.init();
-            if (supported) {
-                const res = await genesisMobileWebGPU.stepLIF(10000);
-                txt.innerText = `WebGPU: ${res.elapsedMs}ms ✓`;
-                dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400";
-                badge.className = "flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-emerald-950/90 border border-emerald-500/80 text-[9px] text-emerald-300 font-bold active:scale-95 transition shadow-sm hover:border-emerald-400";
-                badge.title = `WebGPU WGSL稼働中 (${res.gpuName}): 10kニューロン ${res.elapsedMs}ms`;
-            } else {
-                const res = await genesisMobileWebGPU.stepLIF(10000);
-                txt.innerText = `SIMD: ${res.elapsedMs}ms ✓`;
-                dot.className = "w-1.5 h-1.5 rounded-full bg-indigo-400";
-                badge.className = "flex items-center space-x-1.5 px-2 py-0.5 rounded-full bg-indigo-950/90 border border-indigo-500/80 text-[9px] text-indigo-300 font-bold active:scale-95 transition shadow-sm";
-                badge.title = `Float32Array SIMD稼働中: 10kニューロン ${res.elapsedMs}ms`;
-            }
+        function stopTimer() {
+            clearInterval(timerInterval);
         }
 
-        async function runWebGPUBenchmark() {
-            const txt = document.getElementById('webgpuTxt');
-            const prev = txt.innerText;
-            txt.innerText = '⚡ 10k演算中...';
-            const res = await genesisMobileWebGPU.stepLIF(10000);
-            txt.innerText = `${res.mode === 'WebGPU_WGSL' ? 'WebGPU' : 'SIMD'}: ${res.elapsedMs}ms ✓`;
-
-            alert(`⚡ 【WebGPU ハードウェア並列アクセラレーション】\n\n` +
-                  `・実行モード: ${res.mode}\n` +
-                  `・GPUデバイス: ${res.gpuName}\n` +
-                  `・並列ニューロン規模: ${res.numNeurons.toLocaleString()} ニューロン (10k)\n` +
-                  `・LIF積分演算時間: ${res.elapsedMs} ms\n` +
-                  `・発火スパイク数: ${res.activeSpikes.toLocaleString()} 回\n` +
-                  `・数値積分式: τ_m (dV/dt) = -(V - V_rest) + R_m * I(t)\n\n` +
-                  `スマホのGPU（またはCPU SIMD）が直接WGSLコンピュートシェーダーを並列駆動し、0.1秒未満の超神速ニューラル応答を保証しています。`);
-        }
-
-        // ====================================================================
-        // ⚡ LOCAL SSD QUANTUM GEMMA 4 INFERENCE ENGINE (OFFLINE REFLEX)
-        // ====================================================================
-        async function runLocalGemma4SSDInference(prompt) {
-            const now = new Date().toLocaleTimeString();
-            let body = '';
-
-            // Run hardware WebGPU step in parallel with local model
-            const gpuRes = await genesisMobileWebGPU.stepLIF(10000);
-
-            if (prompt.includes('避難') || prompt.includes('ルート') || prompt.includes('量子') || prompt.includes('台風')) {
-                body = `【量子アニーリング QUBO 避難経路最適化 (スマホSSD ✕ WebGPU推論)】
-・ハミルトニアン定式化: H(x) = ∑ c_i x_i + λ ∑ A_ij x_i x_j (浸水リスク制約ペナルティ)
-・WebGPU WGSL加速: ${gpuRes.mode} (${gpuRes.gpuName}, レイテンシ: ${gpuRes.elapsedMs}ms)
-・計算結果:
-  - 最適避難所: 高台指定避難所 B棟 (標高+24.5m)
-  - 推奨避難経路: ルート7 (冠水予想区域完全迂回 / 距離3.2km / 所要時間24分)
-  - 自由エネルギー F_min: -184.2 kJ (リスク回避率 99.8%)
-・オフライン地図キャッシュと連動し、電波ゼロでも現在地から安全にナビゲーション可能です。`;
-            } else if (prompt.includes('FastAPI') || prompt.includes('コード') || prompt.includes('決済')) {
-                body = `【FastAPI + Google Pay 完全バックエンド生成 (スマホSSD ✕ WebGPU推論)】
-\`\`\`python
-from fastapi import FastAPI, Depends, HTTPException, Security
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import hmac, hashlib
-
-app = FastAPI(title="GENESIS Production API", version="2.0.0")
-security = HTTPBearer()
-
-@app.post("/api/v1/checkout/google-pay")
-async def process_google_pay(payload: dict, token: HTTPAuthorizationCredentials = Security(security)):
-    # 署名検証とゼロトークン決済処理
-    if not payload.get("paymentMethodToken"):
-        raise HTTPException(status_code=400, detail="Invalid token")
-    return {"status": "SUCCESS", "amount": payload.get("amount"), "currency": "JPY", "cost": 0.00}
-\`\`\`
-※ スマホSSD上のINT4量子モデル ✕ WebGPU (${gpuRes.elapsedMs}ms) から直接生成されました。Google Drive再同期時にPC側へ自動反映されます。`;
-            } else if (prompt.includes('テスト')) {
-                body = `【全体テスト実行レポート (スマホSSD ✕ WebGPU推論)】
-・SNN LIF膜電位微分方程式: PASS (τ_m dV/dt = -(V - V_rest) + Rm*I) [${gpuRes.mode}: ${gpuRes.elapsedMs}ms]
-・STDP 可塑性シナプス学習則: PASS (Δw = A_+ e^(-Δt/τ_+))
-・Colab Blackwell 通信シールド: PASS (暗号化トランスポート整合性 100%)
-・23/23 全テスト正常通過 (総所要時間: 0.082s)`;
-            } else {
-                body = `【スマホSSD直結 量子Gemma 4 局所推論完了】
-・入力プロンプト: 「${prompt}」
-・モデル: Quantum Gemma 4 INT4 (OPFS 2.1GB Cached)
-・ハードウェア並列: ${gpuRes.mode} ⚡ (${gpuRes.gpuName} / ${gpuRes.elapsedMs}ms)
-・トークンコスト: $0.00 (完全オンデバイス実行)
-・オフライン自律キャッシュ: 有効
-
-電波のない状況下でもスマホ内蔵SSD ✕ WebGPUのニューラル回路が自律的に応答しました。PCまたはColabへの通信が復帰した際、対話ログはクラウドへ自動マージされます。`;
-            }
-
-            return `⚡ **【スマホSSD直結 量子Gemma 4 ✕ WebGPU推論 (オフライン稼働)】**\n${body}`;
-        }
-
-        // ====================================================================
-        // 🧠 QUANTUM GEMMA 4 SSD ORCHESTRATION ENGINE (MOBILE BASIC KIT)
-        // ====================================================================
-        const SSD_KEY = 'genesis_gemma4_ssd_certified';
-
-        function checkSSDInstallationStatus() {
-            const isInstalled = localStorage.getItem(SSD_KEY) === 'true';
-            const badge = document.getElementById('ssdStatusBadge');
-            const sub = document.getElementById('ssdStatusSub');
-            const btnIcon = document.getElementById('ssdBtnIcon');
-            const btnLabel = document.getElementById('ssdBtnLabel');
-            const btn = document.getElementById('btnInstallSSD');
-
-            if (isInstalled) {
-                badge.className = 'px-1.5 py-0.2 rounded font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600 animate-pulse';
-                badge.innerText = 'CERTIFIED (2.1GB)';
-                sub.innerText = 'スマホSSD (OPFS) ✕ WebGPU WGSL高速化 (0.01ms)';
-                btnIcon.innerText = '✅';
-                btnLabel.innerText = 'SSD配備済 (管理)';
-                btn.className = 'px-2 py-1 rounded-lg bg-emerald-950 border border-emerald-600 text-emerald-300 font-bold text-[10px] flex items-center space-x-1 active:scale-95 transition';
-            } else {
-                badge.className = 'px-1.5 py-0.2 rounded font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800';
-                badge.innerText = '未配備';
-                sub.innerText = 'スマホSSD (OPFS) ✕ WebGPU WGSL高速並列化 (0.01ms)';
-                btnIcon.innerText = '📥';
-                btnLabel.innerText = 'SSD配備 (2.1GB)';
-                btn.className = 'px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-[10px] flex items-center space-x-1 shadow-md shadow-indigo-500/25 active:scale-95 transition';
-            }
-        }
-
-        async function triggerGemma4SSDInstall() {
-            const isInstalled = localStorage.getItem(SSD_KEY) === 'true';
-            if (isInstalled) {
-                // Show storage management alert
-                let estText = 'ストレージ容量: 約2.1GB 確保済 (OPFS / CacheStorage)';
-                if (navigator.storage && navigator.storage.estimate) {
-                    const est = await navigator.storage.estimate();
-                    const usageMB = Math.round((est.usage || 0) / (1024 * 1024));
-                    const quotaMB = Math.round((est.quota || 0) / (1024 * 1024));
-                    estText = `スマホSSD使用量: ${usageMB}MB / 割当可能: ${quotaMB}MB`;
-                }
-                alert(`🧠 【量子Gemma 4 SSDオーケストレーション】\n\nステータス: CERTIFIED (稼働中)\n${estText}\n\n・INT4 量子化ウェイト: SSD直接マッピング済\n・SNN 反射マトリクス: 0.1s即時応答\n・オフライン時: 通信なしでスマホ単体推論可能`);
-                return;
-            }
-
-            // Start installation animation
-            const btn = document.getElementById('btnInstallSSD');
-            const btnLabel = document.getElementById('ssdBtnLabel');
-            const btnIcon = document.getElementById('ssdBtnIcon');
-            const badge = document.getElementById('ssdStatusBadge');
-
-            btn.disabled = true;
-            btnIcon.innerText = '⏳';
-            btnLabel.innerText = 'SSD書き込み中... 0%';
-
-            const steps = [
-                { pct: '18%', label: 'OPFS 領域確保 (2.1GB)...' },
-                { pct: '42%', label: 'INT4 量子重みキャッシュ中...' },
-                { pct: '74%', label: 'WebGPU SNN シェーダー構築...' },
-                { pct: '95%', label: 'SHA-256 整合性検査...' },
-                { pct: '100%', label: '配備完了！' }
-            ];
-
-            for (const step of steps) {
-                await new Promise(r => setTimeout(r, 400));
-                btnLabel.innerText = step.label;
-                badge.innerText = step.pct;
-            }
-
-            // Persist to local storage & OPFS
-            localStorage.setItem(SSD_KEY, 'true');
-            btn.disabled = false;
-            checkSSDInstallationStatus();
-
-            appendMessage('Antigravity', '🎉 **量子Gemma 4 オーケストレーションのSSD配備が完了しました！**\n\nスマホのローカルSSD（OPFS/CacheStorage）にINT4量子化ウェイト（2.1GB）とSNN反射神経網が完全マッピングされました。\nこれで電波の届かない場所（地下・トンネル・機内）でも、**スマホ単体で0.1秒の超神速自律推論**が稼働します！', false, true);
-        }
-
-        async function runSensoryCyberneticsTest() {
-            appendMessage('User', '📸 🎙️ スマホの目（カメラ帳票撮影）と耳（会議音声録音）をGoogle Drive経由でColab GPUへ連動解析して！', true);
-            appendMessage('Antigravity', '⏳ **スマホの目と耳 ➔ Google Drive ➔ Colab Blackwell 96GB GPU リアルタイム解析中...**\n- 📸 撮影画像: `branch_sales_slip_tokyo_osaka.jpg`\n- 🎙️ 会議音声: `executive_strategy_meeting_voice.wav`', false);
-
-            try {
-                const res = await fetch('/api/sensory/test');
-                const data = await res.json();
-
-                if (data.success) {
-                    const eye = data.eye;
-                    const ear = data.ear;
-                    const rep = data.report;
-
-                    const msg = `🎉 **【スマホの目と耳 ✕ Colab 96GB GPU 連動解析完了！】**\n\n` +
-                        `### 👁️ スマホカメラ（目）の解析結果 (Colab GPU: ${eye.colab_gpu_processing_ms} ms)\n` +
-                        `- 帳票から解析された総売上: **¥${eye.total_sales_jpy.toLocaleString()} JPY**\n` +
-                        `- 支店数: ${eye.extracted_records.length}拠点 (東京本店, 大阪支店, 名古屋支店, 福岡支店)\n` +
-                        `- 📊 自動生成グラフ: \`${eye.svg_chart.split(/[\\\\/]/).pop()}\` (SVGベクトル描画完了)\n` +
-                        `- 🛡️ マークル証明書: \`${eye.merkle_receipt}\`\n\n` +
-                        `### 🎙️ スマホマイク（耳）の解析結果 (Colab GPU: ${ear.colab_gpu_transcription_ms} ms)\n` +
-                        `- 議事録要約: 「${ear.meeting_insights.transcript_summary}」\n` +
-                        `- 🎯 抽出タスク: ${ear.meeting_insights.action_items.length}件\n` +
-                        `  1. ${ear.meeting_insights.action_items[0].task} (${ear.meeting_insights.action_items[0].deadline})\n` +
-                        `  2. ${ear.meeting_insights.action_items[1].task} (${ear.meeting_insights.action_items[1].deadline})\n\n` +
-                        `### 📑 自動生成された役員報告書・論文\n` +
-                        `- 文書: \`${rep.report_file.split(/[\\\\/]/).pop()}\` (${rep.report_size_bytes} bytes)\n` +
-                        `- Google Drive保管先: \`/GENESIS_ROOT/sensory_vault/reports/\`\n` +
-                        `- 📱 スマホ通知: **${rep.mobile_notification}**`;
-
-                    appendMessage('Antigravity', msg, false);
-                }
-            } catch (err) {
-                appendMessage('Antigravity', `❌ 連動解析エラー: ${err.message}`, false);
-            }
-        }
-
-        function triggerSensoryEyePrompt() {
-            appendMessage('User', '📸 [目] スマホのカメラでホワイトボードや売上帳票を撮影してColabへ転送', true);
-            runSensoryCyberneticsTest();
-        }
-
-        function triggerSensoryEarPrompt() {
-            appendMessage('User', '🎙️ [耳] スマホのマイクで商談音声をリアルタイム録音してColabへ転送', true);
-            runSensoryCyberneticsTest();
-        }
-
-        // Auto load on boot
-        window.onload = () => {
-            loadLivePCConversation();
-            loadLivePCSessions();
-            checkSSDInstallationStatus();
-            updateWebGPUStatusUI();
-        };
-
-        // Register Smartphone Edge Server (Service Worker)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then((reg) => {
-                    console.log('📱 [Mobile Server SW] Sovereign Mesh Edge Node Active:', reg.scope);
-                }).catch((err) => {
-                    console.log('📱 [Mobile Server SW] Registration notice:', err);
-                });
-            });
-        }
+        window.onload = initCamera;
     </script>
 </body>
 </html>
